@@ -548,6 +548,19 @@ def foto_download(request, pk):
 
 
 @login_required
+def assinatura_download(request, pk):
+    from sigo.models import Assinatura
+
+    assinatura = get_object_or_404(Assinatura, pk=pk)
+    response = HttpResponse(
+        assinatura.arquivo,
+        content_type=assinatura.mime_type or "application/octet-stream",
+    )
+    response["Content-Disposition"] = f'inline; filename="{assinatura.nome_arquivo}"'
+    return response
+
+
+@login_required
 def achados_perdidos_index(request):
     return render(request, 'siop/achados_perdidos/index.html')
 

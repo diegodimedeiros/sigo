@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 
+from sigo_core.shared.normalizers import normalize_digits, normalize_text, normalize_upper
 from sigo_core.shared.upload_validators import validation_size
 
 User = get_user_model()
@@ -267,6 +268,69 @@ class Contato(models.Model):
     def __str__(self):
         return self.email or self.telefone or "Contato"
 
+
+class Unidade(models.Model):
+    nome = models.CharField(max_length=255, unique=True, verbose_name="Nome da Unidade")
+    sigla = models.CharField(max_length=50, blank=True, null=True, verbose_name="Sigla")
+    cnpj = models.CharField(max_length=18, blank=True, null=True, verbose_name="CNPJ")
+    cidade = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade")
+    uf = models.CharField(max_length=2, blank=True, null=True, verbose_name="UF")
+    ativo = models.BooleanField(default=True, verbose_name="Ativa?")
+
+    class Meta:
+        verbose_name = "Unidade"
+        verbose_name_plural = "Unidades"
+        ordering = ["nome"]
+
+    def clean(self):
+        super().clean()
+        self.nome = normalize_text(self.nome)
+        self.sigla = normalize_upper(self.sigla) or None
+        self.cnpj = normalize_digits(self.cnpj) or None
+        self.cidade = normalize_text(self.cidade) or None
+        self.uf = normalize_upper(self.uf) or None
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        if self.sigla:
+            return f"{self.nome} ({self.sigla})"
+        return self.nome
+
+
+class ConfiguracaoSistema(models.Model):
+    codigo = models.CharField(
+        max_length=20,
+        unique=True,
+        default="default",
+        editable=False,
+        verbose_name="Código",
+    )
+    unidade_ativa = models.ForeignKey(
+        Unidade,
+        on_delete=models.PROTECT,
+        related_name="configuracoes_ativas",
+        verbose_name="Unidade ativa",
+    )
+
+    class Meta:
+        verbose_name = "Configuração do Sistema"
+        verbose_name_plural = "Configurações do Sistema"
+
+    def save(self, *args, **kwargs):
+        self.codigo = "default"
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Configuração principal - {self.unidade_ativa}"
+
+    @classmethod
+    def get_solo(cls):
+        return cls.objects.select_related("unidade_ativa").order_by("id").first()
+
+
 # Modelo para representar o operador do sistema, vinculado a um usuário do Django #
 class Operador(models.Model):
     user = models.OneToOneField(
@@ -292,3 +356,10 @@ class Operador(models.Model):
     def __str__(self):
         full_name = self.user.get_full_name()
         return full_name if full_name else self.user.username
+
+
+def get_unidade_ativa():
+    config = ConfiguracaoSistema.get_solo()
+    if config is None:
+        return None
+    return config.unidade_ativa

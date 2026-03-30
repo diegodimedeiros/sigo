@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import F, Q
 from django.urls import reverse
 
-from sigo.models import Anexo, Assinatura, BaseModel, Foto, Pessoa
+from sigo.models import Anexo, Assinatura, BaseModel, Foto, Pessoa, Unidade
 from sigo_core.catalogos import (
     catalogo_achado_classificacao_label,
     catalogo_achado_situacao_label,
@@ -17,6 +17,8 @@ from sigo_core.catalogos import (
 )
 
 class Ocorrencia(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="ocorrencias", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     tipo_pessoa = models.CharField(max_length=30, verbose_name="Tipo Pessoa", blank=False, null=False, db_index=True)
     data_ocorrencia = models.DateTimeField(verbose_name="Data e Hora da Ocorrência", db_index=True)
     natureza = models.CharField(max_length=50, verbose_name="Natureza", null=False, blank=False, db_index=True)
@@ -61,6 +63,8 @@ class Ocorrencia(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -91,6 +95,8 @@ class Ocorrencia(BaseModel):
         return catalogo_local_label(self.area, self.local)
 
 class AcessoTerceiros(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="acessos_terceiros", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     entrada = models.DateTimeField(verbose_name="Data e Hora da Entrada", db_index=True, null=False, blank=False)
     saida = models.DateTimeField(verbose_name="Data e Hora da Saída", db_index=True, null=True, blank=True)
     pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE, related_name="acessos_terceiros")
@@ -141,6 +147,8 @@ class AcessoTerceiros(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -165,6 +173,8 @@ class AcessoTerceiros(BaseModel):
 class AchadosPerdidos(BaseModel):
     FINAL_STATUS = {"entregue", "descarte", "doacao"}
 
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="achados_perdidos", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     tipo = models.CharField(max_length=50, verbose_name="Classificação do Item", null=False, blank=False, db_index=True)
     situacao = models.CharField(max_length=20, verbose_name="Situação do Item", null=True, blank=True, db_index=True)
     descricao = models.TextField(verbose_name="Descrição do Item", blank=False, null=False)
@@ -237,6 +247,8 @@ class AchadosPerdidos(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
         self.full_clean()
         return super().save(*args, **kwargs)
 

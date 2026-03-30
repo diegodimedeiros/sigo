@@ -39,6 +39,7 @@ from .views import (
     ocorrencias_list,
     ocorrencias_new,
     ocorrencias_view,
+    assinatura_download,
 )
 
 app_name = 'siop'
@@ -62,6 +63,7 @@ urlpatterns = [
     path('ocorrencias/<int:pk>/editar/', ocorrencias_edit, name='ocorrencias_edit'),
     path('anexos/<int:pk>/download/', anexo_download, name='anexo_download'),
     path('fotos/<int:pk>/download/', foto_download, name='foto_download'),
+    path('assinaturas/<int:pk>/download/', assinatura_download, name='assinatura_download'),
     path('acesso-terceiros/', acesso_terceiros_index, name='acesso_terceiros_index'),
     path('acesso-terceiros/lista/', acesso_terceiros_list, name='acesso_terceiros_list'),
     path('acesso-terceiros/novo/', acesso_terceiros_new, name='acesso_terceiros_new'),

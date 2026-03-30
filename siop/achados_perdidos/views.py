@@ -75,6 +75,7 @@ def _base_form_context(payload=None, errors=None):
             "pessoa_nome": payload.get("pessoa_nome", ""),
             "pessoa_documento": payload.get("pessoa_documento", ""),
             "data_devolucao": payload.get("data_devolucao", ""),
+            "assinatura_entrega": payload.get("assinatura_entrega", ""),
         },
         "errors": errors or {},
         "non_field_errors": (errors or {}).get("__all__", []),
@@ -154,13 +155,26 @@ def achados_perdidos_new(request):
 
 @login_required
 def achados_perdidos_view(request, pk):
-    item = get_object_or_404(AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos"), pk=pk)
-    return render(request, "siop/achados_perdidos/view.html", {"item": item})
+    item = get_object_or_404(
+        AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos", "assinaturas"),
+        pk=pk,
+    )
+    return render(
+        request,
+        "siop/achados_perdidos/view.html",
+        {
+            "item": item,
+            "assinatura": item.assinaturas.order_by("-id").first(),
+        },
+    )
 
 
 @login_required
 def achados_perdidos_edit(request, pk):
-    item = get_object_or_404(AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos"), pk=pk)
+    item = get_object_or_404(
+        AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos", "assinaturas"),
+        pk=pk,
+    )
     if (item.status or "").strip().lower() in FINAL_STATUS and request.method == "GET":
         messages.warning(request, "Itens com status final não podem ser editados.")
         return redirect("siop:achados_perdidos_view", pk=item.pk)
@@ -194,6 +208,7 @@ def achados_perdidos_edit(request, pk):
         "pessoa_nome": item.pessoa.nome if item.pessoa_id else "",
         "pessoa_documento": item.pessoa.documento if item.pessoa_id else "",
         "data_devolucao": timezone.localtime(item.data_devolucao).strftime("%Y-%m-%dT%H:%M") if item.data_devolucao else "",
+        "assinatura_entrega": "",
     }
     context = _base_form_context(payload=payload)
     context["item"] = item

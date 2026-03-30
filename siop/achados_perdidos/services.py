@@ -1,8 +1,11 @@
+import base64
+import binascii
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.utils import timezone
 
-from sigo.models import Anexo, Foto, Pessoa
+from sigo.models import Anexo, Assinatura, Foto, Pessoa, get_unidade_ativa
 from sigo_core.catalogos import (
     catalogo_achado_classificacao_key,
     catalogo_achado_situacao_key,
@@ -74,6 +77,71 @@ def _create_fotos(*, achado, files, user):
         )
 
 
+def _parse_signature_data_url(data_url):
+    value = _normalize_text(data_url)
+    if not value:
+        return None, None
+    if not value.startswith("data:") or "," not in value:
+        raise ServiceError(
+            code="validation_error",
+            message="Campos inválidos.",
+            details={"assinatura_entrega": "Formato de assinatura inválido."},
+        )
+
+    header, encoded = value.split(",", 1)
+    if ";base64" not in header:
+        raise ServiceError(
+            code="validation_error",
+            message="Campos inválidos.",
+            details={"assinatura_entrega": "Assinatura deve estar em base64."},
+        )
+
+    mime_type = header[5:].split(";")[0].strip().lower() or "image/png"
+    try:
+        payload = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError):
+        raise ServiceError(
+            code="validation_error",
+            message="Campos inválidos.",
+            details={"assinatura_entrega": "Assinatura inválida."},
+        )
+
+    if not payload:
+        raise ServiceError(
+            code="validation_error",
+            message="Campos inválidos.",
+            details={"assinatura_entrega": "Assinatura vazia."},
+        )
+
+    return mime_type, payload
+
+
+def _upsert_signature(*, achado, data_url, user):
+    mime_type, payload = _parse_signature_data_url(data_url)
+    if not payload:
+        return None
+
+    existing = achado.assinaturas.order_by("id").first()
+    if existing is not None:
+        existing.delete()
+
+    ext = "png"
+    if mime_type == "image/jpeg":
+        ext = "jpg"
+    elif mime_type == "image/webp":
+        ext = "webp"
+
+    return Assinatura.objects.create(
+        content_type=ContentType.objects.get_for_model(AchadosPerdidos),
+        object_id=achado.id,
+        nome_arquivo=f"assinatura_entrega_achado_{achado.id}.{ext}",
+        mime_type=mime_type,
+        arquivo=payload,
+        criado_por=user,
+        modificado_por=user,
+    )
+
+
 def _build_payload(*, data, original=None):
     original = original or {}
     tipo = catalogo_achado_classificacao_key(data.get("tipo") or original.get("tipo"))
@@ -94,6 +162,9 @@ def _build_payload(*, data, original=None):
     colaborador, setor = _normalize_colaborador_and_setor(
         data.get("colaborador") or original.get("colaborador"),
         data.get("setor") or original.get("setor"),
+    )
+    assinatura_entrega = _normalize_optional_text(
+        data.get("assinatura_entrega") or original.get("assinatura_entrega")
     )
 
     details = {}
@@ -122,6 +193,8 @@ def _build_payload(*, data, original=None):
             details["pessoa_documento"] = "Informe o documento da pessoa para concluir com este status."
         if not data_devolucao:
             details["data_devolucao"] = "Informe a data e hora da devolução para concluir com este status."
+    if status == "entregue" and not assinatura_entrega:
+        details["assinatura_entrega"] = "Colete a assinatura para concluir com status Entregue."
     if details:
         raise ServiceError(code="validation_error", message="Campos inválidos.", details=details)
 
@@ -139,13 +212,17 @@ def _build_payload(*, data, original=None):
         "data_devolucao": data_devolucao,
         "pessoa_nome": pessoa_nome,
         "pessoa_documento": pessoa_documento,
+        "assinatura_entrega": assinatura_entrega,
     }
 
 
 def create_achado_perdido(*, data, files, user):
     payload = _build_payload(data=data)
     pessoa = _get_or_create_pessoa(nome=payload["pessoa_nome"], documento=payload["pessoa_documento"])
+    unidade = get_unidade_ativa()
     achado = AchadosPerdidos.objects.create(
+        unidade=unidade,
+        unidade_sigla=getattr(unidade, "sigla", None),
         tipo=payload["tipo"],
         situacao=payload["situacao"],
         descricao=payload["descricao"],
@@ -168,6 +245,8 @@ def create_achado_perdido(*, data, files, user):
         anexo_model=Anexo,
         files=(files or {}).get("anexos", []),
     )
+    if payload["status"] == "entregue":
+        _upsert_signature(achado=achado, data_url=payload["assinatura_entrega"], user=user)
     return achado
 
 
@@ -194,6 +273,7 @@ def edit_achado_perdido(*, achado, data, files, user, strict_required=False):
             "data_devolucao": achado.data_devolucao.strftime("%Y-%m-%dT%H:%M") if achado.data_devolucao else "",
             "pessoa_nome": achado.pessoa.nome if achado.pessoa_id else "",
             "pessoa_documento": achado.pessoa.documento if achado.pessoa_id else "",
+            "assinatura_entrega": "",
         },
     )
     pessoa = _get_or_create_pessoa(nome=payload["pessoa_nome"], documento=payload["pessoa_documento"])
@@ -218,6 +298,8 @@ def edit_achado_perdido(*, achado, data, files, user, strict_required=False):
         anexo_model=Anexo,
         files=(files or {}).get("anexos", []),
     )
+    if payload["status"] == "entregue":
+        _upsert_signature(achado=achado, data_url=payload["assinatura_entrega"], user=user)
     return achado
 
 

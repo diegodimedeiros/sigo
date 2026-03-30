@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from sigo.models import Anexo, Assinatura, BaseModel, Contato, Foto, Geolocalizacao, Pessoa
+from sigo.models import Anexo, Assinatura, BaseModel, Contato, Foto, Geolocalizacao, Pessoa, Unidade
 
 class Testemunha(Pessoa):
     contato = models.OneToOneField(Contato, on_delete=models.CASCADE)
@@ -17,6 +17,8 @@ class Testemunha(Pessoa):
         return self.nome
 
 class ControleAtendimento(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="controles_atendimento", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     tipo_pessoa = models.CharField(
         max_length=50,
         verbose_name="Tipo de Pessoa",
@@ -138,6 +140,8 @@ class ControleAtendimento(BaseModel):
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
         self.full_clean()
         super().save(*args, **kwargs)
         novo_hash = self._build_hash_atendimento()
@@ -160,6 +164,8 @@ class ControleAtendimento(BaseModel):
         return f"{pessoa_nome} ({pessoa_documento}) - {when}"
 
 class Manejo(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="manejos", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     data_hora = models.DateTimeField(verbose_name="Data e Hora do Manejo", null=False, blank=False, db_index=True)
     
     classe = models.CharField(max_length=25, verbose_name="Classe", null=False, blank=False, db_index=True)
@@ -268,6 +274,8 @@ class Manejo(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -277,6 +285,8 @@ class Manejo(BaseModel):
         return f"{especie} - {self.local_captura} ({when})"
 
 class Flora(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="floras", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     responsavel_registro = models.CharField(max_length=255, verbose_name="Responsável pelo Registro", null=False, blank=False)
     local = models.CharField(max_length=50, verbose_name="Localização", null=False, blank=False, db_index=True)
     area = models.CharField(max_length=50, verbose_name="Área", null=False, blank=False, db_index=True)
@@ -378,10 +388,11 @@ class Flora(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
         self.full_clean()
         return super().save(*args, **kwargs)
 
     def __str__(self):
         identificacao = self.popular or self.especie or "Sem identificação informada"
         return f"{identificacao} - {self.local}"
-

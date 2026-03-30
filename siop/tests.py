@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from sigo.models import Pessoa
+from sigo.models import Assinatura, ConfiguracaoSistema, Pessoa, Unidade
 
 from .models import AcessoTerceiros, AchadosPerdidos, Ocorrencia
 
@@ -434,3 +434,130 @@ class AchadosPerdidosFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("siop:achados_perdidos_view", args=[self.item.pk]))
+
+    def test_achados_perdidos_entregue_exige_assinatura(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_new"),
+            data={
+                "tipo": "documentos",
+                "situacao": "achado",
+                "status": "entregue",
+                "area": "area_administrativo",
+                "local": "ciop",
+                "organico": "false",
+                "descricao": "Entrega sem assinatura deve falhar.",
+                "pessoa_nome": "Ana Paula",
+                "pessoa_documento": "11122233344",
+                "data_devolucao": "2026-03-29T19:30",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Colete a assinatura para concluir com status Entregue.")
+
+    def test_achados_perdidos_entregue_salva_assinatura(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_new"),
+            data={
+                "tipo": "documentos",
+                "situacao": "achado",
+                "status": "entregue",
+                "area": "area_administrativo",
+                "local": "ciop",
+                "organico": "false",
+                "descricao": "Entrega com assinatura deve persistir.",
+                "pessoa_nome": "Ana Paula",
+                "pessoa_documento": "11122233344",
+                "data_devolucao": "2026-03-29T19:30",
+                "assinatura_entrega": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5W0AAAAASUVORK5CYII=",
+            },
+        )
+
+        created = AchadosPerdidos.objects.exclude(pk=self.item.pk).latest("id")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(created.status, "entregue")
+        self.assertEqual(created.assinaturas.count(), 1)
+        self.assertIsInstance(created.assinaturas.first(), Assinatura)
+
+
+class UnidadeAutoAssignmentTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(
+            username="unidade",
+            password="senha-forte-123",
+        )
+        self.unidade = Unidade.objects.create(
+            nome="Parque do Caracol",
+            sigla="PC",
+            cidade="Canela",
+            uf="RS",
+        )
+        ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
+
+    def test_ocorrencia_nova_recebe_unidade_ativa(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:ocorrencias_new"),
+            data={
+                "pessoa": "visitante",
+                "data": "2026-03-29T19:00",
+                "natureza": "seguranca",
+                "tipo": "agressao",
+                "area": "area_administrativo",
+                "local": "ciop",
+                "descricao": "Ocorrência com unidade automática.",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        created = Ocorrencia.objects.latest("id")
+        self.assertEqual(created.unidade, self.unidade)
+        self.assertEqual(created.unidade_sigla, self.unidade.sigla)
+
+    def test_acesso_terceiros_novo_recebe_unidade_ativa(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:acesso_terceiros_new"),
+            data={
+                "entrada": "2026-03-29T19:00",
+                "empresa": "Fornecedor Teste",
+                "nome": "Carlos Souza",
+                "documento": "12345678900",
+                "p1": "lucas_cunha",
+                "descricao": "Acesso com unidade automática.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = AcessoTerceiros.objects.latest("id")
+        self.assertEqual(created.unidade, self.unidade)
+        self.assertEqual(created.unidade_sigla, self.unidade.sigla)
+
+    def test_achado_perdido_novo_recebe_unidade_ativa(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_new"),
+            data={
+                "tipo": "documentos",
+                "situacao": "achado",
+                "status": "recebido",
+                "area": "area_administrativo",
+                "local": "ciop",
+                "organico": "false",
+                "descricao": "Achado com unidade automática.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = AchadosPerdidos.objects.latest("id")
+        self.assertEqual(created.unidade, self.unidade)
+        self.assertEqual(created.unidade_sigla, self.unidade.sigla)

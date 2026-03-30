@@ -747,3 +747,21 @@ html[data-sigo-theme="dark"] .theme-toggle-btn .theme-icon-dark {
 .table-sort-link.is-active span {
   color: var(--primary);
 }
+
+.achados-signature-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.achados-signature-canvas {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 900 / 280;
+  border: 1px dashed var(--border);
+  border-radius: 0.85rem;
+  background: #fff;
+  touch-action: none;
+  display: block;
+}

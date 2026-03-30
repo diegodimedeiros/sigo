@@ -1,7 +1,7 @@
 from django.db.models import Count
 from django.utils import timezone
 
-from sigo.models import Anexo
+from sigo.models import Anexo, get_unidade_ativa
 from sigo_core.catalogos import (
     catalogo_area_key,
     catalogo_local_key,
@@ -33,7 +33,10 @@ def registrar_ocorrencia(*, data, files, user):
     local = catalogo_local_key(area, data.get("local"))
     tipo_pessoa = catalogo_tipo_pessoa_key(data.get("pessoa"))
 
+    unidade = get_unidade_ativa()
     ocorrencia = Ocorrencia.objects.create(
+        unidade=unidade,
+        unidade_sigla=getattr(unidade, "sigla", None),
         tipo_pessoa=tipo_pessoa,
         data_ocorrencia=data_evento,
         natureza=natureza,

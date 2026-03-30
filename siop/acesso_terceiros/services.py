@@ -1,7 +1,7 @@
 from django.db.models import Count
 from django.utils import timezone
 
-from sigo.models import Anexo, Pessoa
+from sigo.models import Anexo, Pessoa, get_unidade_ativa
 from sigo_core.catalogos import catalogo_p1_key
 from sigo_core.shared.attachments import create_attachments_for_instance
 from sigo_core.shared.exceptions import ServiceError
@@ -75,7 +75,10 @@ def create_acesso_terceiros(*, data, files, user):
     payload = _normalize_payload(data=data)
     pessoa = _get_or_create_pessoa(nome=payload["nome"], documento=payload["documento"])
 
+    unidade = get_unidade_ativa()
     acesso = AcessoTerceiros.objects.create(
+        unidade=unidade,
+        unidade_sigla=getattr(unidade, "sigla", None),
         entrada=payload["entrada"],
         saida=payload["saida"],
         pessoa=pessoa,

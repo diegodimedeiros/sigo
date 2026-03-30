@@ -29,6 +29,23 @@
       <div class="col-md-4"><label class="form-label" for="id_pessoa_nome">Pessoa Recebeu Item</label><input id="id_pessoa_nome" type="text" name="pessoa_nome" class="form-control" value="{{ request_data.pessoa_nome }}">{% if errors.pessoa_nome %}<div class="text-danger small mt-1">{{ errors.pessoa_nome }}</div>{% endif %}</div>
       <div class="col-md-4"><label class="form-label" for="id_pessoa_documento">Documento da Pessoa</label><input id="id_pessoa_documento" type="text" name="pessoa_documento" class="form-control" value="{{ request_data.pessoa_documento }}">{% if errors.pessoa_documento %}<div class="text-danger small mt-1">{{ errors.pessoa_documento }}</div>{% endif %}</div>
       <div class="col-md-4"><label class="form-label" for="id_data_devolucao">Data/Hora da Devolução</label><input id="id_data_devolucao" type="datetime-local" name="data_devolucao" class="form-control" value="{{ request_data.data_devolucao }}">{% if errors.data_devolucao %}<div class="text-danger small mt-1">{{ errors.data_devolucao }}</div>{% endif %}</div>
+      <div class="col-12 achados-signature-section d-none" id="id_assinatura_section">
+        <div class="border rounded-3 p-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+              <label class="form-label mb-1">Assinatura de Entrega</label>
+              <p class="text-muted small mb-0">Obrigatória quando o status do item for <strong>Entregue</strong>.</p>
+            </div>
+            <div class="achados-signature-actions">
+              <button type="button" class="btn btn-label-primary" id="id_assinatura_abrir">Coletar assinatura</button>
+              <button type="button" class="btn btn-label-danger" id="id_assinatura_limpar">Limpar</button>
+            </div>
+          </div>
+          <input type="hidden" id="id_assinatura_entrega" name="assinatura_entrega" value="{{ request_data.assinatura_entrega }}">
+          <div class="small mt-2" id="id_assinatura_status">Nenhuma assinatura capturada.</div>
+          {% if errors.assinatura_entrega %}<div class="text-danger small mt-1">{{ errors.assinatura_entrega }}</div>{% endif %}
+        </div>
+      </div>
       <div class="col-12"><label class="form-label" for="id_descricao">Descrição</label><textarea id="id_descricao" name="descricao" class="form-control" rows="6">{{ request_data.descricao }}</textarea>{% if errors.descricao %}<div class="text-danger small mt-1">{{ errors.descricao }}</div>{% endif %}</div>
       <div class="col-md-6"><label class="form-label" for="id_fotos">Fotos</label><input id="id_fotos" type="file" name="fotos" class="form-control" multiple accept="image/*"></div>
       <div class="col-md-6"><label class="form-label" for="id_anexos">Anexos</label><input id="id_anexos" type="file" name="anexos" class="form-control" multiple></div>
@@ -36,6 +53,26 @@
     <div class="d-flex flex-wrap gap-2 mt-4"><button type="submit" class="btn btn-primary">Salvar item</button><a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info">Cancelar</a></div>
   </form>
 </div></div>
+
+<div class="modal fade" id="achadosSignatureModal" tabindex="-1" aria-labelledby="achadosSignatureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="achadosSignatureModalLabel">Coletar assinatura</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Peça para a pessoa assinar dentro da área abaixo.</p>
+        <canvas id="achadosSignatureCanvas" class="achados-signature-canvas" width="900" height="280"></canvas>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-label-danger" id="achadosSignatureClear">Limpar</button>
+        <button type="button" class="btn btn-label-info" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="achadosSignatureSave">Confirmar assinatura</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}{{ block.super }}<script src="{% static 'sigo/assets/js/siop/achados-perdidos-form.js' %}"></script>{% endblock %}
