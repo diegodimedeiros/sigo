@@ -1,0 +1,103 @@
+{% extends 'siop/acesso_terceiros/base.html' %}
+
+{% block acesso_heading %}Listagem de Acessos{% endblock %}
+{% block acesso_description %}
+Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada entrada registrada.
+{% endblock %}
+
+{% block acesso_hero_actions %}
+<a href="{% url 'siop:acesso_terceiros_new' %}" class="btn btn-primary btn-round">Novo acesso</a>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label" for="filtro-q">Busca rápida</label>
+        <input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, nome, empresa, documento..." value="{{ filters.q }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="filtro-status">Status</label>
+        <select id="filtro-status" name="status" class="form-select">
+          <option value="" {% if not filters.status %}selected{% endif %}>Todos</option>
+          <option value="em_aberto" {% if filters.status == 'em_aberto' %}selected{% endif %}>Em aberto</option>
+          <option value="finalizada" {% if filters.status == 'finalizada' %}selected{% endif %}>Finalizada</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="filtro-p1">P1</label>
+        <select id="filtro-p1" name="p1" class="form-select">
+          <option value="">Todos</option>
+          {% for item in p1_responsaveis %}
+          <option value="{{ item.chave }}" {% if filters.p1 == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label" for="filtro-data-inicio">Início</label>
+        <input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label" for="filtro-data-fim">Fim</label>
+        <input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}">
+      </div>
+      <div class="col-12 d-flex flex-wrap gap-2">
+        <button class="btn btn-label-info">Aplicar filtros</button>
+        <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-secondary">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Resultado da listagem</div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th><a href="{{ sort_links.id.url }}" class="table-sort-link{% if sort_links.id.active %} is-active{% endif %}">ID <span>{{ sort_links.id.icon }}</span></a></th>
+            <th><a href="{{ sort_links.entrada.url }}" class="table-sort-link{% if sort_links.entrada.active %} is-active{% endif %}">Entrada <span>{{ sort_links.entrada.icon }}</span></a></th>
+            <th><a href="{{ sort_links.empresa.url }}" class="table-sort-link{% if sort_links.empresa.active %} is-active{% endif %}">Empresa <span>{{ sort_links.empresa.icon }}</span></a></th>
+            <th><a href="{{ sort_links.nome.url }}" class="table-sort-link{% if sort_links.nome.active %} is-active{% endif %}">Nome <span>{{ sort_links.nome.icon }}</span></a></th>
+            <th><a href="{{ sort_links.documento.url }}" class="table-sort-link{% if sort_links.documento.active %} is-active{% endif %}">Documento <span>{{ sort_links.documento.icon }}</span></a></th>
+            <th><a href="{{ sort_links.p1.url }}" class="table-sort-link{% if sort_links.p1.active %} is-active{% endif %}">P1 <span>{{ sort_links.p1.icon }}</span></a></th>
+            <th><a href="{{ sort_links.saida.url }}" class="table-sort-link{% if sort_links.saida.active %} is-active{% endif %}">Saída <span>{{ sort_links.saida.icon }}</span></a></th>
+            <th><a href="{{ sort_links.status.url }}" class="table-sort-link{% if sort_links.status.active %} is-active{% endif %}">Status <span>{{ sort_links.status.icon }}</span></a></th>
+            <th class="text-end">Detalhe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for acesso in page_obj %}
+          <tr>
+            <td>#{{ acesso.pk }}</td>
+            <td>{{ acesso.entrada|date:"d/m/Y H:i" }}</td>
+            <td>{{ acesso.empresa|default:"-" }}</td>
+            <td>{{ acesso.nome|default:"-" }}</td>
+            <td>{{ acesso.documento|default:"-" }}</td>
+            <td>{{ acesso.p1_label }}</td>
+            <td>{% if acesso.saida %}{{ acesso.saida|date:"d/m/Y H:i" }}{% else %}-{% endif %}</td>
+            <td>
+              {% if acesso.saida %}
+              <span class="badge badge-success">Finalizada</span>
+              {% else %}
+              <span class="badge badge-warning">Em aberto</span>
+              {% endif %}
+            </td>
+            <td class="text-end"><a href="{% url 'siop:acesso_terceiros_view' acesso.pk %}" class="btn btn-sm btn-primary">Abrir</a></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-4 text-muted">Nenhum acesso de terceiros encontrado para os filtros informados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_acessos %}
+</div>
+{% endblock %}

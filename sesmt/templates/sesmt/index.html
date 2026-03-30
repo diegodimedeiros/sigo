@@ -1,0 +1,66 @@
+{% extends 'sesmt/base.html' %}
+
+{% block title %}SESMT{% endblock %}
+
+{% block hero_actions %}
+<a href="{% url 'sesmt:atendimento_index' %}" class="btn btn-primary btn-round">Abrir atendimento</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <p class="text-muted mb-1">Atendimento</p>
+            <h4 class="mb-0"><a href="{% url 'sesmt:atendimento_index' %}" class="text-decoration-none">Fluxos assistenciais</a></h4>
+          </div>
+          <span class="avatar-sm rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center">
+            <i class="fas fa-heartbeat"></i>
+          </span>
+        </div>
+        <p class="text-muted mb-0">
+          Base inicial para triagem, primeiros socorros e acompanhamento de ocorrências assistenciais.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <p class="text-muted mb-1">Manejo</p>
+            <h4 class="mb-0"><a href="{% url 'sesmt:manejo_index' %}" class="text-decoration-none">Fauna e resgate</a></h4>
+          </div>
+          <span class="avatar-sm rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center">
+            <i class="fas fa-paw"></i>
+          </span>
+        </div>
+        <p class="text-muted mb-0">
+          Estrutura pronta para registro de manejo, transporte, soltura e encaminhamento de animais.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <p class="text-muted mb-1">Flora</p>
+            <h4 class="mb-0"><a href="{% url 'sesmt:flora_index' %}" class="text-decoration-none">Monitoramento vegetal</a></h4>
+          </div>
+          <span class="avatar-sm rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center">
+            <i class="fas fa-leaf"></i>
+          </span>
+        </div>
+        <p class="text-muted mb-0">
+          Espaço base para cadastros, registros e acompanhamento das rotinas ligadas a flora.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

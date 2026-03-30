@@ -1,0 +1,152 @@
+{% extends 'siop/ocorrencias/base.html' %}
+
+{% block title %}Ocorrência #{{ ocorrencia.pk }} | SIOP{% endblock %}
+{% block ocorrencias_heading %}Visualização da Ocorrência #{{ ocorrencia.pk }}{% endblock %}
+{% block ocorrencias_description %}
+Painel de leitura completa com campos principais, contexto operacional, anexos e histórico visual.
+{% endblock %}
+
+{% block ocorrencias_hero_actions %}
+<a href="{% url 'siop:ocorrencias_list' %}" class="btn btn-label-info btn-round">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Resumo da ocorrência</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label text-muted">Natureza</label>
+            <div class="fw-semibold">{{ ocorrencia.natureza_label }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Tipo</label>
+            <div class="fw-semibold">{{ ocorrencia.tipo_label }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Área</label>
+            <div class="fw-semibold">{{ ocorrencia.area_label }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Status</label>
+            <div>
+              {% if ocorrencia.status %}
+              <span class="badge badge-success">Finalizada</span>
+              {% else %}
+              <span class="badge badge-warning">Em aberto</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Data da ocorrência</label>
+            <div class="fw-semibold">{{ ocorrencia.data_ocorrencia|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Pessoa relacionada</label>
+            <div class="fw-semibold">{{ ocorrencia.tipo_pessoa_label }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Local</label>
+            <div class="fw-semibold">{{ ocorrencia.local_label }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted">CFTV</label>
+            <div class="fw-semibold">{% if ocorrencia.cftv %}Sim{% else %}Não{% endif %}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted">Bombeiro Civil</label>
+            <div class="fw-semibold">{% if ocorrencia.bombeiro_civil %}Sim{% else %}Não{% endif %}</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted">Descrição</label>
+            <div class="border rounded-3 p-3 bg-light-subtle">
+              {{ ocorrencia.descricao|linebreaksbr|default:"Sem descrição informada." }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title">Histórico visual</div>
+      </div>
+      <div class="card-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-badge info"><i class="fas fa-plus"></i></div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <span class="fw-semibold">Ocorrência registrada</span>
+              </div>
+              <div class="timeline-body">
+                <p class="mb-0">Registro criado em {{ ocorrencia.criado_em|date:"d/m/Y H:i" }}.</p>
+              </div>
+            </div>
+          </div>
+          {% if ocorrencia.modificado_em and ocorrencia.modificado_em != ocorrencia.criado_em %}
+          <div class="timeline-item">
+            <div class="timeline-badge warning"><i class="fas fa-paperclip"></i></div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <span class="fw-semibold">Atualização registrada</span>
+              </div>
+              <div class="timeline-body">
+                <p class="mb-0">Última alteração em {{ ocorrencia.modificado_em|date:"d/m/Y H:i" }}.</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="timeline-item">
+            <div class="timeline-badge {% if ocorrencia.status %}success{% else %}warning{% endif %}"><i class="fas fa-check"></i></div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <span class="fw-semibold">Situação atual</span>
+              </div>
+              <div class="timeline-body">
+                <p class="mb-0">{% if ocorrencia.status %}Ocorrência finalizada.{% else %}Ocorrência segue em aberto para acompanhamento.{% endif %}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Anexos</div>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush">
+          {% for anexo in ocorrencia.anexos.all %}
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+            <span>{{ anexo.nome_arquivo }}</span>
+            <span class="text-muted small">{{ anexo.tamanho|filesizeformat }}</span>
+          </div>
+          {% empty %}
+          <div class="text-muted">Nenhum anexo vinculado a esta ocorrência.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title">Ações rápidas</div>
+      </div>
+      <div class="card-body d-grid gap-2">
+        {% if not ocorrencia.status %}
+        <a href="{% url 'siop:ocorrencias_edit' ocorrencia.pk %}" class="btn btn-label-warning">Editar ocorrência</a>
+        {% endif %}
+        <a href="{% url 'siop:ocorrencias_export_view_pdf' ocorrencia.pk %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'siop:ocorrencias_list' %}" class="btn btn-label-info">Voltar para listagem</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

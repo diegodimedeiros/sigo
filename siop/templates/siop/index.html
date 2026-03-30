@@ -1,0 +1,69 @@
+{% extends 'siop/base.html' %}
+
+{% block title %}SIOP | Painel{% endblock %}
+
+{% block hero_actions %}
+<a href="{% url 'siop:ocorrencias_index' %}" class="btn btn-primary btn-round">Abrir ocorrências</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-6 col-xl-4">
+    <div class="card card-stats card-round">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-icon">
+            <div class="icon-big text-center icon-primary bubble-shadow-small">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+          </div>
+          <div class="col col-stats ms-3 ms-sm-0">
+            <div class="numbers">
+              <p class="card-category">Ocorrências</p>
+              <h4 class="card-title">Módulo base</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card card-stats card-round">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-icon">
+            <div class="icon-big text-center icon-info bubble-shadow-small">
+              <i class="fas fa-id-card"></i>
+            </div>
+          </div>
+          <div class="col col-stats ms-3 ms-sm-0">
+            <div class="numbers">
+              <p class="card-category">Acesso de Terceiros</p>
+              <h4 class="card-title"><a href="{% url 'siop:acesso_terceiros_index' %}" class="text-decoration-none">Abrir área</a></h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card card-stats card-round">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-icon">
+            <div class="icon-big text-center icon-success bubble-shadow-small">
+              <i class="fas fa-box-open"></i>
+            </div>
+          </div>
+          <div class="col col-stats ms-3 ms-sm-0">
+            <div class="numbers">
+              <p class="card-category">Achados e Perdidos</p>
+              <h4 class="card-title"><a href="{% url 'siop:achados_perdidos_index' %}" class="text-decoration-none">Abrir área</a></h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

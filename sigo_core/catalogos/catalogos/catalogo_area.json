@@ -1,0 +1,556 @@
+{
+  "catalogo": "area",
+  "tipo": "grupos",
+  "grupos": [
+    {
+      "chave": "area_administrativo",
+      "valor": "Área Administrativo",
+      "itens": [
+        {
+          "chave": "area_externa_da_administracao",
+          "valor": "Área Externa da Administração"
+        },
+        {
+          "chave": "banheiro_feminino",
+          "valor": "Banheiro Feminino"
+        },
+        {
+          "chave": "banheiro_masculino",
+          "valor": "Banheiro Masculino"
+        },
+        {
+          "chave": "banheiro_pcd",
+          "valor": "Banheiro PCD"
+        },
+        {
+          "chave": "ciop",
+          "valor": "CIOP"
+        },
+        {
+          "chave": "copa",
+          "valor": "Copa"
+        },
+        {
+          "chave": "escritorio_open_space",
+          "valor": "Escritório Open Space"
+        },
+        {
+          "chave": "sala_bombeiro_civil",
+          "valor": "Sala Bombeiro Civil"
+        },
+        {
+          "chave": "sala_de_gestores",
+          "valor": "Sala de Gestores"
+        },
+        {
+          "chave": "sala_de_reunioes",
+          "valor": "Sala de Reuniões"
+        },
+        {
+          "chave": "sala_de_treinamentos",
+          "valor": "Sala de Treinamentos"
+        },
+        {
+          "chave": "sala_ti_cpd",
+          "valor": "Sala TI - CPD"
+        }
+      ]
+    },
+    {
+      "chave": "area_carga_e_descarga",
+      "valor": "Área Carga e Descarga",
+      "itens": [
+        {
+          "chave": "almoxarifado_container",
+          "valor": "Almoxarifado (Container)"
+        },
+        {
+          "chave": "carga_e_descarga",
+          "valor": "Carga e Descarga"
+        },
+        {
+          "chave": "central_de_residuos",
+          "valor": "Central de Resíduos"
+        }
+      ]
+    },
+    {
+      "chave": "area_churrasqueiras",
+      "valor": "Área Churrasqueiras",
+      "itens": [
+        {
+          "chave": "banheiro_feminino",
+          "valor": "Banheiro Feminino"
+        },
+        {
+          "chave": "banheiro_feminino_pcd",
+          "valor": "Banheiro Feminino - PCD"
+        },
+        {
+          "chave": "banheiro_masculino",
+          "valor": "Banheiro Masculino"
+        },
+        {
+          "chave": "banheiro_masculino_pcd",
+          "valor": "Banheiro Masculino - PCD"
+        },
+        {
+          "chave": "churrasqueira_01",
+          "valor": "Churrasqueira 01"
+        },
+        {
+          "chave": "churrasqueira_02",
+          "valor": "Churrasqueira 02"
+        },
+        {
+          "chave": "churrasqueira_03",
+          "valor": "Churrasqueira 03"
+        },
+        {
+          "chave": "churrasqueira_04",
+          "valor": "Churrasqueira 04"
+        },
+        {
+          "chave": "churrasqueira_05",
+          "valor": "Churrasqueira 05"
+        },
+        {
+          "chave": "churrasqueira_06",
+          "valor": "Churrasqueira 06"
+        },
+        {
+          "chave": "churrasqueira_07",
+          "valor": "Churrasqueira 07"
+        },
+        {
+          "chave": "churrasqueira_08",
+          "valor": "Churrasqueira 08"
+        },
+        {
+          "chave": "churrasqueira_09",
+          "valor": "Churrasqueira 09"
+        },
+        {
+          "chave": "churrasqueira_10",
+          "valor": "Churrasqueira 10"
+        },
+        {
+          "chave": "churrasqueira_11",
+          "valor": "Churrasqueira 11"
+        },
+        {
+          "chave": "churrasqueira_12",
+          "valor": "Churrasqueira 12"
+        },
+        {
+          "chave": "quadra_de_areia",
+          "valor": "Quadra de Areia"
+        },
+        {
+          "chave": "quadra_de_beach_tennis",
+          "valor": "Quadra de Beach Tennis"
+        },
+        {
+          "chave": "quadra_de_volei",
+          "valor": "Quadra de Vôlei"
+        }
+      ]
+    },
+    {
+      "chave": "area_lojas",
+      "valor": "Área Lojas",
+      "itens": [
+        {
+          "chave": "bloco_a_01_iter_fotografias",
+          "valor": "Bloco A 01 - Iter Fotografias"
+        },
+        {
+          "chave": "bloco_a_02_iter_fotografias",
+          "valor": "Bloco A 02 - Iter Fotografias"
+        },
+        {
+          "chave": "bloco_b_03_art_castelo",
+          "valor": "Bloco B 03 - Art Castelo"
+        },
+        {
+          "chave": "bloco_b_04_art_castelo",
+          "valor": "Bloco B 04 - Art Castelo"
+        },
+        {
+          "chave": "bloco_b_05_art_castelo",
+          "valor": "Bloco B 05 - Art Castelo"
+        },
+        {
+          "chave": "bloco_b_06_art_castelo",
+          "valor": "Bloco B 06 - Art Castelo"
+        },
+        {
+          "chave": "bloco_c_07_waiss",
+          "valor": "Bloco C 07 - Waiss"
+        },
+        {
+          "chave": "bloco_c_08_waiss",
+          "valor": "Bloco C 08 - Waiss"
+        },
+        {
+          "chave": "bloco_c_09_mate_on",
+          "valor": "Bloco C 09 - Mate On"
+        },
+        {
+          "chave": "bloco_c_10_mateio",
+          "valor": "Bloco C 10 - Mateio"
+        },
+        {
+          "chave": "bloco_d_11_estapar",
+          "valor": "Bloco D 11 - Estapar"
+        },
+        {
+          "chave": "bloco_d_12_chaulet",
+          "valor": "Bloco D 12 - Chaulet"
+        },
+        {
+          "chave": "bloco_d_13_chaulet",
+          "valor": "Bloco D 13 - Chaulet"
+        },
+        {
+          "chave": "bloco_d_14_chaulet",
+          "valor": "Bloco D 14 - Chaulet"
+        },
+        {
+          "chave": "bloco_e_15_royal_trudel",
+          "valor": "Bloco E 15 - Royal Trudel"
+        },
+        {
+          "chave": "bloco_e_16_jolimont",
+          "valor": "Bloco E 16 - Jolimont"
+        },
+        {
+          "chave": "bloco_e_17_jolimont",
+          "valor": "Bloco E 17 - Jolimont"
+        },
+        {
+          "chave": "bloco_e_18_jolimont",
+          "valor": "Bloco E 18 - Jolimont"
+        },
+        {
+          "chave": "casa_de_pedra_casa_do_viajante",
+          "valor": "Casa de Pedra - Casa do Viajante"
+        },
+        {
+          "chave": "casa_raizes",
+          "valor": "Casa Raízes"
+        },
+        {
+          "chave": "estacao_sonho_vivo",
+          "valor": "Estação Sonho Vivo"
+        },
+        {
+          "chave": "geodesica_natural_extremo",
+          "valor": "Geodésica - Natural Extremo"
+        },
+        {
+          "chave": "iter_fotografias_corajoso",
+          "valor": "Iter Fotografias - Corajoso"
+        },
+        {
+          "chave": "iter_fotografias_mirante",
+          "valor": "Iter Fotografias - Mirante"
+        },
+        {
+          "chave": "restaurante_sabor_e_flor",
+          "valor": "Restaurante - Sabor e Flor"
+        },
+        {
+          "chave": "restaurante_sabor_e_flor_cozinha",
+          "valor": "Restaurante - Sabor e Flor - Cozinha"
+        },
+        {
+          "chave": "restaurante_mirante",
+          "valor": "Restaurante - Mirante"
+        },
+        {
+          "chave": "restaurante_mirante_cozinha",
+          "valor": "Restaurante - Mirante - Cozinha"
+        },
+        {
+          "chave": "salto_do_pendulo_natural_extremo",
+          "valor": "Salto do Pêndulo - Natural Extremo"
+        },
+        {
+          "chave": "toras_deposito",
+          "valor": "Toras - Depósito"
+        },
+        {
+          "chave": "toras_golden_tulip",
+          "valor": "Toras - Golden Tulip"
+        }
+      ]
+    },
+    {
+      "chave": "area_mirante",
+      "valor": "Área Mirante",
+      "itens": [
+        {
+          "chave": "corajoso",
+          "valor": "Corajoso"
+        },
+        {
+          "chave": "mirante",
+          "valor": "Mirante"
+        }
+      ]
+    },
+    {
+      "chave": "area_tecnica",
+      "valor": "Área Técnica",
+      "itens": [
+        {
+          "chave": "casa_de_bombas",
+          "valor": "Casa de Bombas"
+        },
+        {
+          "chave": "n_a_container",
+          "valor": "N&A (Container)"
+        },
+        {
+          "chave": "nexus_container",
+          "valor": "Nexus (Container)"
+        },
+        {
+          "chave": "subestacao",
+          "valor": "Subestação"
+        },
+        {
+          "chave": "subestacao_mirante",
+          "valor": "Subestação - Mirante"
+        },
+        {
+          "chave": "verzani_container",
+          "valor": "Verzani (Container)"
+        },
+        {
+          "chave": "verzani_oficina",
+          "valor": "Verzani (Oficina)"
+        },
+        {
+          "chave": "gerador_observatorio",
+          "valor": "Gerador (Observatório)"
+        },
+        {
+          "chave": "casa_de_maquinas_observatorio",
+          "valor": "Casa de Máquinas (Observatório)"
+        }
+      ]
+    },
+    {
+      "chave": "entrada",
+      "valor": "Entrada",
+      "itens": [
+        {
+          "chave": "entrada_de_pedestres",
+          "valor": "Entrada de Pedestres"
+        },
+        {
+          "chave": "parada_de_acesso",
+          "valor": "Parada de Acesso"
+        },
+        {
+          "chave": "portico_de_entrada",
+          "valor": "Pórtico de Entrada"
+        },
+        {
+          "chave": "sala_de_guias",
+          "valor": "Sala de Guias"
+        }
+      ]
+    },
+    {
+      "chave": "estapar",
+      "valor": "Estapar",
+      "itens": [
+        {
+          "chave": "autoatendimento",
+          "valor": "Autoatendimento"
+        },
+        {
+          "chave": "cancelas_entrada",
+          "valor": "Cancelas Entrada"
+        },
+        {
+          "chave": "cancelas_saida",
+          "valor": "Cancelas Saída"
+        },
+        {
+          "chave": "estacionamento",
+          "valor": "Estacionamento"
+        },
+        {
+          "chave": "estacionamento_administrativo",
+          "valor": "Estacionamento - Administrativo"
+        },
+        {
+          "chave": "estacionamento_bolsao",
+          "valor": "Estacionamento - Bolsão"
+        },
+        {
+          "chave": "valet",
+          "valor": "Valet"
+        }
+      ]
+    },
+    {
+      "chave": "heliponto",
+      "valor": "Heliponto",
+      "itens": [
+        {
+          "chave": "cancela_de_entrada_heliponto",
+          "valor": "Cancela de Entrada - Heliponto"
+        },
+        {
+          "chave": "cancela_de_saida_heliponto",
+          "valor": "Cancela de Saída - Heliponto"
+        },
+        {
+          "chave": "estacionamento_heliponto",
+          "valor": "Estacionamento - Heliponto"
+        },
+        {
+          "chave": "heliponto",
+          "valor": "Heliponto"
+        },
+        {
+          "chave": "sala_heliponto",
+          "valor": "Sala - Heliponto"
+        }
+      ]
+    },
+    {
+      "chave": "observatorio",
+      "valor": "Observatório",
+      "itens": [
+        {
+          "chave": "deposito_do_observatorio_cnct",
+          "valor": "Depósito do Observatório - CNCT"
+        },
+        {
+          "chave": "deposito_do_observatorio_iter_fotografias",
+          "valor": "Depósito do Observatório - Iter Fotografias"
+        },
+        {
+          "chave": "elevador_do_observatorio",
+          "valor": "Elevador do Observatório"
+        },
+        {
+          "chave": "observatorio",
+          "valor": "Observatório"
+        },
+        {
+          "chave": "sala_do_observatorio_cnct",
+          "valor": "Sala do Observatório - CNCT"
+        }
+      ]
+    },
+    {
+      "chave": "praca_dos_gauchos",
+      "valor": "Praça dos Gaúchos",
+      "itens": [
+        {
+          "chave": "bilheteria",
+          "valor": "Bilheteria"
+        },
+        {
+          "chave": "catracas",
+          "valor": "Catracas"
+        },
+        {
+          "chave": "parquinho_floresta",
+          "valor": "Parquinho Floresta"
+        },
+        {
+          "chave": "toldo_da_praca_dos_gauchos",
+          "valor": "Toldo da Praça dos Gaúchos"
+        }
+      ]
+    },
+    {
+      "chave": "trilhas_e_locais",
+      "valor": "Trilhas e Locais",
+      "itens": [
+        {
+          "chave": "bosque_dos_xaxins",
+          "valor": "Bosque dos Xaxins"
+        },
+        {
+          "chave": "deck_da_cascata_do_moinho",
+          "valor": "Deck da Cascata do Moinho"
+        },
+        {
+          "chave": "jardim_do_mel",
+          "valor": "Jardim do Mel"
+        },
+        {
+          "chave": "lajeado",
+          "valor": "Lajeado"
+        },
+        {
+          "chave": "mirante_da_barragem",
+          "valor": "Mirante da Barragem"
+        },
+        {
+          "chave": "mirante_da_cascata_do_moinho",
+          "valor": "Mirante da Cascata do Moinho"
+        },
+        {
+          "chave": "parque_serelepe",
+          "valor": "Parque Serelepe"
+        },
+        {
+          "chave": "recanto_das_borboletas",
+          "valor": "Recanto das Borboletas"
+        },
+        {
+          "chave": "redario_adm",
+          "valor": "Redário - ADM"
+        },
+        {
+          "chave": "redario_restaurante",
+          "valor": "Redário - Restaurante"
+        },
+        {
+          "chave": "trilha_do_moinho",
+          "valor": "Trilha do Moinho"
+        },
+        {
+          "chave": "trilha_do_silencio",
+          "valor": "Trilha do Silêncio"
+        },
+        {
+          "chave": "trilha_do_sonho",
+          "valor": "Trilha do Sonho"
+        },
+        {
+          "chave": "vias_das_araucarias",
+          "valor": "Vias das Araucárias"
+        },
+        {
+          "chave": "vias_das_aguas",
+          "valor": "Vias das Águas"
+        },
+        {
+          "chave": "vias_dos_graxains",
+          "valor": "Vias dos Graxains"
+        }
+      ]
+    },
+    {
+      "chave": "parque_do_caracol",
+      "valor": "Parque do Caracol",
+      "itens": [
+        {
+          "chave": "parque_do_caracol",
+          "valor": "Parque do Caracol"
+        }
+      ]
+    }
+  ]
+}

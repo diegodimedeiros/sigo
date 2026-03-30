@@ -1,0 +1,110 @@
+{% extends 'siop/ocorrencias/base.html' %}
+
+{% block ocorrencias_heading %}Listagem de Ocorrências{% endblock %}
+{% block ocorrencias_description %}
+Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada registro.
+{% endblock %}
+
+{% block ocorrencias_hero_actions %}
+<a href="{% url 'siop:ocorrencias_new' %}" class="btn btn-primary btn-round">Nova ocorrência</a>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label" for="filtro-q">Busca rápida</label>
+        <input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, área, natureza..." value="{{ filters.q }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="filtro-status">Status</label>
+        <select id="filtro-status" name="status" class="form-select">
+          <option value="" {% if not filters.status %}selected{% endif %}>Todos</option>
+          <option value="aberto" {% if filters.status == 'aberto' %}selected{% endif %}>Em aberto</option>
+          <option value="finalizada" {% if filters.status == 'finalizada' %}selected{% endif %}>Finalizada</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="filtro-natureza">Natureza</label>
+        <select id="filtro-natureza" name="natureza" class="form-select">
+          <option value="">Todas</option>
+          {% for item in naturezas %}
+          <option value="{{ item.chave }}" {% if filters.natureza == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="filtro-area">Área</label>
+        <select id="filtro-area" name="area" class="form-select">
+          <option value="">Todas</option>
+          {% for item in areas %}
+          <option value="{{ item.chave }}" {% if filters.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label" for="filtro-data-inicio">Início</label>
+        <input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label" for="filtro-data-fim">Fim</label>
+        <input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}">
+      </div>
+      <div class="col-12 d-flex flex-wrap gap-2">
+        <button class="btn btn-label-info">Aplicar filtros</button>
+        <a href="{% url 'siop:ocorrencias_list' %}" class="btn btn-label-secondary">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Resultado da listagem</div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th><a href="{{ sort_links.id.url }}" class="table-sort-link{% if sort_links.id.active %} is-active{% endif %}">ID <span>{{ sort_links.id.icon }}</span></a></th>
+            <th><a href="{{ sort_links.data.url }}" class="table-sort-link{% if sort_links.data.active %} is-active{% endif %}">Data <span>{{ sort_links.data.icon }}</span></a></th>
+            <th><a href="{{ sort_links.pessoa.url }}" class="table-sort-link{% if sort_links.pessoa.active %} is-active{% endif %}">Pessoa <span>{{ sort_links.pessoa.icon }}</span></a></th>
+            <th><a href="{{ sort_links.natureza.url }}" class="table-sort-link{% if sort_links.natureza.active %} is-active{% endif %}">Natureza <span>{{ sort_links.natureza.icon }}</span></a></th>
+            <th><a href="{{ sort_links.tipo.url }}" class="table-sort-link{% if sort_links.tipo.active %} is-active{% endif %}">Tipo <span>{{ sort_links.tipo.icon }}</span></a></th>
+            <th><a href="{{ sort_links.area.url }}" class="table-sort-link{% if sort_links.area.active %} is-active{% endif %}">Área <span>{{ sort_links.area.icon }}</span></a></th>
+            <th><a href="{{ sort_links.status.url }}" class="table-sort-link{% if sort_links.status.active %} is-active{% endif %}">Status <span>{{ sort_links.status.icon }}</span></a></th>
+            <th class="text-end">Detalhe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ocorrencia in page_obj %}
+          <tr>
+            <td>#{{ ocorrencia.pk }}</td>
+            <td>{{ ocorrencia.data_ocorrencia|date:"d/m/Y H:i" }}</td>
+            <td>{{ ocorrencia.tipo_pessoa_label }}</td>
+            <td>{{ ocorrencia.natureza_label }}</td>
+            <td>{{ ocorrencia.tipo_label }}</td>
+            <td>{{ ocorrencia.area_label }}</td>
+            <td>
+              {% if ocorrencia.status %}
+              <span class="badge badge-success">Finalizada</span>
+              {% else %}
+              <span class="badge badge-warning">Em aberto</span>
+              {% endif %}
+            </td>
+            <td class="text-end"><a href="{% url 'siop:ocorrencias_view' ocorrencia.pk %}" class="btn btn-sm btn-primary">Abrir</a></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">Nenhuma ocorrência encontrada para os filtros informados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_ocorrencias %}
+</div>
+{% endblock %}

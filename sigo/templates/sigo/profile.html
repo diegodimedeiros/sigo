@@ -1,0 +1,113 @@
+{% extends 'sigo/base.html' %}
+
+{% block title %}Meu Perfil | SIGO{% endblock %}
+{% block page_title %}Meu Perfil{% endblock %}
+{% block topbar_search %}{% endblock %}
+
+{% block hero %}
+<div class="page-category">Gerencie sua foto e suas credenciais de acesso.</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-xl-8">
+    <div class="card profile-panel mb-4">
+      <div class="card-header">
+        <div class="card-title">Foto do operador</div>
+      </div>
+      <div class="card-body">
+        <div class="profile-identity">
+          <div class="profile-avatar-frame">
+            {% if has_custom_photo %}
+            <img src="{% url 'sigo:current_user_avatar' %}" alt="Foto do usuário" class="profile-avatar-image" />
+            {% else %}
+            <div class="profile-avatar-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            {% endif %}
+          </div>
+          <div class="profile-identity-copy">
+            <h2>{{ request.user.get_full_name|default:request.user.username }}</h2>
+            <p>{{ request.user.email|default:'usuario@sigo.local' }}</p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+        <form method="post" enctype="multipart/form-data" class="profile-form" id="profile-photo-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_photo" />
+          <div class="mb-3">
+            <label for="{{ photo_form.foto.id_for_label }}" class="form-label">Nova foto</label>
+            {{ photo_form.foto }}
+            {% if photo_form.foto.errors %}
+            <div class="text-danger small mt-2">{{ photo_form.foto.errors|join:', ' }}</div>
+            {% endif %}
+            <div class="form-text">Use JPG, PNG, WEBP ou SVG com até 5MB.</div>
+          </div>
+        </form>
+          <div class="profile-form-actions">
+            <button type="submit" form="profile-photo-form" class="btn btn-primary">Salvar foto</button>
+            <form method="post" class="d-inline-block mb-0">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="remove_photo" />
+              <button type="submit" class="btn btn-label-danger" {% if not has_custom_photo %}disabled{% endif %}>
+                Remover foto
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-8">
+    <div class="card profile-panel">
+      <div class="card-header">
+        <div class="card-title">Alterar senha</div>
+      </div>
+      <div class="card-body">
+        <form method="post" class="profile-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="change_password" />
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="{{ password_form.old_password.id_for_label }}" class="form-label">Senha atual</label>
+              {{ password_form.old_password }}
+              {% if password_form.old_password.errors %}
+              <div class="text-danger small mt-2">{{ password_form.old_password.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ password_form.new_password1.id_for_label }}" class="form-label">Nova senha</label>
+              {{ password_form.new_password1 }}
+              {% if password_form.new_password1.errors %}
+              <div class="text-danger small mt-2">{{ password_form.new_password1.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ password_form.new_password2.id_for_label }}" class="form-label">Confirmar nova senha</label>
+              {{ password_form.new_password2 }}
+              {% if password_form.new_password2.errors %}
+              <div class="text-danger small mt-2">{{ password_form.new_password2.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            {% if password_form.non_field_errors %}
+            <div class="col-12">
+              <div class="text-danger small">{{ password_form.non_field_errors|join:', ' }}</div>
+            </div>
+            {% endif %}
+            <div class="col-12">
+              <div class="form-text">A senha deve obedecer as regras de segurança configuradas no sistema.</div>
+            </div>
+            <div class="col-12">
+              <div class="profile-form-actions">
+                <button type="submit" class="btn btn-primary">Atualizar senha</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

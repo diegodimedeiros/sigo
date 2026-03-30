@@ -1,0 +1,48 @@
+{% extends 'siop/achados_perdidos/base.html' %}
+
+{% block achados_hero_actions %}
+<a href="{% url 'siop:achados_perdidos_new' %}" class="btn btn-primary btn-round">Registrar item</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-md-6 col-xl-3"><div class="card card-stats card-round h-100"><div class="card-body"><div class="numbers"><p class="card-category">Itens registrados</p><h4 class="card-title">{{ dashboard.total }}</h4><p class="text-muted mb-0">Base total da área</p></div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card card-stats card-round h-100"><div class="card-body"><div class="numbers"><p class="card-category">Recebidos</p><h4 class="card-title">{{ dashboard.recebidos }}</h4><p class="text-muted mb-0">Itens em guarda</p></div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card card-stats card-round h-100"><div class="card-body"><div class="numbers"><p class="card-category">Finalizados</p><h4 class="card-title">{{ dashboard.finalizados }}</h4><p class="text-muted mb-0">Entregue, descarte ou doação</p></div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card card-stats card-round h-100"><div class="card-body"><div class="numbers"><p class="card-category">Com fotos</p><h4 class="card-title">{{ dashboard.com_fotos }}</h4><p class="text-muted mb-0">Evidência visual registrada</p></div></div></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card"><div class="card-header"><div class="card-title">Acesso rápido</div></div><div class="card-body"><div class="row g-3">
+      <div class="col-md-4"><a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info w-100 py-4"><i class="fas fa-list me-2"></i>Listagem</a></div>
+      <div class="col-md-4"><a href="{% url 'siop:achados_perdidos_new' %}" class="btn btn-primary w-100 py-4"><i class="fas fa-plus-circle me-2"></i>Novo item</a></div>
+      <div class="col-md-4"><a href="{% url 'siop:achados_perdidos_export' %}" class="btn btn-label-success w-100 py-4"><i class="fas fa-file-export me-2"></i>Exportar dados</a></div>
+    </div></div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card"><div class="card-header"><div class="card-title">Notificações da área</div></div><div class="card-body">
+      <div class="alert alert-warning mb-3" role="alert">{{ dashboard.recebidos }} item{{ dashboard.recebidos|pluralize:'ns' }} aguardam definição de destino.</div>
+      <div class="alert alert-info mb-3" role="alert">{{ dashboard.registrados_hoje }} registro{{ dashboard.registrados_hoje|pluralize:'s' }} criado{{ dashboard.registrados_hoje|pluralize:'s' }} hoje.</div>
+      <div class="alert alert-success mb-0" role="alert">Fluxo operacional da área está ativo.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card"><div class="card-header"><div class="card-title">Últimos itens registrados</div></div><div class="card-body p-0"><div class="table-responsive">
+      <table class="table table-hover align-middle mb-0"><thead><tr><th>ID</th><th>Situação</th><th>Tipo do Item</th><th>Área</th><th>Status</th><th class="text-end">Ação</th></tr></thead><tbody>
+      {% for item in recentes %}
+      <tr><td>#{{ item.id }}</td><td>{{ item.situacao_label }}</td><td>{{ item.tipo_label }}</td><td>{{ item.area_label }}</td><td><span class="badge {% if item.status == 'recebido' %}badge-warning{% else %}badge-success{% endif %}">{{ item.status_label }}</span></td><td class="text-end"><a href="{% url 'siop:achados_perdidos_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td></tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum item registrado ainda.</td></tr>
+      {% endfor %}
+      </tbody></table>
+    </div></div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card"><div class="card-header"><div class="card-title">Fila operacional</div></div><div class="card-body"><ol class="ps-3 mb-0"><li class="mb-3">Triagem de novos itens encontrados</li><li class="mb-3">Conferência visual e classificação</li><li class="mb-3">Acompanhamento das devoluções</li><li>Preparação do fechamento da guarda</li></ol></div></div>
+  </div>
+</div>
+{% endblock %}

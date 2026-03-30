@@ -1,0 +1,22 @@
+{
+  "catalogo": "encaminhamento",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "hospital_publico",
+      "valor": "Hospital Público"
+    },
+    {
+      "chave": "pronto_socorro",
+      "valor": "Pronto-socorro"
+    },
+    {
+      "chave": "hospital_particular",
+      "valor": "Hospital Particular"
+    },
+    {
+      "chave": "outro",
+      "valor": "Outro"
+    }
+  ]
+}

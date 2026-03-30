@@ -1,0 +1,40 @@
+{% extends 'siop/achados_perdidos/base.html' %}
+
+{% block title %}Item #{{ item.id }} | SIOP{% endblock %}
+{% block achados_heading %}Visualização do Item #{{ item.id }}{% endblock %}
+{% block achados_description %}Leitura completa do item, situação de guarda, evidências e dados de devolução.{% endblock %}
+{% block achados_hero_actions %}<a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card"><div class="card-header"><div class="card-title">Resumo do item</div></div><div class="card-body"><div class="row g-4">
+      <div class="col-md-6"><label class="form-label text-muted">Situação</label><div class="fw-semibold">{{ item.situacao_label }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Tipo do Item</label><div class="fw-semibold">{{ item.tipo_label }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Área</label><div class="fw-semibold">{{ item.area_label }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Local</label><div class="fw-semibold">{{ item.local_label }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Status</label><div><span class="badge {% if item.status == 'recebido' %}badge-warning{% else %}badge-success{% endif %}">{{ item.status_label }}</span></div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Orgânico</label><div class="fw-semibold">{% if item.organico %}Sim{% else %}Não{% endif %}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">CIOP</label><div class="fw-semibold">{{ item.ciop|default:'-' }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Colaborador</label><div class="fw-semibold">{{ item.colaborador|default:'-' }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Setor</label><div class="fw-semibold">{{ item.setor|default:'-' }}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Data/Hora da Devolução</label><div class="fw-semibold">{% if item.data_devolucao %}{{ item.data_devolucao|date:'d/m/Y H:i' }}{% else %}-{% endif %}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Pessoa que recebeu</label><div class="fw-semibold">{% if item.pessoa_id %}{{ item.pessoa.nome }}{% else %}-{% endif %}</div></div>
+      <div class="col-md-6"><label class="form-label text-muted">Documento</label><div class="fw-semibold">{% if item.pessoa_id %}{{ item.pessoa.documento }}{% else %}-{% endif %}</div></div>
+      <div class="col-12"><label class="form-label text-muted">Descrição</label><div class="border rounded-3 p-3 bg-light-subtle">{{ item.descricao|linebreaksbr }}</div></div>
+    </div></div></div>
+
+    <div class="card mt-4"><div class="card-header"><div class="card-title">Linha do tempo</div></div><div class="card-body"><div class="timeline">
+      <div class="timeline-item"><div class="timeline-badge info"><i class="fas fa-plus"></i></div><div class="timeline-panel"><div class="timeline-heading"><span class="fw-semibold">Item registrado</span></div><div class="timeline-body"><p class="mb-0">Registro criado em {{ item.criado_em|date:'d/m/Y H:i' }}.</p></div></div></div>
+      {% if item.data_devolucao %}<div class="timeline-item"><div class="timeline-badge success"><i class="fas fa-check"></i></div><div class="timeline-panel"><div class="timeline-heading"><span class="fw-semibold">Devolução registrada</span></div><div class="timeline-body"><p class="mb-0">Entrega registrada em {{ item.data_devolucao|date:'d/m/Y H:i' }}.</p></div></div></div>{% endif %}
+      <div class="timeline-item"><div class="timeline-badge warning"><i class="fas fa-pen"></i></div><div class="timeline-panel"><div class="timeline-heading"><span class="fw-semibold">Última atualização</span></div><div class="timeline-body"><p class="mb-0">{{ item.modificado_em|date:'d/m/Y H:i' }}</p></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card"><div class="card-header"><div class="card-title">Fotos</div></div><div class="card-body">{% if item.fotos.all %}<div class="list-group list-group-flush">{% for foto in item.fotos.all %}<a href="{% url 'siop:foto_download' foto.id %}" class="list-group-item list-group-item-action px-0 d-flex justify-content-between align-items-center"><span>{{ foto.nome_arquivo }}</span><span class="text-muted small">{{ foto.tamanho|filesizeformat }}</span></a>{% empty %}<div class="text-muted">Nenhuma foto vinculada.</div>{% endfor %}</div>{% endif %}</div></div>
+    <div class="card mt-4"><div class="card-header"><div class="card-title">Anexos</div></div><div class="card-body">{% if item.anexos.all %}<div class="list-group list-group-flush">{% for anexo in item.anexos.all %}<a href="{% url 'siop:anexo_download' anexo.id %}" class="list-group-item list-group-item-action px-0 d-flex justify-content-between align-items-center"><span>{{ anexo.nome_arquivo }}</span><span class="text-muted small">{{ anexo.tamanho|filesizeformat }}</span></a>{% empty %}<div class="text-muted">Nenhum anexo vinculado.</div>{% endfor %}</div>{% endif %}</div></div>
+    <div class="card mt-4"><div class="card-header"><div class="card-title">Ações rápidas</div></div><div class="card-body d-grid gap-2">{% if item.status == 'recebido' %}<a href="{% url 'siop:achados_perdidos_edit' item.id %}" class="btn btn-label-warning">Editar item</a>{% endif %}<a href="{% url 'siop:achados_perdidos_export_view_pdf' item.id %}" class="btn btn-label-success">Exportar PDF</a><a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info">Voltar para listagem</a></div></div>
+  </div>
+</div>
+{% endblock %}

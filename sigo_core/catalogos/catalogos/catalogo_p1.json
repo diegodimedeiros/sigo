@@ -1,0 +1,26 @@
+{
+  "catalogo": "p1_responsavel",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "antonio_garcia",
+      "valor": "Antônio Garcia"
+    },
+    {
+      "chave": "cleyton_da_silva",
+      "valor": "Cleyton da Silva"
+    },
+    {
+      "chave": "dieimis_da_rosa",
+      "valor": "Dieimis da Rosa"
+    },
+    {
+      "chave": "luis_carlos_maciel",
+      "valor": "Luis Carlos Maciel"
+    },
+    {
+      "chave": "wellington_oliveira",
+      "valor": "Wellington Oliveira"
+    }
+  ]
+}

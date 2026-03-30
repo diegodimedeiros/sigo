@@ -1,0 +1,119 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+<!DOCTYPE html>
+<html lang="pt-BR" data-static-prefix="{{ STATIC_PREFIX }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <title>Entrar | SIGO</title>
+    <link rel="icon" href="{% static 'sigo/assets/img/sigo/favicon.ico' %}" type="image/x-icon" />
+    <script src="{% static 'sigo/assets/js/plugin/webfont/webfont.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo-theme-init.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo-fonts.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/plugins.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo-app.css' %}" />
+  </head>
+  <body class="login">
+    <div class="wrapper wrapper-login">
+      <div class="container login-shell animated fadeIn">
+        <div class="login-showcase">
+          <div class="login-brand">
+            <img src="{% static 'sigo/assets/img/sigo/logo_color.svg' %}" alt="SIGO" class="login-brand-logo login-brand-logo-light" />
+            <img src="{% static 'sigo/assets/img/sigo/logo_light.svg' %}" alt="SIGO" class="login-brand-logo login-brand-logo-dark" />
+            <div>
+              <h1 class="login-brand-title mb-1">SIGO</h1>
+              <p class="login-brand-copy mb-0">Sistema Integrado de Gestão Organizacional</p>
+            </div>
+          </div>
+
+          <div class="login-showcase-copy">
+            <span class="login-kicker">Plataforma central</span>
+            <h2 class="login-showcase-title">Gestão integrada, operação organizada e visão unificada dos módulos.</h2>
+            <p class="login-showcase-text mb-0">
+              Acesse o ambiente institucional do SIGO para navegar entre SIOP, SESMT e as demais áreas operacionais do sistema.
+            </p>
+          </div>
+
+          <div class="login-showcase-badges">
+            <span class="login-badge">Portal central</span>
+            <span class="login-badge">Módulos integrados</span>
+            <span class="login-badge">Ambiente seguro</span>
+          </div>
+        </div>
+
+        <div class="login-panel rounded-4">
+          <div class="login-panel-header">
+            <h3 class="login-panel-title mb-2">Entrar no sistema</h3>
+            <p class="login-copy mb-0">Use suas credenciais institucionais para continuar.</p>
+          </div>
+
+          {% if form.errors %}
+          <div class="alert alert-danger" role="alert">
+            Usuário ou senha inválidos. Tente novamente.
+          </div>
+          {% endif %}
+
+          {% if next and user.is_authenticated %}
+          <div class="alert alert-warning" role="alert">
+            Sua conta não tem acesso a esta página.
+          </div>
+          {% endif %}
+
+          <form method="post" action="{% url 'sigo:login' %}" class="login-form">
+            {% csrf_token %}
+            <div class="form-group mb-3">
+              <label for="id_username" class="form-label login-label">Usuário</label>
+              <input
+                id="id_username"
+                name="username"
+                type="text"
+                class="form-control login-input"
+                value="{{ form.username.value|default:'' }}"
+                autocomplete="username"
+                required
+                autofocus
+              />
+            </div>
+
+            <div class="form-group mb-4">
+              <label for="id_password" class="form-label login-label">Senha</label>
+              <div class="login-password-wrap">
+                <input
+                  id="id_password"
+                  name="password"
+                  type="password"
+                  class="form-control login-input login-input-password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="login-password-toggle"
+                  id="loginPasswordToggle"
+                  aria-label="Mostrar senha"
+                  aria-pressed="false"
+                >
+                  <i class="fas fa-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-action mb-0">
+              <button type="submit" class="btn btn-primary btn-login-submit w-100">Entrar</button>
+            </div>
+            <input type="hidden" name="next" value="{{ next|default:'/' }}" />
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'sigo/assets/js/core/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/core/popper.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/core/bootstrap.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/login.js' %}"></script>
+  </body>
+</html>

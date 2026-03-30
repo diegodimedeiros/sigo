@@ -1,0 +1,54 @@
+{
+  "catalogo": "tipo_ocorrencia",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "mal_subito",
+      "valor": "Mal súbito"
+    },
+    {
+      "chave": "queda",
+      "valor": "Queda"
+    },
+    {
+      "chave": "acidente",
+      "valor": "Acidente"
+    },
+    {
+      "chave": "afogamento",
+      "valor": "Afogamento"
+    },
+    {
+      "chave": "choque_eletrico",
+      "valor": "Choque elétrico"
+    },
+    {
+      "chave": "intoxicacao",
+      "valor": "Intoxicação"
+    },
+    {
+      "chave": "convulsao",
+      "valor": "Convulsão"
+    },
+    {
+      "chave": "parada_cardiorrespiratoria",
+      "valor": "Parada cardiorrespiratória"
+    },
+    {
+      "chave": "hemorragia",
+      "valor": "Hemorragia"
+    },
+    {
+      "chave": "queimadura",
+      "valor": "Queimadura"
+    },
+    {
+      "chave": "agressao",
+      "valor": "Agressão"
+    },
+    {
+      "chave": "outro",
+      "valor": "Outro"
+    }
+  ]
+}

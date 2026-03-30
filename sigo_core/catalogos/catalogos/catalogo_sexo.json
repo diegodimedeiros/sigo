@@ -1,0 +1,18 @@
+{
+  "catalogo": "sexo",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "masculino",
+      "valor": "Masculino"
+    },
+    {
+      "chave": "feminino",
+      "valor": "Feminino"
+    },
+    {
+      "chave": "outro",
+      "valor": "Outro"
+    }
+  ]
+}

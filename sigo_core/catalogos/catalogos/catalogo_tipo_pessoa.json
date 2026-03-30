@@ -1,0 +1,34 @@
+{
+  "catalogo": "tipo_pessoa",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "visitante",
+      "valor": "Visitante"
+    },
+    {
+      "chave": "visitante_estrangeiro",
+      "valor": "Visitante Estrangeiro"
+    },
+    {
+      "chave": "colaborador",
+      "valor": "Colaborador"
+    },
+    {
+      "chave": "terceiro",
+      "valor": "Terceiro"
+    },
+    {
+      "chave": "locatario",
+      "valor": "Locatário"
+    },
+    {
+      "chave": "agente_publico",
+      "valor": "Agente Público"
+    },
+    {
+      "chave": "outro",
+      "valor": "Outro"
+    }
+  ]
+}

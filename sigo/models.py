@@ -1,0 +1,294 @@
+import hashlib
+from decimal import Decimal
+
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import Q
+
+from sigo_core.shared.upload_validators import validation_size
+
+User = get_user_model()
+
+class BaseModel(models.Model):
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    modificado_em = models.DateTimeField(auto_now=True, verbose_name="Modificado em")
+    criado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="%(class)s_criados",
+        verbose_name="Criado por",
+    )
+    modificado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="%(class)s_modificados",
+        verbose_name="Modificado por",
+    )
+
+    class Meta:
+        abstract = True
+
+class GenericRelationModel(models.Model):
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name="sigo_%(class)s_set",
+    )
+    object_id = models.PositiveBigIntegerField()
+    objeto = GenericForeignKey("content_type", "object_id")
+
+    class Meta:
+        abstract = True
+        indexes = [
+            models.Index(fields=["content_type", "object_id"])
+        ]
+
+class BaseArquivo(BaseModel, GenericRelationModel):
+    nome_arquivo = models.CharField(max_length=255)
+    mime_type = models.CharField(max_length=100)
+    tamanho = models.PositiveIntegerField(default=0)
+    arquivo = models.BinaryField(validators=[validation_size], verbose_name="Arquivo")
+    hash_arquivo = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    hash_arquivo_atual = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+
+    class Meta:
+        abstract = True
+
+    def gerar_hash(self, conteudo):
+        return hashlib.sha256(conteudo).hexdigest()
+
+    def save(self, *args, **kwargs):
+        if self.arquivo:
+            conteudo = bytes(self.arquivo)
+            self.tamanho = len(conteudo)
+            self.hash_arquivo_atual = self.gerar_hash(conteudo)
+
+            if not self.hash_arquivo:
+                self.hash_arquivo = self.hash_arquivo_atual
+
+        return super().save(*args, **kwargs)
+
+class Geolocalizacao(BaseModel, GenericRelationModel):
+    tipo = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Tipo da Geolocalização",
+    )
+    latitude = models.DecimalField(max_digits=10, decimal_places=7)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    hash_geolocalizacao = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        db_index=True,
+        unique=True,
+    )
+
+    class Meta:
+        verbose_name = "Geolocalização"
+        verbose_name_plural = "Geolocalizações"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["content_type", "object_id", "tipo", "latitude", "longitude"],
+                name="unique_geolocalizacao_por_objeto",
+            ),
+            models.UniqueConstraint(
+                fields=["content_type", "object_id", "tipo"],
+                condition=Q(tipo__isnull=False),
+                name="unique_geolocalizacao_tipo_por_objeto",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Lat: {self.latitude}, Lon: {self.longitude}"
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        if self.latitude is None:
+            errors["latitude"] = "Latitude é obrigatória."
+        elif not (Decimal("-90") <= self.latitude <= Decimal("90")):
+            errors["latitude"] = "Latitude inválida. Deve estar entre -90 e 90."
+
+        if self.longitude is None:
+            errors["longitude"] = "Longitude é obrigatória."
+        elif not (Decimal("-180") <= self.longitude <= Decimal("180")):
+            errors["longitude"] = "Longitude inválida. Deve estar entre -180 e 180."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def gerar_hash_geolocalizacao(self):
+        payload = f"{self.content_type_id}|{self.object_id}|{self.tipo or ''}|{self.latitude}|{self.longitude}"
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        self.hash_geolocalizacao = self.gerar_hash_geolocalizacao()
+        return super().save(*args, **kwargs)
+
+class Anexo(BaseArquivo):
+    class Meta:
+        verbose_name = "Anexo"
+        verbose_name_plural = "Anexos"
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return self.nome_arquivo
+
+class Foto(BaseArquivo):
+    TIPO_CAPTURA = "captura"
+    TIPO_SOLTURA = "soltura"
+    TIPO_FLORA_ANTES = "flora_antes"
+    TIPO_FLORA_DEPOIS = "flora_depois"
+    TIPO_CHOICES = (
+        (TIPO_CAPTURA, "Captura"),
+        (TIPO_SOLTURA, "Soltura"),
+        (TIPO_FLORA_ANTES, "Flora Antes"),
+        (TIPO_FLORA_DEPOIS, "Flora Depois"),
+    )
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        default=TIPO_CAPTURA,
+        db_index=True,
+        verbose_name="Tipo da Foto",
+    )
+    geolocalizacoes = GenericRelation(Geolocalizacao)
+
+    class Meta:
+        verbose_name = "Foto"
+        verbose_name_plural = "Fotos"
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return self.nome_arquivo
+
+class Assinatura(BaseArquivo):
+    hash_assinatura = models.CharField(
+        max_length=64,
+        verbose_name="Hash da Assinatura",
+        null=True,
+        blank=True,
+        db_index=True,
+        unique=True,
+    )
+    geolocalizacoes = GenericRelation(Geolocalizacao)
+
+    class Meta:
+        verbose_name = "Assinatura"
+        verbose_name_plural = "Assinaturas"
+        ordering = ["-criado_em"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["content_type", "object_id"],
+                name="sigo_assinatura_unique_objeto",
+            )
+        ]
+
+    def __str__(self):
+        return self.nome_arquivo
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        if not self.arquivo:
+            errors["arquivo"] = "O arquivo da assinatura é obrigatório."
+
+        if not self.content_type_id:
+            errors["content_type"] = "O tipo do objeto relacionado é obrigatório."
+
+        if not self.object_id:
+            errors["object_id"] = "O objeto relacionado é obrigatório."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def gerar_hash_assinatura(self, conteudo: bytes) -> str:
+        return hashlib.sha256(conteudo).hexdigest()
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError(
+                {"__all__": "Assinatura não pode ser alterada após criada."}
+            )
+
+        self.full_clean()
+        conteudo = bytes(self.arquivo)
+        self.tamanho = len(conteudo)
+        self.hash_arquivo_atual = self.gerar_hash(conteudo)
+        self.hash_arquivo = self.hash_arquivo_atual
+        self.hash_assinatura = self.gerar_hash_assinatura(conteudo)
+        return super().save(*args, **kwargs)
+
+class Pessoa(models.Model):
+    nome = models.CharField(max_length=255, verbose_name="Nome Completo", blank=False, null=False)
+    documento = models.CharField(max_length=50, verbose_name="Documento", blank=False, null=False)
+    orgao_emissor = models.CharField(max_length=50, verbose_name="Órgão Emissor", blank=True, null=True)
+    sexo = models.CharField(max_length=10, verbose_name="Sexo", blank=True, null=True)
+    data_nascimento = models.DateField(verbose_name="Data de Nascimento", blank=True, null=True)
+    nacionalidade = models.CharField(max_length=50, verbose_name="Nacionalidade", blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Pessoa"
+        verbose_name_plural = "Pessoas"
+
+    def __str__(self):
+        return f"{self.nome} ({self.documento})"
+
+class Contato(models.Model):
+    telefone = models.CharField(max_length=20, verbose_name="Telefone", blank=True, null=True)
+    email = models.EmailField(verbose_name="E-mail", blank=True, null=True)
+    endereco = models.CharField(max_length=255, verbose_name="Endereço", blank=True, null=True)
+    bairro = models.CharField(max_length=100, verbose_name="Bairro", blank=True, null=True)
+    cidade = models.CharField(max_length=100, verbose_name="Cidade", blank=True, null=True)
+    estado = models.CharField(max_length=100, verbose_name="Estado", blank=True, null=True)
+    provincia = models.CharField(max_length=100, verbose_name="Província", blank=True, null=True)
+    pais = models.CharField(max_length=100, verbose_name="País", blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Contato"
+        verbose_name_plural = "Contatos"
+
+    def __str__(self):
+        return self.email or self.telefone or "Contato"
+
+# Modelo para representar o operador do sistema, vinculado a um usuário do Django #
+class Operador(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="operador",
+        verbose_name="Usuário",
+    )
+    foto = models.BinaryField(
+        blank=True,
+        null=True,
+        validators=[validation_size],
+        verbose_name="Foto",
+    )
+    foto_nome_arquivo = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nome do arquivo")
+    foto_mime_type = models.CharField(max_length=100, blank=True, null=True, verbose_name="Tipo MIME")
+    foto_tamanho = models.PositiveIntegerField(default=0, verbose_name="Tamanho")
+
+    class Meta:
+        verbose_name = "Operador"
+        verbose_name_plural = "Operadores"
+
+    def __str__(self):
+        full_name = self.user.get_full_name()
+        return full_name if full_name else self.user.username

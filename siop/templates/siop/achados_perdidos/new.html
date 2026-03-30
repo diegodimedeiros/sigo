@@ -1,0 +1,41 @@
+{% extends 'siop/achados_perdidos/base.html' %}
+{% load static %}
+
+{% block achados_heading %}Novo Item{% endblock %}
+{% block achados_description %}Cadastro operacional do item encontrado ou perdido.{% endblock %}
+{% block achados_hero_actions %}<a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
+
+{% block content %}
+<div class="card"><div class="card-header"><div class="card-title">Formulário de registro</div></div><div class="card-body">
+  {% if non_field_errors %}<div class="alert alert-danger">{% for error in non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+  <form method="post" enctype="multipart/form-data" id="achadosPerdidosForm">{% csrf_token %}
+    <div class="row g-4">
+      <div class="col-md-4"><label class="form-label" for="id_tipo">Tipo do Item</label><select id="id_tipo" name="tipo" class="form-select"><option value="">Selecione</option>{% for item in catalogo_achados_tipo %}<option value="{{ item.chave }}" {% if request_data.tipo == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.tipo %}<div class="text-danger small mt-1">{{ errors.tipo }}</div>{% endif %}</div>
+      <div class="col-md-4"><label class="form-label" for="id_situacao">Situação</label><select id="id_situacao" name="situacao" class="form-select"><option value="">Selecione</option>{% for item in catalogo_achados_situacao %}<option value="{{ item.chave }}" {% if request_data.situacao == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.situacao %}<div class="text-danger small mt-1">{{ errors.situacao }}</div>{% endif %}</div>
+      <div class="col-md-4"><label class="form-label" for="id_status">Status</label><select id="id_status" name="status" class="form-select"><option value="">Selecione</option>{% for item in catalogo_achados_status %}<option value="{{ item.chave }}" {% if request_data.status == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.status %}<div class="text-danger small mt-1">{{ errors.status }}</div>{% endif %}</div>
+      <div class="col-md-6"><label class="form-label" for="id_area">Área</label><select id="id_area" name="area" class="form-select" data-local-url="{% url 'siop:catalogo_locais_por_area' %}"><option value="">Selecione...</option>{% for item in areas %}<option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.area %}<div class="text-danger small mt-1">{{ errors.area }}</div>{% endif %}</div>
+      <div class="col-md-6"><label class="form-label" for="id_local">Local</label><select id="id_local" name="local" class="form-select"><option value="">Selecione a área primeiro...</option>{% for item in locais %}<option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.local %}<div class="text-danger small mt-1">{{ errors.local }}</div>{% endif %}</div>
+      <div class="col-md-4"><label class="form-label" for="id_ciop">CIOP</label><select id="id_ciop" name="ciop" class="form-select"><option value="">Selecione</option>{% for item in catalogo_ciop %}<option value="{{ item.valor }}" {% if request_data.ciop == item.valor %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label" for="id_organico">Colaborador?</label><select id="id_organico" name="organico" class="form-select"><option value="true" {% if request_data.organico %}selected{% endif %}>Sim</option><option value="false" {% if not request_data.organico %}selected{% endif %}>Não</option></select></div>
+      <div class="col-md-4">
+        <label class="form-label" for="id_colaborador_select">Colaborador</label>
+        <select id="id_colaborador_select" {% if request_data.organico %}name="colaborador"{% endif %} class="form-select{% if not request_data.organico %} d-none{% endif %}" {% if not request_data.organico %}disabled{% endif %}>
+          <option value="">Selecione</option>
+          {% for item in catalogo_colaboradores_options %}<option value="{{ item.chave }}" data-setor="{{ item.setor.valor }}" {% if request_data.colaborador == item.chave or request_data.colaborador == item.valor %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}
+        </select>
+        <input id="id_colaborador_text" type="text" {% if not request_data.organico %}name="colaborador"{% endif %} class="form-control{% if request_data.organico %} d-none{% endif %}" value="{% if not request_data.organico %}{{ request_data.colaborador }}{% endif %}" placeholder="Informe o nome" {% if request_data.organico %}disabled{% endif %}>
+      </div>
+      <div class="col-md-4"><label class="form-label" for="id_setor">Setor</label><input id="id_setor" type="text" name="setor" class="form-control" value="{{ request_data.setor }}" {% if request_data.organico %}readonly{% endif %}></div>
+      <div class="col-md-4"><label class="form-label" for="id_pessoa_nome">Pessoa Recebeu Item</label><input id="id_pessoa_nome" type="text" name="pessoa_nome" class="form-control" value="{{ request_data.pessoa_nome }}">{% if errors.pessoa_nome %}<div class="text-danger small mt-1">{{ errors.pessoa_nome }}</div>{% endif %}</div>
+      <div class="col-md-4"><label class="form-label" for="id_pessoa_documento">Documento da Pessoa</label><input id="id_pessoa_documento" type="text" name="pessoa_documento" class="form-control" value="{{ request_data.pessoa_documento }}">{% if errors.pessoa_documento %}<div class="text-danger small mt-1">{{ errors.pessoa_documento }}</div>{% endif %}</div>
+      <div class="col-md-4"><label class="form-label" for="id_data_devolucao">Data/Hora da Devolução</label><input id="id_data_devolucao" type="datetime-local" name="data_devolucao" class="form-control" value="{{ request_data.data_devolucao }}">{% if errors.data_devolucao %}<div class="text-danger small mt-1">{{ errors.data_devolucao }}</div>{% endif %}</div>
+      <div class="col-12"><label class="form-label" for="id_descricao">Descrição</label><textarea id="id_descricao" name="descricao" class="form-control" rows="6">{{ request_data.descricao }}</textarea>{% if errors.descricao %}<div class="text-danger small mt-1">{{ errors.descricao }}</div>{% endif %}</div>
+      <div class="col-md-6"><label class="form-label" for="id_fotos">Fotos</label><input id="id_fotos" type="file" name="fotos" class="form-control" multiple accept="image/*"></div>
+      <div class="col-md-6"><label class="form-label" for="id_anexos">Anexos</label><input id="id_anexos" type="file" name="anexos" class="form-control" multiple></div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-4"><button type="submit" class="btn btn-primary">Salvar item</button><a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info">Cancelar</a></div>
+  </form>
+</div></div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}<script src="{% static 'sigo/assets/js/siop/achados-perdidos-form.js' %}"></script>{% endblock %}

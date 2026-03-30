@@ -1,0 +1,80 @@
+{
+  "catalogo": "achados_perdidos",
+  "tipo": "grupos",
+  "grupos": [
+    {
+      "chave": "tipo",
+      "valor": "Tipo",
+      "itens": [
+        {
+          "chave": "achado",
+          "valor": "Achado"
+        },
+        {
+          "chave": "perdido",
+          "valor": "Perdido"
+        }
+      ]
+    },
+    {
+      "chave": "classificacao",
+      "valor": "Classificação",
+      "itens": [
+        {
+          "chave": "documentos",
+          "valor": "Documentos"
+        },
+        {
+          "chave": "eletronicos",
+          "valor": "Eletrônicos"
+        },
+        {
+          "chave": "vestuario",
+          "valor": "Vestuário"
+        },
+        {
+          "chave": "objetos_valor",
+          "valor": "Objetos de valor"
+        },
+        {
+          "chave": "materiais_diversos",
+          "valor": "Materiais diversos"
+        },
+        {
+          "chave": "itens_veiculares",
+          "valor": "Itens veiculares"
+        },
+        {
+          "chave": "outros",
+          "valor": "Outros"
+        }
+      ]
+    },
+    {
+      "chave": "status",
+      "valor": "Status",
+      "itens": [
+        {
+          "chave": "recebido",
+          "valor": "Recebido"
+        },
+        {
+          "chave": "perdido",
+          "valor": "Perdido"
+        },
+        {
+          "chave": "entregue",
+          "valor": "Entregue"
+        },
+        {
+          "chave": "descarte",
+          "valor": "Descarte"
+        },
+        {
+          "chave": "doacao",
+          "valor": "Doação"
+        }
+      ]
+    }
+  ]
+}

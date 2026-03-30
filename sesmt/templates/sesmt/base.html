@@ -1,0 +1,281 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+<!DOCTYPE html>
+<html lang="pt-BR" data-static-prefix="{{ STATIC_PREFIX }}">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="utf-8" />
+    <title>{% block title %}SESMT{% endblock %}</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{% static 'sigo/assets/img/sigo/favicon.ico' %}" type="image/x-icon" />
+
+    <script src="{% static 'sigo/assets/js/plugin/webfont/webfont.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo-theme-init.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo-fonts.js' %}"></script>
+
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/plugins.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo-app.css' %}" />
+
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <div class="logo-header" data-background-color="dark">
+            <a href="{% url 'sesmt:home' %}" class="logo text-decoration-none">
+              <span class="logo-text text-white">
+                <span class="logo-title-row">
+                  <img src="{% static 'sigo/assets/img/sigo/logo_light.svg' %}" alt="SIGO" class="brand-logo-img" />
+                  <strong>SIGO</strong>
+                </span>
+                <small>Sistema Integrado de Gestão Operacional</small>
+              </span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+              <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+            </div>
+            <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
+          </div>
+        </div>
+
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              {% block sidebar_menu %}
+              <li class="nav-item {% block nav_sesmt_home_active %}{% if request.resolver_match.namespace == 'sesmt' and request.resolver_match.url_name == 'home' %}active{% endif %}{% endblock %}">
+                <a href="{% url 'sesmt:home' %}">
+                  <i class="fas fa-home"></i>
+                  <p>Painel SESMT</p>
+                </a>
+              </li>
+              <li class="nav-section">
+                <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
+                <h4 class="text-section">Seções</h4>
+              </li>
+              <li class="nav-item {% block nav_sesmt_atendimento_active %}{% if request.resolver_match.namespace == 'sesmt' and request.resolver_match.url_name|default:''|slice:':11' == 'atendimento' %}active{% endif %}{% endblock %}">
+                <a href="{% url 'sesmt:atendimento_index' %}">
+                  <i class="fas fa-heartbeat"></i>
+                  <p>Atendimento</p>
+                </a>
+              </li>
+              <li class="nav-item {% block nav_sesmt_manejo_active %}{% if request.resolver_match.namespace == 'sesmt' and request.resolver_match.url_name|default:''|slice:':6' == 'manejo' %}active{% endif %}{% endblock %}">
+                <a href="{% url 'sesmt:manejo_index' %}">
+                  <i class="fas fa-paw"></i>
+                  <p>Manejo</p>
+                </a>
+              </li>
+              <li class="nav-item {% block nav_sesmt_flora_active %}{% if request.resolver_match.namespace == 'sesmt' and request.resolver_match.url_name|default:''|slice:':5' == 'flora' %}active{% endif %}{% endblock %}">
+                <a href="{% url 'sesmt:flora_index' %}">
+                  <i class="fas fa-leaf"></i>
+                  <p>Flora</p>
+                </a>
+              </li>
+              {% endblock %}
+            </ul>
+            <div class="sidebar-copyright">
+              <div class="sidebar-logo">
+                <a
+                  href="https://www.parquecaracol.com.br"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="institution-logo"
+                  aria-label="Parque do Caracol"
+                ></a>
+              </div>
+              <a href="mailto:ti@cnct.com.br">
+                &copy; {% now "Y" %} SESMT - Todos os direitos reservados<br />
+                Parque do Caracol<br />
+                Coordenação de Infraestrutura de TI
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="main-header-logo">
+            <div class="logo-header" data-background-color="dark">
+              <a href="{% url 'sesmt:home' %}" class="logo text-decoration-none">
+                <span class="logo-text text-white">
+                  <span class="logo-title-row">
+                    <img src="{% static 'sigo/assets/img/sigo/logo_light.svg' %}" alt="SIGO" class="brand-logo-img" />
+                    <strong>SESMT</strong>
+                  </span>
+                  <small>Sistema Integrado de Gestão Operacional</small>
+                </span>
+              </a>
+              <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+                <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+              </div>
+              <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
+            </div>
+          </div>
+
+          <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+            <div class="container-fluid">
+              {% block topbar_search %}
+              <nav class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <button type="button" class="btn btn-search pe-1">
+                      <i class="fa fa-search search-icon"></i>
+                    </button>
+                  </div>
+                  <input type="text" placeholder="Buscar no módulo..." class="form-control" />
+                </div>
+              </nav>
+              {% endblock %}
+
+              <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
+                  <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-haspopup="true">
+                    <i class="fa fa-search"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-search animated fadeIn">
+                    <form class="navbar-left navbar-form nav-search">
+                      <div class="input-group">
+                        <input type="text" placeholder="Buscar no módulo..." class="form-control" />
+                      </div>
+                    </form>
+                  </ul>
+                </li>
+                <li class="nav-item me-2">
+                  <a href="/" class="btn btn-label-primary btn-round btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Voltar ao SIGO
+                  </a>
+                </li>
+                <li class="nav-item topbar-icon dropdown hidden-caret">
+                  <button type="button" class="theme-toggle-btn me-2" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">
+                    <i class="fas fa-moon theme-icon-light"></i>
+                    <i class="fas fa-sun theme-icon-dark"></i>
+                  </button>
+                </li>
+                <li class="nav-item topbar-icon dropdown hidden-caret">
+                  <a class="nav-link dropdown-toggle" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-bell"></i>
+                    <span class="notification">2</span>
+                  </a>
+                  <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
+                    <li><div class="dropdown-title">Você tem 2 notificações</div></li>
+                    <li>
+                      <div class="notif-scroll scrollbar-outer">
+                        <div class="notif-center">
+                          <a href="#">
+                            <div class="notif-icon notif-primary"><i class="fa fa-heart"></i></div>
+                            <div class="notif-content">
+                              <span class="block">Fluxo assistencial em preparação</span>
+                              <span class="time">Agora</span>
+                            </div>
+                          </a>
+                          <a href="#">
+                            <div class="notif-icon notif-success"><i class="fa fa-check"></i></div>
+                            <div class="notif-content">
+                              <span class="block">Base do módulo carregada</span>
+                              <span class="time">Há instantes</span>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item topbar-user dropdown hidden-caret">
+                  <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                    <div class="avatar-sm">
+                      {% if request.user.operador.foto %}
+                      <img src="{% url 'sigo:current_user_avatar' %}" alt="Avatar" class="avatar-img rounded-circle" />
+                      {% else %}
+                      <div class="avatar-title rounded-circle sigo-avatar-fallback">
+                        <i class="fas fa-user"></i>
+                      </div>
+                      {% endif %}
+                    </div>
+                    <span class="profile-username">
+                      <span class="op-7">Olá,</span>
+                      <span class="fw-bold">{{ request.user.first_name|default:request.user.username }}</span>
+                    </span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-user animated fadeIn">
+                    <div class="dropdown-user-scroll scrollbar-outer">
+                      <li>
+                        <div class="user-box">
+                          <div class="avatar-lg">
+                            {% if request.user.operador.foto %}
+                            <img src="{% url 'sigo:current_user_avatar' %}" alt="Foto do usuário" class="avatar-img rounded" />
+                            {% else %}
+                            <div class="avatar-title rounded sigo-avatar-fallback">
+                              <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                          </div>
+                          <div class="u-text">
+                            <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
+                            <p class="text-muted">{{ request.user.email|default:'usuario@sesmt.local' }}</p>
+                            <a href="{% url 'sigo:profile' %}" class="btn btn-xs btn-secondary btn-sm">Meu perfil</a>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Painel do módulo</a>
+                        <a class="dropdown-item" href="{% url 'sigo:profile' %}">Meu perfil</a>
+                        <a class="dropdown-item" href="/admin/">Administração</a>
+                        <div class="dropdown-divider"></div>
+                        <form method="post" action="{% url 'sigo:logout' %}" class="m-0">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item">Sair</button>
+                        </form>
+                      </li>
+                    </div>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+
+        <div class="container">
+          <div class="page-inner">
+            {% block hero %}
+            <div class="card module-hero mb-4">
+              <div class="card-body py-4">
+                <div class="row align-items-center g-3">
+                  <div class="col-lg-8">
+                    <h1 class="h3 mb-2">Base do módulo SESMT</h1>
+                    <p class="mb-0 text-muted">
+                      Esta estrutura já está pronta para receber atendimento, manejo e flora dentro do padrão visual do sistema.
+                    </p>
+                  </div>
+                  <div class="col-lg-4 text-lg-end">
+                    {% block hero_actions %}{% endblock %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endblock %}
+
+            {% block content %}{% endblock %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script src="{% static 'sigo/assets/js/core/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/core/popper.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/core/bootstrap.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo.min.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/sigo-app.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/csrf.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

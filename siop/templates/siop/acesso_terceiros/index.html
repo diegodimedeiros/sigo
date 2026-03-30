@@ -1,0 +1,156 @@
+{% extends 'siop/acesso_terceiros/base.html' %}
+
+{% block acesso_hero_actions %}
+<a href="{% url 'siop:acesso_terceiros_new' %}" class="btn btn-primary btn-round">Registrar acesso</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Acessos hoje</p>
+          <h4 class="card-title">{{ dashboard.acessos_hoje }}</h4>
+          <p class="text-muted mb-0">Entradas registradas no dia</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Em permanência</p>
+          <h4 class="card-title">{{ dashboard.em_permanencia }}</h4>
+          <p class="text-muted mb-0">Acessos sem saída registrada</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Finalizados</p>
+          <h4 class="card-title">{{ dashboard.finalizados }}</h4>
+          <p class="text-muted mb-0">Acessos com saída concluída</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Com anexos</p>
+          <h4 class="card-title">{{ dashboard.com_anexos }}</h4>
+          <p class="text-muted mb-0">Registros com documentação vinculada</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Acesso rápido</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-info w-100 py-4">
+              <i class="fas fa-list me-2"></i>Listagem
+            </a>
+          </div>
+          <div class="col-md-4">
+            <a href="{% url 'siop:acesso_terceiros_new' %}" class="btn btn-primary w-100 py-4">
+              <i class="fas fa-plus-circle me-2"></i>Novo acesso
+            </a>
+          </div>
+          <div class="col-md-4">
+            <a href="{% url 'siop:acesso_terceiros_export' %}" class="btn btn-label-success w-100 py-4">
+              <i class="fas fa-file-export me-2"></i>Exportar dados
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Notificações da área</div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-warning mb-3" role="alert">
+          {{ dashboard.em_permanencia }} acesso(s) em permanência no momento.
+        </div>
+        <div class="alert alert-info mb-3" role="alert">
+          {{ dashboard.acessos_hoje }} registro(s) criados hoje.
+        </div>
+        <div class="alert alert-success mb-0" role="alert">
+          {{ dashboard.finalizados }} acesso(s) já concluídos.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Últimos acessos</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Empresa</th>
+                <th>P1</th>
+                <th>Status</th>
+                <th class="text-end">Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for acesso in recentes %}
+              <tr>
+                <td>#{{ acesso.id }}</td>
+                <td>{{ acesso.nome }}</td>
+                <td>{{ acesso.empresa|default:'-' }}</td>
+                <td>{{ acesso.p1_label|default:'-' }}</td>
+                <td><span class="badge {% if acesso.saida %}badge-success{% else %}badge-warning{% endif %}">{{ acesso.status_label }}</span></td>
+                <td class="text-end"><a href="{% url 'siop:acesso_terceiros_view' acesso.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">Nenhum acesso registrado ainda.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Fila operacional</div>
+      </div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Conferência de documentos de entrada</li>
+          <li class="mb-3">Validação de permanências ativas</li>
+          <li class="mb-3">Fechamento de acessos concluídos</li>
+          <li>Preparação da exportação diária</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

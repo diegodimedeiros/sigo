@@ -1,0 +1,50 @@
+{% extends 'sigo/base.html' %}
+
+{% block title %}Painel | SIGO{% endblock %}
+{% block page_title %}Painel do SIGO{% endblock %}
+{% block topbar_search %}{% endblock %}
+
+{% block hero_actions %}
+<form method="post" action="{% url 'sigo:logout' %}" class="d-inline">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary btn-round">Sair</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-6 col-xl-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h4 class="mb-0">SIOP</h4>
+          <i class="fas fa-shield-alt text-primary"></i>
+        </div>
+        <p class="text-muted mb-0">Modulo pronto para concentrar fluxos operacionais e acessos internos.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h4 class="mb-0">SESMT</h4>
+          <i class="fas fa-user-shield text-primary"></i>
+        </div>
+        <p class="text-muted mb-0">Modulo reservado para saude, seguranca e rotinas especializadas.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h4 class="mb-0">SIGO</h4>
+          <i class="fas fa-cubes text-primary"></i>
+        </div>
+        <p class="text-muted mb-0">Painel concentrador para navegação, indicadores e entrada do sistema.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

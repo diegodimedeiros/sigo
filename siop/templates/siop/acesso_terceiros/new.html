@@ -1,0 +1,138 @@
+{% extends 'siop/acesso_terceiros/base.html' %}
+
+{% block acesso_heading %}Novo Acesso de Terceiros{% endblock %}
+{% block acesso_description %}
+Tela de cadastro visual para entrada, validação inicial e observações do fluxo de terceiros.
+{% endblock %}
+
+{% block acesso_hero_actions %}
+<a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-info btn-round">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Formulário de registro</div>
+  </div>
+  <div class="card-body">
+    <form id="acesso-terceiros-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% if non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for error in non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label for="id_entrada" class="form-label">Entrada</label>
+          <input
+            type="datetime-local"
+            id="id_entrada"
+            name="entrada"
+            class="form-control{% if errors.entrada %} is-invalid{% endif %}"
+            value="{{ request_data.entrada }}"
+            required
+          />
+          {% if errors.entrada %}<div class="invalid-feedback d-block">{{ errors.entrada }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_saida" class="form-label">Saída</label>
+          <input
+            type="datetime-local"
+            id="id_saida"
+            name="saida"
+            class="form-control{% if errors.saida %} is-invalid{% endif %}"
+            value="{{ request_data.saida }}"
+          />
+          {% if errors.saida %}<div class="invalid-feedback d-block">{{ errors.saida }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_empresa" class="form-label">Empresa</label>
+          <input
+            type="text"
+            id="id_empresa"
+            name="empresa"
+            class="form-control{% if errors.empresa %} is-invalid{% endif %}"
+            value="{{ request_data.empresa }}"
+            placeholder="Empresa vinculada"
+          />
+          {% if errors.empresa %}<div class="invalid-feedback d-block">{{ errors.empresa }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_nome" class="form-label">Nome completo</label>
+          <input
+            type="text"
+            id="id_nome"
+            name="nome"
+            class="form-control{% if errors.nome %} is-invalid{% endif %}"
+            value="{{ request_data.nome }}"
+            placeholder="Informe o nome"
+            required
+          />
+          {% if errors.nome %}<div class="invalid-feedback d-block">{{ errors.nome }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_documento" class="form-label">Documento</label>
+          <input
+            type="text"
+            id="id_documento"
+            name="documento"
+            class="form-control{% if errors.documento %} is-invalid{% endif %}"
+            value="{{ request_data.documento }}"
+            placeholder="CPF, RG ou outro identificador"
+            required
+          />
+          {% if errors.documento %}<div class="invalid-feedback d-block">{{ errors.documento }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_p1" class="form-label">P1</label>
+          <select id="id_p1" name="p1" class="form-select{% if errors.p1 %} is-invalid{% endif %}" required>
+            <option value="">Selecione...</option>
+            {% for item in p1_responsaveis %}
+            <option value="{{ item.chave }}" {% if request_data.p1 == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.p1 %}<div class="invalid-feedback d-block">{{ errors.p1 }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_placa_veiculo" class="form-label">Placa do veículo</label>
+          <input
+            type="text"
+            id="id_placa_veiculo"
+            name="placa_veiculo"
+            class="form-control{% if errors.placa_veiculo %} is-invalid{% endif %}"
+            value="{{ request_data.placa_veiculo }}"
+            placeholder="ABC1D23"
+          />
+          {% if errors.placa_veiculo %}<div class="invalid-feedback d-block">{{ errors.placa_veiculo }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label for="id_descricao" class="form-label">Descrição</label>
+          <textarea
+            id="id_descricao"
+            name="descricao"
+            class="form-control{% if errors.descricao %} is-invalid{% endif %}"
+            rows="6"
+            placeholder="Descrição aqui..."
+          >{{ request_data.descricao }}</textarea>
+          {% if errors.descricao %}<div class="invalid-feedback d-block">{{ errors.descricao }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label for="id_anexos" class="form-label">Adicionar anexos</label>
+          <input type="file" id="id_anexos" name="anexos" class="form-control" multiple />
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar acesso</button>
+        <button type="reset" class="btn btn-label-secondary">Limpar</button>
+        <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

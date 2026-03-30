@@ -1,0 +1,18 @@
+{% extends 'siop/achados_perdidos/base.html' %}
+
+{% block achados_heading %}Exportação de Itens{% endblock %}
+{% block achados_description %}Painel de filtros para preparação de relatórios da área de achados e perdidos.{% endblock %}
+{% block achados_hero_actions %}<a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
+
+{% block content %}
+<div class="card"><div class="card-header"><div class="card-title">Configuração da exportação</div></div><div class="card-body"><div class="row g-4">
+  <div class="col-md-3"><label class="form-label">Situação</label><select class="form-select"><option value="">Todas</option>{% for item in catalogo_achados_situacao %}<option>{{ item.valor }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Tipo do Item</label><select class="form-select"><option value="">Todos</option>{% for item in catalogo_achados_tipo %}<option>{{ item.valor }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Área</label><select class="form-select"><option value="">Todas</option>{% for item in areas %}<option>{{ item.valor }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Local</label><select class="form-select"><option value="">Todos</option>{% for item in locais %}<option>{{ item.valor }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Status</label><select class="form-select"><option value="">Todos</option>{% for item in catalogo_achados_status %}<option>{{ item.valor }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Colaborador?</label><select class="form-select"><option>Todos</option><option>Sim</option><option>Não</option></select></div>
+  <div class="col-md-3"><label class="form-label">Período inicial</label><input type="date" class="form-control"></div>
+  <div class="col-md-3"><label class="form-label">Período final</label><input type="date" class="form-control"></div>
+</div><div class="d-flex flex-wrap gap-2 mt-4"><button type="button" class="btn btn-label-secondary">CSV</button><button type="button" class="btn btn-label-secondary">XLSX</button><button type="button" class="btn btn-primary">PDF</button></div></div></div>
+{% endblock %}

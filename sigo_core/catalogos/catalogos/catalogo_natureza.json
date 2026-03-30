@@ -1,0 +1,264 @@
+{
+  "catalogo": "natureza",
+  "tipo": "grupos",
+  "grupos": [
+    {
+      "chave": "ambiental",
+      "valor": "Ambiental",
+      "itens": [
+        {
+          "chave": "alagamento",
+          "valor": "Alagamento"
+        },
+        {
+          "chave": "animal_ferido",
+          "valor": "Animal ferido"
+        },
+        {
+          "chave": "animal_silvestre",
+          "valor": "Animal silvestre"
+        },
+        {
+          "chave": "animal_solto",
+          "valor": "Animal solto"
+        },
+        {
+          "chave": "arvore_caida",
+          "valor": "Árvore caída"
+        },
+        {
+          "chave": "arvore_com_risco_de_queda",
+          "valor": "Árvore com risco de queda"
+        },
+        {
+          "chave": "dano_a_vegetacao",
+          "valor": "Dano à vegetação"
+        },
+        {
+          "chave": "descarte_irregular_de_lixo",
+          "valor": "Descarte irregular de lixo"
+        },
+        {
+          "chave": "galho_com_risco_de_queda",
+          "valor": "Galho com risco de queda"
+        },
+        {
+          "chave": "incendio_foco_de_incendio",
+          "valor": "Incêndio / Foco de incêndio"
+        }
+      ]
+    },
+    {
+      "chave": "assistencial",
+      "valor": "Assistencial",
+      "itens": [
+        {
+          "chave": "acidente_com_colaborador",
+          "valor": "Acidente com colaborador"
+        },
+        {
+          "chave": "acidente_com_terceiro",
+          "valor": "Acidente com terceiro"
+        },
+        {
+          "chave": "acidente_com_visitante",
+          "valor": "Acidente com visitante"
+        },
+        {
+          "chave": "atendimento_bombeiro_civil",
+          "valor": "Atendimento Bombeiro Civil"
+        },
+        {
+          "chave": "incidente_com_colaborador",
+          "valor": "Incidente com colaborador"
+        },
+        {
+          "chave": "incidente_com_terceiro",
+          "valor": "Incidente com terceiro"
+        },
+        {
+          "chave": "incidente_com_visitante",
+          "valor": "Incidente com visitante"
+        },
+        {
+          "chave": "pessoa_desacordada",
+          "valor": "Pessoa desacordada"
+        },
+        {
+          "chave": "pessoa_desorientada",
+          "valor": "Pessoa desorientada"
+        },
+        {
+          "chave": "pessoa_perdida",
+          "valor": "Pessoa perdida"
+        }
+      ]
+    },
+    {
+      "chave": "seguranca",
+      "valor": "Segurança",
+      "itens": [
+        {
+          "chave": "agressao",
+          "valor": "Agressão"
+        },
+        {
+          "chave": "briga_discussao",
+          "valor": "Briga/Discussão"
+        },
+        {
+          "chave": "comportamento_suspeito",
+          "valor": "Comportamento suspeito"
+        },
+        {
+          "chave": "desordem",
+          "valor": "Desordem"
+        },
+        {
+          "chave": "drone_avistado",
+          "valor": "Drone avistado"
+        },
+        {
+          "chave": "furto",
+          "valor": "Furto"
+        },
+        {
+          "chave": "invasao_de_area_restrita",
+          "valor": "Invasão de área restrita"
+        },
+        {
+          "chave": "roubo",
+          "valor": "Roubo"
+        },
+        {
+          "chave": "situacao_de_risco",
+          "valor": "Situação de risco"
+        },
+        {
+          "chave": "tentativa_de_furto",
+          "valor": "Tentativa de furto"
+        },
+        {
+          "chave": "uso_de_entorpecentes",
+          "valor": "Uso de entorpecentes"
+        },
+        {
+          "chave": "vandalismo",
+          "valor": "Vandalismo"
+        }
+      ]
+    },
+    {
+      "chave": "operacional",
+      "valor": "Operacional",
+      "itens": [
+        {
+          "chave": "apoio_a_evento",
+          "valor": "Apoio a evento"
+        },
+        {
+          "chave": "controle_de_acesso",
+          "valor": "Controle de acesso"
+        },
+        {
+          "chave": "limpeza",
+          "valor": "Limpeza"
+        },
+        {
+          "chave": "manutencao_corretiva",
+          "valor": "Manutenção corretiva"
+        },
+        {
+          "chave": "manutencao_preventiva",
+          "valor": "Manutenção preventiva"
+        },
+        {
+          "chave": "organizacao_de_fluxo",
+          "valor": "Organização de fluxo"
+        }
+      ]
+    },
+    {
+      "chave": "tecnica",
+      "valor": "Técnica",
+      "itens": [
+        {
+          "chave": "ausencia_de_energia",
+          "valor": "Ausência de energia"
+        },
+        {
+          "chave": "cftv_inoperante",
+          "valor": "CFTV inoperante"
+        },
+        {
+          "chave": "equipamento_com_defeito",
+          "valor": "Equipamento com defeito"
+        },
+        {
+          "chave": "falha_eletrica",
+          "valor": "Falha elétrica"
+        },
+        {
+          "chave": "falha_internet",
+          "valor": "Falha Internet"
+        },
+        {
+          "chave": "falha_radio_comunicador",
+          "valor": "Falha Rádio Comunicador"
+        },
+        {
+          "chave": "iluminacao_apagada",
+          "valor": "Iluminação apagada"
+        },
+        {
+          "chave": "sinalizacao",
+          "valor": "Sinalização"
+        },
+        {
+          "chave": "sistema_fora_do_ar",
+          "valor": "Sistema fora do ar"
+        }
+      ]
+    },
+    {
+      "chave": "clima",
+      "valor": "Clima",
+      "itens": [
+        {
+          "chave": "chuva_forte",
+          "valor": "Chuva forte"
+        },
+        {
+          "chave": "granizo",
+          "valor": "Granizo"
+        },
+        {
+          "chave": "nevoeiro",
+          "valor": "Nevoeiro"
+        },
+        {
+          "chave": "tempestade",
+          "valor": "Tempestade"
+        },
+        {
+          "chave": "vento_forte",
+          "valor": "Vento forte"
+        }
+      ]
+    },
+    {
+      "chave": "outro",
+      "valor": "Outro",
+      "itens": [
+        {
+          "chave": "nao_identificado",
+          "valor": "Não identificado"
+        },
+        {
+          "chave": "situacao_atipica",
+          "valor": "Situação atípica"
+        }
+      ]
+    }
+  ]
+}

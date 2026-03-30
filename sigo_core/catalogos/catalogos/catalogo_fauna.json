@@ -1,0 +1,190 @@
+{
+  "catalogo": "fauna",
+  "tipo": "grupos",
+  "grupos": [
+    {
+      "chave": "anfibio",
+      "valor": "Anfíbio",
+      "itens": [
+        {
+          "chave": "perereca",
+          "valor": "Perereca"
+        },
+        {
+          "chave": "ra",
+          "valor": "Rã"
+        },
+        {
+          "chave": "sapo",
+          "valor": "Sapo"
+        },
+        {
+          "chave": "outro",
+          "valor": "Outro"
+        }
+      ]
+    },
+    {
+      "chave": "ave",
+      "valor": "Ave",
+      "itens": [
+        {
+          "chave": "beija_flor",
+          "valor": "Beija-flor"
+        },
+        {
+          "chave": "coruja",
+          "valor": "Coruja"
+        },
+        {
+          "chave": "curicaca",
+          "valor": "Curicaca"
+        },
+        {
+          "chave": "gaviao",
+          "valor": "Gavião"
+        },
+        {
+          "chave": "gralha_azul",
+          "valor": "Gralha-azul"
+        },
+        {
+          "chave": "joao_de_barro",
+          "valor": "João-de-barro"
+        },
+        {
+          "chave": "maritaca",
+          "valor": "Maritaca"
+        },
+        {
+          "chave": "pardal",
+          "valor": "Pardal"
+        },
+        {
+          "chave": "pica_pau",
+          "valor": "Pica-pau"
+        },
+        {
+          "chave": "pomba",
+          "valor": "Pomba"
+        },
+        {
+          "chave": "quero_quero",
+          "valor": "Quero-quero"
+        },
+        {
+          "chave": "tucano",
+          "valor": "Tucano"
+        },
+        {
+          "chave": "urubu",
+          "valor": "Urubu"
+        },
+        {
+          "chave": "outro",
+          "valor": "Outro"
+        }
+      ]
+    },
+    {
+      "chave": "mamifero",
+      "valor": "Mamífero",
+      "itens": [
+        {
+          "chave": "bugio",
+          "valor": "Bugio"
+        },
+        {
+          "chave": "cachorro_do_mato",
+          "valor": "Cachorro-do-mato"
+        },
+        {
+          "chave": "capivara",
+          "valor": "Capivara"
+        },
+        {
+          "chave": "cao",
+          "valor": "Cão"
+        },
+        {
+          "chave": "gamba",
+          "valor": "Gambá"
+        },
+        {
+          "chave": "gato",
+          "valor": "Gato"
+        },
+        {
+          "chave": "gato_do_mato",
+          "valor": "Gato-do-mato"
+        },
+        {
+          "chave": "graxaim",
+          "valor": "Graxaim"
+        },
+        {
+          "chave": "jaguatirica",
+          "valor": "Jaguatirica"
+        },
+        {
+          "chave": "lobo_guara",
+          "valor": "Lobo-guará"
+        },
+        {
+          "chave": "morcego",
+          "valor": "Morcego"
+        },
+        {
+          "chave": "ourico",
+          "valor": "Ouriço"
+        },
+        {
+          "chave": "puma",
+          "valor": "Puma"
+        },
+        {
+          "chave": "quati",
+          "valor": "Quati"
+        },
+        {
+          "chave": "rato",
+          "valor": "Rato"
+        },
+        {
+          "chave": "rato_do_mato",
+          "valor": "Rato-do-mato"
+        },
+        {
+          "chave": "tatu",
+          "valor": "Tatu"
+        },
+        {
+          "chave": "veado",
+          "valor": "Veado"
+        },
+        {
+          "chave": "outro",
+          "valor": "Outro"
+        }
+      ]
+    },
+    {
+      "chave": "reptil",
+      "valor": "Réptil",
+      "itens": [
+        {
+          "chave": "cobra",
+          "valor": "Cobra"
+        },
+        {
+          "chave": "lagarto",
+          "valor": "Lagarto"
+        },
+        {
+          "chave": "outro",
+          "valor": "Outro"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{% extends 'siop/ocorrencias/base.html' %}
+{% load static %}
+
+{% block title %}Editar Ocorrência #{{ ocorrencia.pk }} | SIOP{% endblock %}
+{% block ocorrencias_heading %}Editar Ocorrência #{{ ocorrencia.pk }}{% endblock %}
+{% block ocorrencias_description %}
+Atualize os dados operacionais da ocorrência enquanto ela permanecer em aberto.
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'sigo/assets/js/siop/ocorrencias-form.js' %}"></script>
+{% endblock %}
+
+{% block ocorrencias_hero_actions %}
+<a href="{% url 'siop:ocorrencias_view' ocorrencia.pk %}" class="btn btn-label-info btn-round">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Edição de ocorrência</div>
+  </div>
+  <div class="card-body">
+    <div id="ocorrencia-form-feedback" class="alert alert-danger d-none" role="alert"></div>
+    <form id="ocorrencia-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label class="form-label" for="pessoa">Tipo Pessoa</label>
+          <select id="pessoa" name="pessoa" class="form-select" required>
+            <option value="">Selecione...</option>
+            {% for item in tipos_pessoa %}
+            <option value="{{ item.chave }}" {% if request_data.tipo_pessoa == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="text-danger small mt-1 field-error {% if not errors.pessoa %}d-none{% endif %}" data-field-error="pessoa">{% if errors.pessoa %}{{ errors.pessoa|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="data">Data/Hora</label>
+          <input type="datetime-local" id="data" name="data" class="form-control" required value="{{ request_data.data }}">
+          <div class="text-danger small mt-1 field-error {% if not errors.data %}d-none{% endif %}" data-field-error="data">{% if errors.data %}{{ errors.data|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="natureza">Natureza</label>
+          <select id="natureza" name="natureza" class="form-select" data-tipos-url="{% url 'siop:catalogo_tipos_por_natureza' %}" required>
+            <option value="">Selecione...</option>
+            {% for item in naturezas %}
+            <option value="{{ item.chave }}" {% if request_data.natureza == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="text-danger small mt-1 field-error {% if not errors.natureza %}d-none{% endif %}" data-field-error="natureza">{% if errors.natureza %}{{ errors.natureza|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="tipo">Tipo</label>
+          <select id="tipo" name="tipo" class="form-select" data-selected-value="{{ request_data.tipo }}" required>
+            <option value="">{% if request_data.natureza %}Selecione...{% else %}Selecione a natureza primeiro...{% endif %}</option>
+            {% for item in tipos %}
+            <option value="{{ item.chave }}" {% if request_data.tipo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="text-danger small mt-1 field-error {% if not errors.tipo %}d-none{% endif %}" data-field-error="tipo">{% if errors.tipo %}{{ errors.tipo|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="area">Área</label>
+          <select id="area" name="area" class="form-select" data-locais-url="{% url 'siop:catalogo_locais_por_area' %}" required>
+            <option value="">Selecione...</option>
+            {% for item in areas %}
+            <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="text-danger small mt-1 field-error {% if not errors.area %}d-none{% endif %}" data-field-error="area">{% if errors.area %}{{ errors.area|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="local">Local</label>
+          <select id="local" name="local" class="form-select" data-selected-value="{{ request_data.local }}" required>
+            <option value="">{% if request_data.area %}Selecione...{% else %}Selecione a área primeiro...{% endif %}</option>
+          </select>
+          <div class="text-danger small mt-1 field-error {% if not errors.local %}d-none{% endif %}" data-field-error="local">{% if errors.local %}{{ errors.local|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-12">
+          <div class="d-flex flex-wrap gap-4 pt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="cftv" name="cftv" {% if request_data.cftv %}checked{% endif %}>
+              <label class="form-check-label" for="cftv">Possui imagens de CFTV?</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="bombeiro_civil" name="bombeiro_civil" {% if request_data.bombeiro_civil %}checked{% endif %}>
+              <label class="form-check-label" for="bombeiro_civil">Acionou Bombeiro Civil?</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="status" name="status" {% if request_data.status %}checked{% endif %}>
+              <label class="form-check-label" for="status">Ocorrência finalizada</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="descricao">Descrição</label>
+          <textarea id="descricao" name="descricao" class="form-control" rows="6" required>{{ request_data.descricao }}</textarea>
+          <div class="text-danger small mt-1 field-error {% if not errors.descricao %}d-none{% endif %}" data-field-error="descricao">{% if errors.descricao %}{{ errors.descricao|join:" " }}{% endif %}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="anexos">Novos anexos</label>
+          <input type="file" id="anexos" name="anexos" class="form-control" multiple>
+          <div class="form-text">Você pode anexar novos arquivos de apoio à ocorrência.</div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <a href="{% url 'siop:ocorrencias_view' ocorrencia.pk %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

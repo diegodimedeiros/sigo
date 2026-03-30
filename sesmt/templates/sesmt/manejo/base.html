@@ -1,0 +1,18 @@
+{% extends 'sesmt/base.html' %}
+
+{% block title %}Manejo | SESMT{% endblock %}
+{% block nav_sesmt_manejo_active %}active{% endblock %}
+
+{% block hero %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <h1 class="h3 mb-2">{% block manejo_heading %}Central de Manejo{% endblock %}</h1>
+        <p class="mb-0 text-muted">{% block manejo_description %}Área preparada para registro visual de fauna, resgate, transporte e soltura.{% endblock %}</p>
+      </div>
+      <div class="col-lg-4 text-lg-end">{% block manejo_hero_actions %}{% endblock %}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

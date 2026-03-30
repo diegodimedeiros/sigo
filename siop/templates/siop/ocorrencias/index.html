@@ -1,0 +1,162 @@
+{% extends 'siop/ocorrencias/base.html' %}
+
+{% block ocorrencias_hero_actions %}
+<a href="{% url 'siop:ocorrencias_new' %}" class="btn btn-primary btn-round">Registrar ocorrência</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Ocorrências hoje</p>
+          <h4 class="card-title">{{ dashboard.total_hoje }}</h4>
+          <p class="text-muted mb-0">Registros com data de hoje</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Em aberto</p>
+          <h4 class="card-title">{{ dashboard.em_aberto }}</h4>
+          <p class="text-muted mb-0">Aguardando fechamento</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Com anexo</p>
+          <h4 class="card-title">{{ dashboard.com_anexo }}</h4>
+          <p class="text-muted mb-0">Ocorrências com documentação anexada</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-stats card-round h-100">
+      <div class="card-body">
+        <div class="numbers">
+          <p class="card-category">Finalizadas hoje</p>
+          <h4 class="card-title">{{ dashboard.finalizadas_hoje }}</h4>
+          <p class="text-muted mb-0">Ocorrências concluídas no dia</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Acesso rápido</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <a href="{% url 'siop:ocorrencias_list' %}" class="btn btn-label-info w-100 py-4">
+              <i class="fas fa-list me-2"></i>Listagem
+            </a>
+          </div>
+          <div class="col-md-4">
+            <a href="{% url 'siop:ocorrencias_new' %}" class="btn btn-primary w-100 py-4">
+              <i class="fas fa-plus-circle me-2"></i>Nova ocorrência
+            </a>
+          </div>
+          <div class="col-md-4">
+            <a href="{% url 'siop:ocorrencias_export' %}" class="btn btn-label-success w-100 py-4">
+              <i class="fas fa-file-export me-2"></i>Exportar dados
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Notificações da área</div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-warning mb-3" role="alert">
+          {{ dashboard.em_aberto }} ocorrência{{ dashboard.em_aberto|pluralize:"s" }} aguardam fechamento.
+        </div>
+        <div class="alert alert-info mb-3" role="alert">
+          {{ dashboard.com_anexo }} registro{{ dashboard.com_anexo|pluralize:"s" }} contam com anexo.
+        </div>
+        <div class="alert alert-success mb-0" role="alert">
+          A central de ocorrências já está persistindo registros.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Últimos registros</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Natureza</th>
+                <th>Área</th>
+                <th>Status</th>
+                <th class="text-end">Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ocorrencia in recentes %}
+              <tr>
+                <td>#{{ ocorrencia.pk }}</td>
+                <td>{{ ocorrencia.natureza_label }}</td>
+                <td>{{ ocorrencia.area_label }}</td>
+                <td>
+                  {% if ocorrencia.status %}
+                  <span class="badge badge-success">Finalizada</span>
+                  {% else %}
+                  <span class="badge badge-warning">Em aberto</span>
+                  {% endif %}
+                </td>
+                <td class="text-end"><a href="{% url 'siop:ocorrencias_view' ocorrencia.pk %}" class="btn btn-sm btn-label-info">Ver</a></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">Nenhuma ocorrência cadastrada até o momento.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Fila operacional</div>
+      </div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Registrar novas ocorrências com dados mínimos obrigatórios</li>
+          <li class="mb-3">Monitorar casos em aberto e pendências de fechamento</li>
+          <li class="mb-3">Conferir anexos recebidos para cada ocorrência</li>
+          <li>Preparar filtros e exportações por período</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

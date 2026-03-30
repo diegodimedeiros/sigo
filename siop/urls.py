@@ -1,0 +1,79 @@
+from django.urls import path
+
+from .ocorrencias import (
+    catalogo_areas,
+    catalogo_locais_por_area,
+    catalogo_naturezas,
+    catalogo_tipos_ocorrencia,
+    catalogo_tipos_pessoa,
+    catalogo_tipos_por_natureza,
+)
+from .acesso_terceiros import (
+    acesso_terceiros_edit,
+    acesso_terceiros_export,
+    acesso_terceiros_export_view_pdf,
+    acesso_terceiros_index,
+    acesso_terceiros_list,
+    acesso_terceiros_new,
+    acesso_terceiros_view,
+)
+from .achados_perdidos import (
+    achados_perdidos_edit,
+    achados_perdidos_export,
+    achados_perdidos_export_view_pdf,
+    achados_perdidos_index,
+    achados_perdidos_list,
+    achados_perdidos_new,
+    achados_perdidos_view,
+)
+from .views import (
+    anexo_download,
+    api_ocorrencia_detail,
+    api_ocorrencias,
+    foto_download,
+    home,
+    ocorrencias_edit,
+    ocorrencias_export,
+    ocorrencias_export_view_pdf,
+    ocorrencias_index,
+    ocorrencias_list,
+    ocorrencias_new,
+    ocorrencias_view,
+)
+
+app_name = 'siop'
+
+urlpatterns = [
+    path('', home, name='home'),
+    path('api/catalogos/naturezas/', catalogo_naturezas, name='catalogo_naturezas'),
+    path('api/catalogos/naturezas/tipos/', catalogo_tipos_por_natureza, name='catalogo_tipos_por_natureza'),
+    path('api/catalogos/areas/', catalogo_areas, name='catalogo_areas'),
+    path('api/catalogos/areas/locais/', catalogo_locais_por_area, name='catalogo_locais_por_area'),
+    path('api/catalogos/tipos-pessoa/', catalogo_tipos_pessoa, name='catalogo_tipos_pessoa'),
+    path('api/catalogos/tipos-ocorrencia/', catalogo_tipos_ocorrencia, name='catalogo_tipos_ocorrencia'),
+    path('api/ocorrencias/', api_ocorrencias, name='api_ocorrencias'),
+    path('api/ocorrencias/<int:pk>/', api_ocorrencia_detail, name='api_ocorrencia_detail'),
+    path('ocorrencias/', ocorrencias_index, name='ocorrencias_index'),
+    path('ocorrencias/lista/', ocorrencias_list, name='ocorrencias_list'),
+    path('ocorrencias/nova/', ocorrencias_new, name='ocorrencias_new'),
+    path('ocorrencias/exportar/', ocorrencias_export, name='ocorrencias_export'),
+    path('ocorrencias/<int:pk>/export/pdf-view/', ocorrencias_export_view_pdf, name='ocorrencias_export_view_pdf'),
+    path('ocorrencias/<int:pk>/', ocorrencias_view, name='ocorrencias_view'),
+    path('ocorrencias/<int:pk>/editar/', ocorrencias_edit, name='ocorrencias_edit'),
+    path('anexos/<int:pk>/download/', anexo_download, name='anexo_download'),
+    path('fotos/<int:pk>/download/', foto_download, name='foto_download'),
+    path('acesso-terceiros/', acesso_terceiros_index, name='acesso_terceiros_index'),
+    path('acesso-terceiros/lista/', acesso_terceiros_list, name='acesso_terceiros_list'),
+    path('acesso-terceiros/novo/', acesso_terceiros_new, name='acesso_terceiros_new'),
+    path('acesso-terceiros/exportar/', acesso_terceiros_export, name='acesso_terceiros_export'),
+    path('acesso-terceiros/<int:pk>/export/pdf-view/', acesso_terceiros_export_view_pdf, name='acesso_terceiros_export_view_pdf'),
+    path('acesso-terceiros/<int:pk>/', acesso_terceiros_view, name='acesso_terceiros_view'),
+    path('acesso-terceiros/<int:pk>/editar/', acesso_terceiros_edit, name='acesso_terceiros_edit'),
+    path('achados-perdidos/', achados_perdidos_index, name='achados_perdidos_index'),
+    path('achados-perdidos/lista/', achados_perdidos_list, name='achados_perdidos_list'),
+    path('achados-perdidos/novo/', achados_perdidos_new, name='achados_perdidos_new'),
+    path('achados-perdidos/exportar/', achados_perdidos_export, name='achados_perdidos_export'),
+    path('achados-perdidos/<int:pk>/export/pdf-view/', achados_perdidos_export_view_pdf, name='achados_perdidos_export_view_pdf'),
+    path('achados-perdidos/<int:pk>/', achados_perdidos_view, name='achados_perdidos_view'),
+    path('achados-perdidos/<int:pk>/editar/', achados_perdidos_edit, name='achados_perdidos_edit'),
+]

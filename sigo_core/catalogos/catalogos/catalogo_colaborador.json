@@ -1,0 +1,462 @@
+{
+  "catalogo": "colaborador",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "abner_mauricio",
+      "valor": "Abner Mauricio",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "adriele_conceicao",
+      "valor": "Adriele Conceição",
+      "setor": {
+        "chave": "bilheteria",
+        "valor": "Bilheteria"
+      }
+    },
+    {
+      "chave": "aline_branchini",
+      "valor": "Aline Branchini",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "aline_oliveira",
+      "valor": "Aline Oliveira",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "amilton_filho",
+      "valor": "Amilton Filho",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "ana_silva",
+      "valor": "Ana Silva",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "antonio_jaskulski",
+      "valor": "Antônio Jaskulski",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "camila_santos",
+      "valor": "Camila Santos",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "caroline_ribeiro",
+      "valor": "Caroline Ribeiro",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "carolyne_hahn",
+      "valor": "Carolyne Hahn",
+      "setor": {
+        "chave": "bilheteria",
+        "valor": "Bilheteria"
+      }
+    },
+    {
+      "chave": "daniel_aninha",
+      "valor": "Daniel Aninha",
+      "setor": {
+        "chave": "ciop",
+        "valor": "CIOP"
+      }
+    },
+    {
+      "chave": "deise_souza",
+      "valor": "Deise Souza",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "diego_medeiros",
+      "valor": "Diego Medeiros",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "diocilei_amaral",
+      "valor": "Diocilei Amaral",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "edison_junior",
+      "valor": "Edison Júnior",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "eduarda_borin",
+      "valor": "Eduarda Borin",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "esteban_scherer",
+      "valor": "Esteban Scherer",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "fernanda_westerhofer",
+      "valor": "Fernanda Westerhofer",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "fernando_mota",
+      "valor": "Fernando Mota",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "gabriel_silva",
+      "valor": "Gabriel Silva",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "gisele_machado",
+      "valor": "Gisele Machado",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "guilherme_sparrenberger",
+      "valor": "Guilherme Sparrenberger",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "gustavo_muller",
+      "valor": "Gustavo Müller",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "iuri_gomes",
+      "valor": "Iuri Gomes",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "joao_bergamin",
+      "valor": "João Bergamin",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "joao_pedro",
+      "valor": "João Pedro",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "jonatas_andrade",
+      "valor": "Jonatas Andrade",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "kathuci_marques",
+      "valor": "Kathuci Marques",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "kauan_gomes",
+      "valor": "Kauan Gomes",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "kawan_silva",
+      "valor": "Kawãn Silva",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "kevina_jukneviciene",
+      "valor": "Kévina Jukneviciene",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "lara_cruz",
+      "valor": "Lara Cruz",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "larissa_lima",
+      "valor": "Larissa Lima",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "leonardo_fonseca",
+      "valor": "Leonardo Fonseca",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "leticia_kahler",
+      "valor": "Leticia Kahler",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "maiara_costa",
+      "valor": "Maiara Costa",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "maicon_cruz",
+      "valor": "Maicon Cruz",
+      "setor": {
+        "chave": "ciop",
+        "valor": "CIOP"
+      }
+    },
+    {
+      "chave": "maicon_santos",
+      "valor": "Maicon Santos",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "marilu_rosa",
+      "valor": "Marilu Rosa",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "matheus_cruz",
+      "valor": "Matheus Cruz",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "mayerlinger_lima",
+      "valor": "Mayerlinger Lima",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "moises_souza",
+      "valor": "Moises Souza",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "nestor_neto",
+      "valor": "Nestor Neto",
+      "setor": {
+        "chave": "bilheteria",
+        "valor": "Bilheteria"
+      }
+    },
+    {
+      "chave": "nicolas_felippetti",
+      "valor": "Nicolas Felippetti",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "pablo_oliveira",
+      "valor": "Pablo Oliveira",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "paulo_abreu",
+      "valor": "Paulo Abreu",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "paulo_fernandes",
+      "valor": "Paulo Fernandes",
+      "setor": {
+        "chave": "ciop",
+        "valor": "CIOP"
+      }
+    },
+    {
+      "chave": "priscila_hahn",
+      "valor": "Priscila Hahn",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "rafael_ribeiro",
+      "valor": "Rafael Ribeiro",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "raquel_andrade",
+      "valor": "Raquel Andrade",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "rita_souza",
+      "valor": "Rita Souza",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "roberto_fernandes",
+      "valor": "Roberto Fernandes",
+      "setor": {
+        "chave": "ciop",
+        "valor": "CIOP"
+      }
+    },
+    {
+      "chave": "samuel_lima",
+      "valor": "Samuel Lima",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "sandra_ferraz",
+      "valor": "Sandra Ferraz",
+      "setor": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "stefanie_carasai",
+      "valor": "Stefanie Carasai",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    },
+    {
+      "chave": "valmir_catriel",
+      "valor": "Valmir Catriel",
+      "setor": {
+        "chave": "ciop",
+        "valor": "CIOP"
+      }
+    },
+    {
+      "chave": "william_canto",
+      "valor": "William Canto",
+      "setor": {
+        "chave": "experiencia_visitante",
+        "valor": "Experiência do Visitante"
+      }
+    }
+  ]
+}
