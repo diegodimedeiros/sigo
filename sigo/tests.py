@@ -1,9 +1,14 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
-from sigo.models import Operador
+from sigo.models import ConfiguracaoSistema, Notificacao, Operador, Unidade
 
 
 User = get_user_model()
@@ -110,3 +115,304 @@ class ProfileViewTests(TestCase):
         self.assertIsNone(operador.foto_nome_arquivo)
         self.assertIsNone(operador.foto_mime_type)
         self.assertEqual(operador.foto_tamanho, 0)
+
+
+class NotificationFlowTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="operador_siop",
+            password="SenhaForte123!",
+            first_name="Operador",
+        )
+        self.client.force_login(self.user)
+
+        self.group = Group.objects.create(name="Operacoes")
+        self.user.groups.add(self.group)
+
+        self.unidade = Unidade.objects.create(
+            nome="Parque Teste",
+            sigla="PT",
+            cidade="Canela",
+            uf="RS",
+        )
+        ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
+
+    def test_module_notification_is_visible(self):
+        Notificacao.objects.create(
+            titulo="Nova ocorrência",
+            mensagem="Ocorrência aguardando revisão.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        Notificacao.objects.create(
+            titulo="Somente SESMT",
+            mensagem="Fluxo sesmt.",
+            modulo=Notificacao.MODULO_SESMT,
+        )
+
+        response = self.client.get(reverse("siop:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Nova ocorrência")
+        self.assertNotContains(response, "Somente SESMT")
+
+    def test_group_and_user_filters(self):
+        Notificacao.objects.create(
+            titulo="Grupo OK",
+            mensagem="Mensagem do grupo.",
+            modulo=Notificacao.MODULO_SIOP,
+            grupo=self.group,
+        )
+        Notificacao.objects.create(
+            titulo="Outro usuário",
+            mensagem="Não deve aparecer.",
+            modulo=Notificacao.MODULO_SIOP,
+            usuario=User.objects.create_user(username="externo", password="SenhaForte123!"),
+        )
+
+        response = self.client.get(reverse("siop:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Grupo OK")
+        self.assertNotContains(response, "Outro usuário")
+
+    def test_top_notifications_module_no_siop_prioriza_namespace_atual(self):
+        response = self.client.get(
+            reverse("siop:home"),
+            HTTP_REFERER=f"{reverse('sigo:notifications_list')}?modulo=sigo",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["top_notifications_module"], Notificacao.MODULO_SIOP)
+        self.assertContains(response, reverse("siop:notifications_list"))
+
+    def test_ver_todas_no_siop_aponta_para_central_do_proprio_modulo(self):
+        response = self.client.get(reverse("siop:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("siop:notifications_list"))
+
+    def test_lista_de_notificacoes_do_siop_renderiza_no_modulo(self):
+        Notificacao.objects.create(
+            titulo="Somente SIOP",
+            mensagem="Fluxo do siop.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+
+        response = self.client.get(reverse("siop:notifications_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "siop/notifications.html")
+        self.assertContains(response, "Somente SIOP")
+
+    def test_mark_all_as_read(self):
+        Notificacao.objects.create(
+            titulo="Pendente",
+            mensagem="Mensagem pendente.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+
+        response = self.client.post(
+            reverse("sigo:notifications_mark_all_read"),
+            data={"modulo": Notificacao.MODULO_SIOP, "next": reverse("siop:home")},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        notificacao = Notificacao.objects.get(titulo="Pendente")
+        self.assertTrue(notificacao.lidos_por.filter(id=self.user.id).exists())
+
+    def test_mark_all_as_read_ignora_modulo_forjado(self):
+        notificacao_siop = Notificacao.objects.create(
+            titulo="SIOP Pendente",
+            mensagem="Mensagem do siop.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        notificacao_sesmt = Notificacao.objects.create(
+            titulo="SESMT Pendente",
+            mensagem="Mensagem do sesmt.",
+            modulo=Notificacao.MODULO_SESMT,
+        )
+
+        response = self.client.post(
+            reverse("sigo:notifications_mark_all_read"),
+            data={"modulo": Notificacao.MODULO_SESMT, "next": reverse("siop:home")},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(notificacao_siop.lidos_por.filter(id=self.user.id).exists())
+        self.assertFalse(notificacao_sesmt.lidos_por.filter(id=self.user.id).exists())
+
+    def test_mark_all_as_read_na_central_preserva_modulo_explicito(self):
+        notificacao_siop = Notificacao.objects.create(
+            titulo="SIOP Central",
+            mensagem="Mensagem do siop.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        notificacao_sesmt = Notificacao.objects.create(
+            titulo="SESMT Central",
+            mensagem="Mensagem do sesmt.",
+            modulo=Notificacao.MODULO_SESMT,
+        )
+
+        response = self.client.post(
+            reverse("sigo:notifications_mark_all_read"),
+            data={
+                "modulo": Notificacao.MODULO_SIOP,
+                "next": f"{reverse('sigo:notifications_list')}?modulo=siop",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"{reverse('sigo:notifications_list')}?modulo=siop")
+        self.assertTrue(notificacao_siop.lidos_por.filter(id=self.user.id).exists())
+        self.assertFalse(notificacao_sesmt.lidos_por.filter(id=self.user.id).exists())
+
+    def test_open_notification_marks_read(self):
+        notificacao = Notificacao.objects.create(
+            titulo="Abrir item",
+            mensagem="Clique para abrir.",
+            modulo=Notificacao.MODULO_SIOP,
+            link=reverse("siop:home"),
+        )
+
+        response = self.client.get(
+            reverse("sigo:notification_open", args=[notificacao.id]),
+            data={"modulo": Notificacao.MODULO_SIOP, "next": reverse("siop:home")},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        notificacao.refresh_from_db()
+        self.assertTrue(notificacao.lidos_por.filter(id=self.user.id).exists())
+
+    def test_open_notification_ignora_modulo_forjado(self):
+        notificacao = Notificacao.objects.create(
+            titulo="Abrir item protegido",
+            mensagem="Clique para abrir.",
+            modulo=Notificacao.MODULO_SIOP,
+            link=reverse("siop:home"),
+        )
+
+        response = self.client.get(
+            reverse("sigo:notification_open", args=[notificacao.id]),
+            data={"modulo": Notificacao.MODULO_SESMT, "next": reverse("siop:home")},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        notificacao.refresh_from_db()
+        self.assertTrue(notificacao.lidos_por.filter(id=self.user.id).exists())
+
+    def test_open_notification_funciona_mesmo_partindo_de_lista_em_outro_contexto(self):
+        notificacao = Notificacao.objects.create(
+            titulo="Abrir item da lista",
+            mensagem="Clique para abrir.",
+            modulo=Notificacao.MODULO_SIOP,
+            link="/siop/ocorrencias/1/",
+        )
+
+        response = self.client.get(
+            reverse("sigo:notification_open", args=[notificacao.id]),
+            data={"next": "/notificacoes/?modulo=sigo"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/siop/ocorrencias/1/")
+        notificacao.refresh_from_db()
+        self.assertTrue(notificacao.lidos_por.filter(id=self.user.id).exists())
+
+    def test_open_notification_redireciona_para_link_do_item_sem_ancora(self):
+        notificacao = Notificacao.objects.create(
+            titulo="Ocorrência interna",
+            mensagem="Abrir no detalhe.",
+            modulo=Notificacao.MODULO_SIOP,
+            link="/siop/ocorrencias/99/",
+        )
+
+        response = self.client.get(
+            reverse("sigo:notification_open", args=[notificacao.id]),
+            data={"next": reverse("siop:home")},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/siop/ocorrencias/99/")
+
+    def test_notifications_list_mostra_apenas_ultimos_sete_dias(self):
+        recente = Notificacao.objects.create(
+            titulo="Recente",
+            mensagem="Dentro da janela.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        antiga = Notificacao.objects.create(
+            titulo="Antiga",
+            mensagem="Fora da janela.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        Notificacao.objects.filter(id=antiga.id).update(criado_em=timezone.now() - timedelta(days=8))
+
+        response = self.client.get(
+            reverse("sigo:notifications_list"),
+            data={"modulo": Notificacao.MODULO_SIOP},
+        )
+        notifications = list(response.context["notifications"])
+        titles = [item.titulo for item in notifications]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(recente.titulo, titles)
+        self.assertNotIn(antiga.titulo, titles)
+
+    def test_notifications_list_respeita_modulo_informado(self):
+        Notificacao.objects.create(
+            titulo="Somente SIOP",
+            mensagem="Fluxo do siop.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        Notificacao.objects.create(
+            titulo="Somente SESMT",
+            mensagem="Fluxo do sesmt.",
+            modulo=Notificacao.MODULO_SESMT,
+        )
+
+        response = self.client.get(
+            reverse("sigo:notifications_list"),
+            data={"modulo": Notificacao.MODULO_SIOP},
+        )
+        notifications = list(response.context["notifications"])
+        titles = [item.titulo for item in notifications]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Somente SIOP", titles)
+        self.assertNotIn("Somente SESMT", titles)
+
+    def test_notifications_list_prioriza_modulo_explicito_mesmo_com_referer(self):
+        Notificacao.objects.create(
+            titulo="Somente SIOP",
+            mensagem="Fluxo do siop.",
+            modulo=Notificacao.MODULO_SIOP,
+        )
+        Notificacao.objects.create(
+            titulo="Somente SIGO",
+            mensagem="Fluxo do sigo.",
+            modulo=Notificacao.MODULO_SIGO,
+        )
+
+        response = self.client.get(
+            reverse("sigo:notifications_list"),
+            data={"modulo": Notificacao.MODULO_SIOP},
+            HTTP_REFERER=f"{reverse('sigo:notifications_list')}?modulo=sigo",
+        )
+        notifications = list(response.context["notifications"])
+        titles = [item.titulo for item in notifications]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Somente SIOP", titles)
+        self.assertNotIn("Somente SIGO", titles)
+
+    def test_segmented_notification_requires_module(self):
+        notificacao = Notificacao(
+            titulo="Sem módulo",
+            mensagem="Direcionada sem contexto.",
+            grupo=self.group,
+        )
+
+        with self.assertRaises(ValidationError) as exc:
+            notificacao.full_clean()
+
+        self.assertIn("modulo", exc.exception.message_dict)

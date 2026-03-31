@@ -122,6 +122,10 @@ def catalogo_area_groups():
     return catalogo_grupos("area")
 
 
+def catalogo_ativos_groups():
+    return catalogo_grupos("ativos")
+
+
 def catalogo_tipo_pessoa_choices():
     return _choices_from_items(catalogo_tipo_pessoa_items())
 
@@ -146,6 +150,12 @@ def catalogo_area_choices():
     )
 
 
+def catalogo_ativos_area_choices():
+    return _choices_from_items(
+        [{"chave": grupo["chave"], "valor": grupo["valor"]} for grupo in catalogo_ativos_groups()]
+    )
+
+
 def catalogo_naturezas_data():
     return catalogo_natureza_groups()
 
@@ -165,6 +175,10 @@ def catalogo_areas_data():
     return catalogo_area_groups()
 
 
+def catalogo_ativos_areas_data():
+    return catalogo_ativos_groups()
+
+
 def catalogo_locais_por_area(area):
     area_key = catalogo_area_key(area)
     if not area_key:
@@ -178,6 +192,21 @@ def catalogo_locais_por_area(area):
 
 def catalogo_locais_por_area_data(area):
     return catalogo_locais_por_area(area)
+
+
+def catalogo_ativos_equipamentos_por_area(area):
+    area_key = catalogo_ativos_area_key(area)
+    if not area_key:
+        return []
+
+    for grupo in catalogo_ativos_groups():
+        if grupo["chave"] == area_key:
+            return grupo["itens"]
+    return []
+
+
+def catalogo_ativos_equipamentos_por_area_data(area):
+    return catalogo_ativos_equipamentos_por_area(area)
 
 
 def catalogo_tipos_pessoa_data():
@@ -244,12 +273,34 @@ def catalogo_area_label(value):
     )
 
 
+def catalogo_ativos_area_key(value):
+    return _coerce_key(
+        [{"chave": grupo["chave"], "valor": grupo["valor"]} for grupo in catalogo_ativos_groups()],
+        value,
+    )
+
+
+def catalogo_ativos_area_label(value):
+    return _coerce_label(
+        [{"chave": grupo["chave"], "valor": grupo["valor"]} for grupo in catalogo_ativos_groups()],
+        value,
+    )
+
+
 def catalogo_local_key(area, value):
     return _coerce_key(catalogo_locais_por_area(area), value)
 
 
 def catalogo_local_label(area, value):
     return _coerce_label(catalogo_locais_por_area(area), value)
+
+
+def catalogo_ativos_equipamento_key(area, value):
+    return _coerce_key(catalogo_ativos_equipamentos_por_area(area), value)
+
+
+def catalogo_ativos_equipamento_label(area, value):
+    return _coerce_label(catalogo_ativos_equipamentos_por_area(area), value)
 
 
 def _grupo_itens_por_chave(nome, grupo_chave):
@@ -315,6 +366,47 @@ def catalogo_colaborador_items():
         }
         items.append(current)
     return items
+
+
+def catalogo_chaves_items():
+    data = carregar_catalogo_padronizado("chaves")
+    if data.get("tipo") != "lista":
+        raise ValidationError("Catálogo chaves não é do tipo lista.")
+    items = []
+    for item in data.get("itens", []):
+        current = _normalize_item(item)
+        if not current:
+            continue
+        current["numero"] = str(item.get("numero", "")).strip()
+        current["local"] = str(item.get("local", "")).strip()
+        items.append(current)
+    return items
+
+
+def catalogo_chaves_choices():
+    return _choices_from_items(catalogo_chaves_items())
+
+
+def catalogo_chave_key(value):
+    return _coerce_key(catalogo_chaves_items(), value)
+
+
+def catalogo_chave_label(value):
+    return _coerce_label(catalogo_chaves_items(), value)
+
+
+def catalogo_chave_numero(value):
+    item = _find_in_items(catalogo_chaves_items(), value)
+    if item:
+        return item.get("numero", "")
+    return ""
+
+
+def catalogo_chave_local(value):
+    item = _find_in_items(catalogo_chaves_items(), value)
+    if item:
+        return item.get("local", "")
+    return ""
 
 
 def catalogo_colaborador_key(value):

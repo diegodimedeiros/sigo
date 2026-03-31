@@ -1,13 +1,76 @@
+from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.utils import timezone
 
-from sigo.models import Anexo, Pessoa, get_unidade_ativa
+from sigo.models import Anexo, Notificacao, Pessoa, get_unidade_ativa
+from sigo.notifications import publicar_notificacao
 from sigo_core.catalogos import catalogo_p1_key
 from sigo_core.shared.attachments import create_attachments_for_instance
 from sigo_core.shared.exceptions import ServiceError
 from sigo_core.shared.parsers import parse_local_datetime
 
 from siop.models import AcessoTerceiros
+
+
+def _grupo_siop():
+    return Group.objects.filter(name="group_siop").first()
+
+
+def _publicar_notificacao_acesso_criado(acesso):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Acesso de Terceiros | Novo Registrado",
+        mensagem=(
+            f"Acesso #{acesso.id} registrado para {acesso.nome}"
+            f"{f' na unidade {acesso.unidade_sigla}' if acesso.unidade_sigla else ''}."
+        ),
+        link=acesso.get_absolute_url(),
+        tipo=Notificacao.TIPO_INFO,
+        unidade=acesso.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
+
+
+def _publicar_notificacao_acesso_finalizado(acesso):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Acesso de Terceiros | Concluído",
+        mensagem=(
+            f"Acesso #{acesso.id} de {acesso.nome} concluído"
+            f"{f' na unidade {acesso.unidade_sigla}' if acesso.unidade_sigla else ''}."
+        ),
+        link=acesso.get_absolute_url(),
+        tipo=Notificacao.TIPO_SUCESSO,
+        unidade=acesso.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
+
+
+def _publicar_notificacao_acesso_atualizado(acesso):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Acesso de Terceiros | Atualizado",
+        mensagem=(
+            f"Acesso #{acesso.id} de {acesso.nome} atualizado"
+            f"{f' na unidade {acesso.unidade_sigla}' if acesso.unidade_sigla else ''}."
+        ),
+        link=acesso.get_absolute_url(),
+        tipo=Notificacao.TIPO_ALERTA,
+        unidade=acesso.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
 
 
 def _normalize_payload(*, data, original=None):
@@ -96,6 +159,7 @@ def create_acesso_terceiros(*, data, files, user):
         anexo_model=Anexo,
         files=files,
     )
+    _publicar_notificacao_acesso_criado(acesso)
     return acesso
 
 
@@ -106,6 +170,8 @@ def edit_acesso_terceiros(*, acesso, data, files, user):
             message="Acessos com saída registrada não podem ser editados.",
             status=409,
         )
+
+    had_saida = acesso.saida is not None
 
     payload = _normalize_payload(
         data=data,
@@ -133,6 +199,10 @@ def edit_acesso_terceiros(*, acesso, data, files, user):
         anexo_model=Anexo,
         files=files,
     )
+    if not had_saida and acesso.saida is not None:
+        _publicar_notificacao_acesso_finalizado(acesso)
+    else:
+        _publicar_notificacao_acesso_atualizado(acesso)
     return acesso
 
 

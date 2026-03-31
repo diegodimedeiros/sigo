@@ -1,11 +1,13 @@
 import base64
 import binascii
 
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.utils import timezone
 
-from sigo.models import Anexo, Assinatura, Foto, Pessoa, get_unidade_ativa
+from sigo.models import Anexo, Assinatura, Foto, Notificacao, Pessoa, get_unidade_ativa
+from sigo.notifications import publicar_notificacao
 from sigo_core.catalogos import (
     catalogo_achado_classificacao_key,
     catalogo_achado_situacao_key,
@@ -24,6 +26,75 @@ from siop.models import AchadosPerdidos
 
 
 FINAL_STATUS = {"entregue", "descarte", "doacao"}
+
+
+def _grupo_siop():
+    return Group.objects.filter(name="group_siop").first()
+
+
+def _publicar_notificacao_achado_criado(achado):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Achados e Perdidos | Novo Registrado",
+        mensagem=(
+            f"Item #{achado.id} registrado como {achado.situacao}"
+            f"{f' na unidade {achado.unidade_sigla}' if achado.unidade_sigla else ''}."
+        ),
+        link=achado.get_absolute_url(),
+        tipo=Notificacao.TIPO_INFO,
+        unidade=achado.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
+
+
+def _publicar_notificacao_achado_finalizado(achado):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    mensagem_map = {
+        "entregue": "Item #{id} concluído com entrega{unidade}.",
+        "descarte": "Item #{id} concluído com descarte{unidade}.",
+        "doacao": "Item #{id} concluído com doação{unidade}.",
+    }
+    unidade_texto = f" na unidade {achado.unidade_sigla}" if achado.unidade_sigla else ""
+    status = (achado.status or "").strip().lower()
+
+    publicar_notificacao(
+        titulo="Achados e Perdidos | Concluído",
+        mensagem=mensagem_map.get(status, "Item #{id} finalizado{unidade}.").format(
+            id=achado.id,
+            unidade=unidade_texto,
+        ),
+        link=achado.get_absolute_url(),
+        tipo=Notificacao.TIPO_SUCESSO,
+        unidade=achado.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
+
+
+def _publicar_notificacao_achado_atualizado(achado):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Achados e Perdidos | Atualizado",
+        mensagem=(
+            f"Item #{achado.id} atualizado"
+            f"{f' na unidade {achado.unidade_sigla}' if achado.unidade_sigla else ''}."
+        ),
+        link=achado.get_absolute_url(),
+        tipo=Notificacao.TIPO_ALERTA,
+        unidade=achado.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
 
 
 def _normalize_text(value):
@@ -247,6 +318,9 @@ def create_achado_perdido(*, data, files, user):
     )
     if payload["status"] == "entregue":
         _upsert_signature(achado=achado, data_url=payload["assinatura_entrega"], user=user)
+    _publicar_notificacao_achado_criado(achado)
+    if payload["status"] in FINAL_STATUS:
+        _publicar_notificacao_achado_finalizado(achado)
     return achado
 
 
@@ -257,6 +331,8 @@ def edit_achado_perdido(*, achado, data, files, user, strict_required=False):
             message="Itens com status final não podem ser editados.",
             status=409,
         )
+    previous_status = (achado.status or "").strip().lower()
+
     payload = _build_payload(
         data=data,
         original={
@@ -300,6 +376,10 @@ def edit_achado_perdido(*, achado, data, files, user, strict_required=False):
     )
     if payload["status"] == "entregue":
         _upsert_signature(achado=achado, data_url=payload["assinatura_entrega"], user=user)
+    if previous_status not in FINAL_STATUS and payload["status"] in FINAL_STATUS:
+        _publicar_notificacao_achado_finalizado(achado)
+    else:
+        _publicar_notificacao_achado_atualizado(achado)
     return achado
 
 

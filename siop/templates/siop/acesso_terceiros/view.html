@@ -2,7 +2,7 @@
 
 {% block title %}Acesso #{{ acesso.id }} | SIOP{% endblock %}
 {% block acesso_heading %}Visualização do Acesso #{{ acesso.id }}{% endblock %}
-{% block acesso_description %}Painel de leitura completa com dados principais, permanência, documentos vinculados e histórico operacional.{% endblock %}
+{% block acesso_description %}Painel de leitura completa com dados principais, permanência, documentos vinculados e auditoria do registro.{% endblock %}
 {% block acesso_hero_actions %}<a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
 
 {% block content %}
@@ -58,7 +58,7 @@
           </div>
           <div class="col-12">
             <label class="form-label text-muted">Descrição</label>
-            <div class="border rounded-3 p-3 bg-light-subtle">
+            <div id="descricao" class="detail-note-box">
               {{ acesso.descricao|default:"Sem descrição informada." }}
             </div>
           </div>
@@ -68,30 +68,25 @@
 
     <div class="card mt-4">
       <div class="card-header">
-        <div class="card-title">Linha do tempo</div>
+        <div class="card-title">Auditoria</div>
       </div>
       <div class="card-body">
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="timeline-badge info"><i class="fas fa-sign-in-alt"></i></div>
-            <div class="timeline-panel">
-              <div class="timeline-heading"><span class="fw-semibold">Entrada registrada</span></div>
-              <div class="timeline-body"><p class="mb-0">{{ acesso.entrada|date:"d/m/Y H:i" }}</p></div>
-            </div>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label text-muted">Criado em</label>
+            <div class="fw-semibold">{{ acesso.criado_em|date:"d/m/Y H:i" }}</div>
           </div>
-          <div class="timeline-item">
-            <div class="timeline-badge warning"><i class="fas fa-id-card"></i></div>
-            <div class="timeline-panel">
-              <div class="timeline-heading"><span class="fw-semibold">Registro criado</span></div>
-              <div class="timeline-body"><p class="mb-0">{{ acesso.criado_em|date:"d/m/Y H:i" }}</p></div>
-            </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Criado por</label>
+            <div class="fw-semibold">{{ acesso.criado_por|default:"-" }}</div>
           </div>
-          <div class="timeline-item">
-            <div class="timeline-badge success"><i class="fas fa-user-check"></i></div>
-            <div class="timeline-panel">
-              <div class="timeline-heading"><span class="fw-semibold">Última atualização</span></div>
-              <div class="timeline-body"><p class="mb-0">{{ acesso.modificado_em|date:"d/m/Y H:i" }}</p></div>
-            </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Última atualização</label>
+            <div class="fw-semibold">{{ acesso.modificado_em|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Atualizado por</label>
+            <div class="fw-semibold">{{ acesso.modificado_por|default:"-" }}</div>
           </div>
         </div>
       </div>
@@ -105,15 +100,18 @@
       </div>
       <div class="card-body">
         {% if acesso.anexos.all %}
-        <div class="list-group list-group-flush">
+        <div class="detail-file-list">
           {% for anexo in acesso.anexos.all %}
-          <a href="{% url 'siop:anexo_download' anexo.id %}" class="list-group-item list-group-item-action px-0">
-            {{ anexo.nome_arquivo }}
+          <a href="{% url 'siop:anexo_download' anexo.id %}" class="detail-file-item">
+            <span class="detail-file-name">{{ anexo.nome_arquivo }}</span>
+            <span class="detail-file-meta">{{ anexo.tamanho|filesizeformat }}</span>
           </a>
           {% empty %}
-          <div class="list-group-item px-0 text-muted">Nenhum anexo registrado.</div>
+          <div class="detail-empty-state">Nenhum anexo registrado.</div>
           {% endfor %}
         </div>
+        {% else %}
+        <div class="detail-empty-state">Nenhum anexo registrado.</div>
         {% endif %}
       </div>
     </div>

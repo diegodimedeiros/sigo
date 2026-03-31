@@ -37,7 +37,7 @@
           {% csrf_token %}
           <input type="hidden" name="action" value="update_photo" />
           <div class="mb-3">
-            <label for="{{ photo_form.foto.id_for_label }}" class="form-label">Nova foto</label>
+            <label for="{{ photo_form.foto.id_for_label }}" class="form-label">Adicionar nova foto:</label>
             {{ photo_form.foto }}
             {% if photo_form.foto.errors %}
             <div class="text-danger small mt-2">{{ photo_form.foto.errors|join:', ' }}</div>

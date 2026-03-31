@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import ConfiguracaoSistema, Operador, Unidade
+from .models import ConfiguracaoSistema, Notificacao, Operador, Unidade
 
 
 class OperadorAdminForm(forms.ModelForm):
@@ -27,6 +27,29 @@ class OperadorAdminForm(forms.ModelForm):
         return instance
 
 
+class NotificacaoAdminForm(forms.ModelForm):
+    class Meta:
+        model = Notificacao
+        fields = "__all__"
+        help_texts = {
+            "modulo": (
+                "Define em qual módulo a notificação aparece. "
+                "Se você direcionar por grupo ou usuário, informe o módulo."
+            ),
+            "grupo": (
+                "Grupo que pode receber a notificação. "
+                "Use junto com o módulo para manter o sino contextual."
+            ),
+            "usuario": (
+                "Usuário específico que pode receber a notificação. "
+                "Use junto com o módulo para limitar a exibição à área correta."
+            ),
+            "unidade": "Se preenchida, limita a visibilidade à unidade selecionada.",
+            "link": "Link opcional aberto ao clicar na notificação.",
+            "lidos_por": "Controle interno de leitura por usuário.",
+        }
+
+
 @admin.register(Operador)
 class OperadorAdmin(admin.ModelAdmin):
     form = OperadorAdminForm
@@ -49,3 +72,47 @@ class ConfiguracaoSistemaAdmin(admin.ModelAdmin):
         if ConfiguracaoSistema.objects.exists():
             return False
         return super().has_add_permission(request)
+
+
+@admin.register(Notificacao)
+class NotificacaoAdmin(admin.ModelAdmin):
+    form = NotificacaoAdminForm
+    list_display = (
+        "titulo",
+        "tipo",
+        "modulo",
+        "unidade",
+        "grupo",
+        "usuario",
+        "ativo",
+        "criado_em",
+    )
+    list_filter = ("tipo", "modulo", "ativo", "unidade", "grupo")
+    search_fields = ("titulo", "mensagem", "link", "usuario__username", "grupo__name")
+    autocomplete_fields = ("unidade", "grupo", "usuario", "lidos_por")
+    fieldsets = (
+        (
+            "Conteúdo",
+            {
+                "fields": ("titulo", "mensagem", "link", "tipo", "ativo"),
+                "description": "Defina o conteúdo principal da notificação.",
+            },
+        ),
+        (
+            "Segmentação",
+            {
+                "fields": ("modulo", "unidade", "grupo", "usuario"),
+                "description": (
+                    "O usuário ou grupo define quem pode receber. "
+                    "O módulo define onde a notificação aparece."
+                ),
+            },
+        ),
+        (
+            "Leitura",
+            {
+                "fields": ("lidos_por",),
+                "classes": ("collapse",),
+            },
+        ),
+    )

@@ -16,6 +16,7 @@ from .views import (
     manejo_index,
     manejo_list,
     manejo_new,
+    notifications_list,
     manejo_view,
 )
 
@@ -23,6 +24,7 @@ app_name = 'sesmt'
 
 urlpatterns = [
     path('', home, name='home'),
+    path('notificacoes/', notifications_list, name='notifications_list'),
     path('atendimento/', atendimento_index, name='atendimento_index'),
     path('atendimento/lista/', atendimento_list, name='atendimento_list'),
     path('atendimento/novo/', atendimento_new, name='atendimento_new'),

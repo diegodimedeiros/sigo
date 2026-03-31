@@ -9,7 +9,6 @@
   }
 
   WebFont.load({
-    google: { families: ["Public Sans:300,400,500,600,700"] },
     custom: {
       families: [
         "Font Awesome 5 Solid",

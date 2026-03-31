@@ -1,0 +1,127 @@
+{% extends 'sesmt/base.html' %}
+
+{% block title %}Notificações | SESMT{% endblock %}
+{% block page_title %}Central de Notificações{% endblock %}
+
+{% block breadcrumbs %}
+<li class="nav-home">
+  <a href="{% url 'sesmt:home' %}">
+    <i class="icon-home"></i>
+  </a>
+</li>
+<li class="separator">
+  <i class="icon-arrow-right"></i>
+</li>
+<li class="nav-item">
+  <a href="{% url 'sesmt:notifications_list' %}">Notificações</a>
+</li>
+{% endblock %}
+
+{% block hero %}
+<div class="card page-hero mb-4">
+  <div class="card-body py-4">
+    <h1 class="h3 mb-2">Notificações dos últimos 7 dias</h1>
+    <p class="mb-0 text-muted">
+      Acompanhe tudo o que aconteceu no contexto
+      <strong>{{ notifications_module_label }}</strong>,
+      com leitura individual e histórico recente.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4 col-xl-3">
+    <div class="card notifications-summary-card">
+      <div class="card-body">
+        <h4 class="card-title">Resumo</h4>
+        <p class="text-muted notification-summary-copy mb-3">Visão consolidada da central de notificações.</p>
+
+        <div class="notification-stat-list">
+          <div class="notification-stat-item">
+            <span class="notification-stat-label">Contexto</span>
+            <strong>{{ notifications_module_label }}</strong>
+          </div>
+          <div class="notification-stat-item">
+            <span class="notification-stat-label">Últimos 7 dias</span>
+            <strong>{{ notifications_total }}</strong>
+          </div>
+          <div class="notification-stat-item">
+            <span class="notification-stat-label">Não lidas</span>
+            <strong>{{ top_notifications_unread_count }}</strong>
+          </div>
+        </div>
+
+        {% if notifications_total %}
+        <form method="post" action="{% url 'sigo:notifications_mark_all_read' %}" class="mt-4">
+          {% csrf_token %}
+          <input type="hidden" name="modulo" value="{{ notifications_module }}" />
+          <input type="hidden" name="next" value="{{ notifications_list_url }}" />
+          <button type="submit" class="btn btn-label-primary w-100">Marcar todas como lidas</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8 col-xl-9">
+    <div class="card notifications-feed-card">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+          <div>
+            <h4 class="card-title mb-1">Histórico recente</h4>
+            <p class="text-muted mb-0">Listagem completa das notificações visíveis para você.</p>
+          </div>
+        </div>
+
+        {% if notifications %}
+        <div class="notification-list">
+          {% for notif in notifications %}
+          <a
+            href="{% url 'sigo:notification_open' notif.id %}?next={{ request.get_full_path|urlencode }}"
+            class="notification-list-item {% if not notif.lida_por_usuario %}is-unread{% endif %}"
+          >
+            <div class="notification-list-icon {{ notif.get_tipo_css }}">
+              {% if notif.tipo == 'sucesso' %}
+              <i class="fa fa-check"></i>
+              {% elif notif.tipo == 'alerta' %}
+              <i class="fa fa-exclamation"></i>
+              {% elif notif.tipo == 'erro' %}
+              <i class="fa fa-times"></i>
+              {% else %}
+              <i class="fa fa-bell"></i>
+              {% endif %}
+            </div>
+            <div class="notification-list-content">
+              <div class="notification-list-head">
+                <h5 class="mb-0">{{ notif.titulo }}</h5>
+                <span class="notification-list-time">{{ notif.criado_em|date:'d/m/Y H:i' }}</span>
+              </div>
+              <p class="notification-list-message text-muted">{{ notif.mensagem }}</p>
+              <div class="notification-list-meta">
+                {% if notif.modulo %}
+                <span class="badge badge-count bg-info-subtle text-info-emphasis">{{ notif.get_modulo_display }}</span>
+                {% endif %}
+                <span class="badge {% if notif.lida_por_usuario %}badge-count bg-secondary-subtle text-secondary-emphasis{% else %}badge-count bg-primary-subtle text-primary-emphasis{% endif %}">
+                  {% if notif.lida_por_usuario %}Lida{% else %}Não lida{% endif %}
+                </span>
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="notification-empty-state">
+          <i class="fa fa-bell-slash"></i>
+          <h5>Nenhuma notificação recente</h5>
+          <p class="text-muted mb-0">
+            Não houve eventos visíveis para este contexto nos últimos 7 dias.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -2,11 +2,12 @@ import json
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from sigo.models import Assinatura, ConfiguracaoSistema, Pessoa, Unidade
+from sigo.models import Assinatura, ConfiguracaoSistema, Notificacao, Pessoa, Unidade
 
 from .models import AcessoTerceiros, AchadosPerdidos, Ocorrencia
 
@@ -18,6 +19,7 @@ class OcorrenciasFlowTests(TestCase):
             username="tester",
             password="senha-forte-123",
         )
+        self.group_siop = Group.objects.create(name="group_siop")
         self.ocorrencia = Ocorrencia.objects.create(
             tipo_pessoa="visitante",
             data_ocorrencia=timezone.now(),
@@ -96,6 +98,10 @@ class OcorrenciasFlowTests(TestCase):
         self.assertEqual(created.tipo_pessoa, "visitante")
         self.assertFalse(created.status)
         self.assertEqual(created.criado_por, self.user)
+        notification = Notificacao.objects.get(titulo="Ocorrência | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, created.get_absolute_url())
 
     def test_ocorrencia_detail_api_returns_structured_payload(self):
         self.client.force_login(self.user)
@@ -133,6 +139,32 @@ class OcorrenciasFlowTests(TestCase):
         self.assertTrue(self.ocorrencia.cftv)
         self.assertTrue(self.ocorrencia.bombeiro_civil)
         self.assertTrue(self.ocorrencia.status)
+        notification = Notificacao.objects.get(titulo="Ocorrência | Concluído")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, self.ocorrencia.get_absolute_url())
+
+    def test_ocorrencia_edit_sem_finalizar_publica_notificacao_de_atualizacao(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:ocorrencias_edit", args=[self.ocorrencia.pk]),
+            data=json.dumps(
+                {
+                    "descricao": "Descrição atualizada sem concluir.",
+                    "cftv": "true",
+                    "bombeiro_civil": "false",
+                    "status": "false",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        notification = Notificacao.objects.get(titulo="Ocorrência | Atualizado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, self.ocorrencia.get_absolute_url())
 
     def test_ocorrencia_edit_page_renderiza_quando_em_aberto(self):
         self.client.force_login(self.user)
@@ -183,6 +215,7 @@ class AcessoTerceirosFlowTests(TestCase):
             username="porteiro",
             password="senha-forte-123",
         )
+        self.group_siop = Group.objects.get_or_create(name="group_siop")[0]
         self.pessoa = Pessoa.objects.create(
             nome="Marcos Lima",
             documento="12345678900",
@@ -221,6 +254,10 @@ class AcessoTerceirosFlowTests(TestCase):
         self.assertEqual(created.nome, "Carla Souza")
         self.assertEqual(created.documento, "98765432100")
         self.assertEqual(created.p1, "antonio_garcia")
+        notification = Notificacao.objects.get(titulo="Acesso de Terceiros | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, created.get_absolute_url())
 
     def test_acesso_terceiros_export_pdf_view_returns_file(self):
         self.client.force_login(self.user)
@@ -264,6 +301,34 @@ class AcessoTerceirosFlowTests(TestCase):
         self.acesso.refresh_from_db()
         self.assertEqual(self.acesso.empresa, "PrestServ Atualizada")
         self.assertEqual(self.acesso.placa_veiculo, "XYZ9K88")
+        notification = Notificacao.objects.get(titulo="Acesso de Terceiros | Concluído")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, self.acesso.get_absolute_url())
+
+    def test_acesso_terceiros_edit_sem_saida_publica_notificacao_de_atualizacao(self):
+        self.client.force_login(self.user)
+        entrada_local = timezone.localtime(self.acesso.entrada)
+
+        response = self.client.post(
+            reverse("siop:acesso_terceiros_edit", args=[self.acesso.pk]),
+            data={
+                "entrada": entrada_local.strftime("%Y-%m-%dT%H:%M"),
+                "saida": "",
+                "empresa": "PrestServ Revisada",
+                "nome": "Marcos Lima",
+                "documento": "12345678900",
+                "p1": "antonio_garcia",
+                "placa_veiculo": "AAA1B11",
+                "descricao": "Atualização sem saída.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        notification = Notificacao.objects.get(titulo="Acesso de Terceiros | Atualizado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, self.acesso.get_absolute_url())
 
     def test_acesso_terceiros_edit_page_redireciona_quando_ja_tem_saida(self):
         self.client.force_login(self.user)
@@ -307,6 +372,7 @@ class AchadosPerdidosFlowTests(TestCase):
             username="achados",
             password="senha-forte-123",
         )
+        self.group_siop = Group.objects.get_or_create(name="group_siop")[0]
         self.item = AchadosPerdidos.objects.create(
             tipo="documentos",
             situacao="achado",
@@ -341,6 +407,10 @@ class AchadosPerdidosFlowTests(TestCase):
         self.assertEqual(created.tipo, "documentos")
         self.assertEqual(created.situacao, "achado")
         self.assertEqual(created.status, "recebido")
+        notification = Notificacao.objects.get(titulo="Achados e Perdidos | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, created.get_absolute_url())
 
     def test_achados_perdidos_forca_status_perdido_quando_situacao_e_perdido(self):
         self.client.force_login(self.user)
@@ -362,6 +432,8 @@ class AchadosPerdidosFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(created.situacao, "perdido")
         self.assertEqual(created.status, "perdido")
+        notification = Notificacao.objects.get(titulo="Achados e Perdidos | Novo Registrado")
+        self.assertEqual(notification.grupo, self.group_siop)
 
     def test_achados_perdidos_achado_nao_aceita_status_perdido(self):
         self.client.force_login(self.user)
@@ -482,6 +554,33 @@ class AchadosPerdidosFlowTests(TestCase):
         self.assertEqual(created.status, "entregue")
         self.assertEqual(created.assinaturas.count(), 1)
         self.assertIsInstance(created.assinaturas.first(), Assinatura)
+        creation_notification = Notificacao.objects.get(titulo="Achados e Perdidos | Novo Registrado")
+        final_notification = Notificacao.objects.get(titulo="Achados e Perdidos | Concluído")
+        self.assertEqual(creation_notification.grupo, self.group_siop)
+        self.assertEqual(final_notification.grupo, self.group_siop)
+        self.assertEqual(final_notification.link, created.get_absolute_url())
+
+    def test_achados_perdidos_edit_sem_finalizar_publica_notificacao_de_atualizacao(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_edit", args=[self.item.pk]),
+            data={
+                "tipo": "documentos",
+                "situacao": "achado",
+                "status": "recebido",
+                "area": "area_administrativo",
+                "local": "ciop",
+                "organico": "false",
+                "descricao": "Item atualizado sem conclusão.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        notification = Notificacao.objects.get(titulo="Achados e Perdidos | Atualizado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, self.item.get_absolute_url())
 
 
 class UnidadeAutoAssignmentTests(TestCase):

@@ -170,6 +170,9 @@ class AcessoTerceiros(BaseModel):
         pessoa_documento = self.pessoa.documento if self.pessoa_id else "sem documento"
         return f"{pessoa_nome} ({pessoa_documento}) - {when}"
 
+    def get_absolute_url(self):
+        return reverse("siop:acesso_terceiros_view", kwargs={"pk": self.pk})
+
 class AchadosPerdidos(BaseModel):
     FINAL_STATUS = {"entregue", "descarte", "doacao"}
 

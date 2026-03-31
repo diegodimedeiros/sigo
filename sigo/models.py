@@ -2,6 +2,7 @@ import hashlib
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -329,6 +330,126 @@ class ConfiguracaoSistema(models.Model):
     @classmethod
     def get_solo(cls):
         return cls.objects.select_related("unidade_ativa").order_by("id").first()
+
+
+class NotificacaoQuerySet(models.QuerySet):
+    def visiveis_para_usuario(self, *, user, modulo=None, unidade=None):
+        if not user or not user.is_authenticated:
+            return self.none()
+
+        queryset = self.filter(ativo=True)
+        queryset = queryset.filter(Q(usuario__isnull=True) | Q(usuario=user))
+        queryset = queryset.filter(Q(grupo__isnull=True) | Q(grupo__in=user.groups.all()))
+
+        if unidade is not None:
+            queryset = queryset.filter(Q(unidade__isnull=True) | Q(unidade=unidade))
+
+        if modulo:
+            queryset = queryset.filter(Q(modulo="") | Q(modulo=modulo))
+
+        return queryset.distinct()
+
+
+class Notificacao(models.Model):
+    MODULO_SIGO = "sigo"
+    MODULO_SIOP = "siop"
+    MODULO_SESMT = "sesmt"
+    MODULO_CHOICES = (
+        ("", "Todos os módulos"),
+        (MODULO_SIGO, "SIGO"),
+        (MODULO_SIOP, "SIOP"),
+        (MODULO_SESMT, "SESMT"),
+    )
+
+    TIPO_INFO = "info"
+    TIPO_SUCESSO = "sucesso"
+    TIPO_ALERTA = "alerta"
+    TIPO_ERRO = "erro"
+    TIPO_CHOICES = (
+        (TIPO_INFO, "Informação"),
+        (TIPO_SUCESSO, "Sucesso"),
+        (TIPO_ALERTA, "Alerta"),
+        (TIPO_ERRO, "Erro"),
+    )
+
+    titulo = models.CharField(max_length=120, verbose_name="Título")
+    mensagem = models.CharField(max_length=255, verbose_name="Mensagem")
+    link = models.CharField(max_length=255, blank=True, verbose_name="Link")
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default=TIPO_INFO, db_index=True)
+    unidade = models.ForeignKey(
+        Unidade,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notificacoes",
+        verbose_name="Unidade alvo",
+    )
+    modulo = models.CharField(
+        max_length=20,
+        choices=MODULO_CHOICES,
+        blank=True,
+        default="",
+        db_index=True,
+        verbose_name="Módulo alvo",
+    )
+    grupo = models.ForeignKey(
+        Group,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notificacoes",
+        verbose_name="Grupo alvo",
+    )
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notificacoes",
+        verbose_name="Usuário alvo",
+    )
+    lidos_por = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="notificacoes_lidas",
+        verbose_name="Lidas por",
+    )
+    ativo = models.BooleanField(default=True, verbose_name="Ativa?")
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criada em")
+
+    objects = NotificacaoQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "Notificação"
+        verbose_name_plural = "Notificações"
+        ordering = ["-criado_em"]
+
+    def clean(self):
+        super().clean()
+        self.titulo = normalize_text(self.titulo)
+        self.mensagem = normalize_text(self.mensagem)
+        self.link = normalize_text(self.link)
+
+        if not self.titulo:
+            raise ValidationError({"titulo": "Informe o título da notificação."})
+        if not self.mensagem:
+            raise ValidationError({"mensagem": "Informe a mensagem da notificação."})
+        if (self.grupo_id or self.usuario_id) and not self.modulo:
+            raise ValidationError(
+                {"modulo": "Informe o módulo para notificações direcionadas por grupo ou usuário."}
+            )
+
+    def __str__(self):
+        return self.titulo
+
+    def get_tipo_css(self):
+        if self.tipo == self.TIPO_SUCESSO:
+            return "notif-success"
+        if self.tipo == self.TIPO_ALERTA:
+            return "notif-warning"
+        if self.tipo == self.TIPO_ERRO:
+            return "notif-danger"
+        return "notif-primary"
 
 
 # Modelo para representar o operador do sistema, vinculado a um usuário do Django #

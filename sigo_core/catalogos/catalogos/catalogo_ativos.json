@@ -1,0 +1,90 @@
+{
+  "catalogo": "ativos",
+  "tipo": "grupos",
+  "grupos": [
+    {
+      "chave": "artificie_civil",
+      "valor": "Artificie Civil",
+      "itens": [
+        {
+          "chave": "radio",
+          "valor": "Rádio"
+        },
+        {
+          "chave": "tablet",
+          "valor": "Tablet"
+        }
+      ]
+    },
+    {
+      "chave": "bombeiro_hidraulico",
+      "valor": "Bombeiro Hidraulico",
+      "itens": [
+        {
+          "chave": "radio",
+          "valor": "Rádio"
+        },
+        {
+          "chave": "tablet",
+          "valor": "Tablet"
+        }
+      ]
+    },
+    {
+      "chave": "bombeiro_civil",
+      "valor": "Bombeiro Civil",
+      "itens": [
+        {
+          "chave": "radio",
+          "valor": "Rádio"
+        },
+        {
+          "chave": "tablet",
+          "valor": "Tablet"
+        }
+      ]
+    },
+    {
+      "chave": "eletrica",
+      "valor": "Eletrica",
+      "itens": [
+        {
+          "chave": "radio",
+          "valor": "Rádio"
+        },
+        {
+          "chave": "tablet",
+          "valor": "Tablet"
+        }
+      ]
+    },
+    {
+      "chave": "jardinagem",
+      "valor": "Jardinagem",
+      "itens": [
+        {
+          "chave": "radio",
+          "valor": "Rádio"
+        },
+        {
+          "chave": "tablet",
+          "valor": "Tablet"
+        }
+      ]
+    },
+    {
+      "chave": "limpeza",
+      "valor": "Limpeza",
+      "itens": [
+        {
+          "chave": "radio",
+          "valor": "Rádio"
+        },
+        {
+          "chave": "tablet",
+          "valor": "Tablet"
+        }
+      ]
+    }
+  ]
+}

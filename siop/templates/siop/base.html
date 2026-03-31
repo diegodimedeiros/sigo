@@ -165,28 +165,53 @@
                 <li class="nav-item topbar-icon dropdown hidden-caret">
                   <a class="nav-link dropdown-toggle" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fa fa-bell"></i>
-                    <span class="notification">2</span>
+                    {% if top_notifications_unread_count > 0 %}
+                    <span class="notification">{{ top_notifications_unread_count }}</span>
+                    {% endif %}
                   </a>
                   <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
-                    <li><div class="dropdown-title">Você tem 2 notificações</div></li>
+                    <li>
+                      <div class="dropdown-title notification-dropdown-title">
+                        {% if top_notifications %}
+                        Histórico recente
+                        <span class="notification-dropdown-subtitle">
+                          {% if top_notifications_unread_count > 0 %}
+                          {{ top_notifications_unread_count }} não lida{{ top_notifications_unread_count|pluralize }}
+                          {% else %}
+                          Últimas notificações visíveis para você
+                          {% endif %}
+                        </span>
+                        {% else %}
+                        Sem notificações recentes
+                        {% endif %}
+                      </div>
+                    </li>
                     <li>
                       <div class="notif-scroll scrollbar-outer">
                         <div class="notif-center">
-                          <a href="#">
-                            <div class="notif-icon notif-primary"><i class="fa fa-folder-open"></i></div>
+                          {% for notif in top_notifications %}
+                          <a href="{% url 'sigo:notification_open' notif.id %}?modulo={{ top_notifications_module }}&next={{ request.get_full_path|urlencode }}" class="notification-item {% if not notif.lida_por_usuario %}fw-semibold{% endif %}">
                             <div class="notif-content">
-                              <span class="block">Fluxo operacional em preparação</span>
-                              <span class="time">Agora</span>
+                              <span class="block notification-item-title">{{ notif.titulo }}</span>
+                              <span class="block notification-item-text">{{ notif.mensagem }}</span>
+                              <span class="time notification-item-time">{{ notif.criado_em|date:'d/m H:i' }}</span>
                             </div>
                           </a>
-                          <a href="#">
-                            <div class="notif-icon notif-success"><i class="fa fa-check"></i></div>
-                            <div class="notif-content">
-                              <span class="block">Base do módulo carregada</span>
-                              <span class="time">Há instantes</span>
-                            </div>
-                          </a>
+                          {% empty %}
+                          <div class="notification-empty">Nenhuma notificação para este contexto.</div>
+                          {% endfor %}
                         </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <div class="notification-dropdown-footer">
+                        <a
+                          href="{% url 'siop:notifications_list' %}"
+                          class="btn btn-xs btn-label-info w-100"
+                        >
+                          Ver todas
+                        </a>
                       </div>
                     </li>
                   </ul>
@@ -223,15 +248,13 @@
                           <div class="u-text">
                             <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
                             <p class="text-muted">{{ request.user.email|default:'usuario@siop.local' }}</p>
-                            <a href="{% url 'sigo:profile' %}" class="btn btn-xs btn-secondary btn-sm">Meu perfil</a>
                           </div>
                         </div>
                       </li>
                       <li>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Painel do módulo</a>
                         <a class="dropdown-item" href="{% url 'sigo:profile' %}">Meu perfil</a>
-                        <a class="dropdown-item" href="/admin/">Administração</a>
+                        <a class="dropdown-item" href="/admin/">Painel Admin</a>
                         <div class="dropdown-divider"></div>
                         <form method="post" action="{% url 'sigo:logout' %}" class="m-0">
                           {% csrf_token %}
@@ -260,17 +283,10 @@
             {% block hero %}
             <div class="card module-hero mb-4">
               <div class="card-body py-4">
-                <div class="row align-items-center g-3">
-                  <div class="col-lg-8">
-                    <h1 class="h3 mb-2">Base do módulo SIOP</h1>
-                    <p class="mb-0 text-muted">
-                      Esta estrutura já está pronta para receber a área de ocorrências, acesso de terceiros e achados e perdidos.
-                    </p>
-                  </div>
-                  <div class="col-lg-4 text-lg-end">
-                    {% block hero_actions %}{% endblock %}
-                  </div>
-                </div>
+                <h1 class="h3 mb-2">Base do módulo SIOP</h1>
+                <p class="mb-0 text-muted">
+                  Esta estrutura já está pronta para receber a área de ocorrências, acesso de terceiros e achados e perdidos.
+                </p>
               </div>
             </div>
             {% endblock %}

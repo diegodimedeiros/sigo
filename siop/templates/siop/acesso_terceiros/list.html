@@ -10,14 +10,14 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
 {% endblock %}
 
 {% block content %}
-<div class="card mb-4">
+<div class="card listing-filter-card mb-4">
   <div class="card-body">
-    <form method="get" class="row g-3">
-      <div class="col-md-4">
+    <form method="get" class="filter-panel-grid">
+      <div class="filter-span-6">
         <label class="form-label" for="filtro-q">Busca rápida</label>
         <input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, nome, empresa, documento..." value="{{ filters.q }}">
       </div>
-      <div class="col-md-2">
+      <div class="filter-span-2">
         <label class="form-label" for="filtro-status">Status</label>
         <select id="filtro-status" name="status" class="form-select">
           <option value="" {% if not filters.status %}selected{% endif %}>Todos</option>
@@ -25,7 +25,7 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
           <option value="finalizada" {% if filters.status == 'finalizada' %}selected{% endif %}>Finalizada</option>
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="filter-span-4">
         <label class="form-label" for="filtro-p1">P1</label>
         <select id="filtro-p1" name="p1" class="form-select">
           <option value="">Todos</option>
@@ -34,15 +34,15 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-1">
+      <div class="filter-span-3">
         <label class="form-label" for="filtro-data-inicio">Início</label>
         <input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}">
       </div>
-      <div class="col-md-1">
+      <div class="filter-span-3">
         <label class="form-label" for="filtro-data-fim">Fim</label>
         <input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}">
       </div>
-      <div class="col-12 d-flex flex-wrap gap-2">
+      <div class="filter-span-6 filter-actions">
         <button class="btn btn-label-info">Aplicar filtros</button>
         <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-secondary">Limpar</a>
       </div>
@@ -50,13 +50,18 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
   </div>
 </div>
 
-<div class="card">
+<div class="card listing-table-card">
   <div class="card-header">
-    <div class="card-title">Resultado da listagem</div>
+    <div class="listing-table-header">
+      <div>
+        <div class="card-title mb-1">Resultado da listagem</div>
+        <div class="listing-table-meta">{{ total_acessos }} acesso{{ total_acessos|pluralize:"s" }} encontrado{{ total_acessos|pluralize:"s" }}.</div>
+      </div>
+    </div>
   </div>
   <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+    <div class="table-responsive listing-table-wrapper">
+      <table class="table table-striped table-hover listing-table align-middle mb-0">
         <thead>
           <tr>
             <th><a href="{{ sort_links.id.url }}" class="table-sort-link{% if sort_links.id.active %} is-active{% endif %}">ID <span>{{ sort_links.id.icon }}</span></a></th>

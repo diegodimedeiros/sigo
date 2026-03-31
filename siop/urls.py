@@ -32,6 +32,7 @@ from .views import (
     api_ocorrencias,
     foto_download,
     home,
+    notifications_list,
     ocorrencias_edit,
     ocorrencias_export,
     ocorrencias_export_view_pdf,
@@ -46,6 +47,7 @@ app_name = 'siop'
 
 urlpatterns = [
     path('', home, name='home'),
+    path('notificacoes/', notifications_list, name='notifications_list'),
     path('api/catalogos/naturezas/', catalogo_naturezas, name='catalogo_naturezas'),
     path('api/catalogos/naturezas/tipos/', catalogo_tipos_por_natureza, name='catalogo_tipos_por_natureza'),
     path('api/catalogos/areas/', catalogo_areas, name='catalogo_areas'),

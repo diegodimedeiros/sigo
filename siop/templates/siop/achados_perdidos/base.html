@@ -6,19 +6,12 @@
 {% block hero %}
 <div class="card module-hero mb-4">
   <div class="card-body py-4">
-    <div class="row align-items-center g-3">
-      <div class="col-lg-8">
-        <h1 class="h3 mb-2">{% block achados_heading %}Central de Achados e Perdidos{% endblock %}</h1>
-        <p class="mb-0 text-muted">
-          {% block achados_description %}
-          Área preparada para registro visual de itens localizados, acompanhamento de guarda e devolução organizada.
-          {% endblock %}
-        </p>
-      </div>
-      <div class="col-lg-4 text-lg-end">
-        {% block achados_hero_actions %}{% endblock %}
-      </div>
-    </div>
+    <h1 class="h3 mb-2">{% block achados_heading %}Central de Achados e Perdidos{% endblock %}</h1>
+    <p class="mb-0 text-muted">
+      {% block achados_description %}
+      Área preparada para registro visual de itens localizados, acompanhamento de guarda e devolução organizada.
+      {% endblock %}
+    </p>
   </div>
 </div>
 {% endblock %}

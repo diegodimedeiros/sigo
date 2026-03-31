@@ -1,7 +1,9 @@
+from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.utils import timezone
 
-from sigo.models import Anexo, get_unidade_ativa
+from sigo.models import Anexo, Notificacao, get_unidade_ativa
+from sigo.notifications import publicar_notificacao
 from sigo_core.catalogos import (
     catalogo_area_key,
     catalogo_local_key,
@@ -15,6 +17,67 @@ from sigo_core.shared.parsers import parse_local_datetime, to_bool
 from sigo_core.shared.payload_validators import ensure_required_fields
 
 from siop.models import Ocorrencia
+
+
+def _grupo_siop():
+    return Group.objects.filter(name="group_siop").first()
+
+
+def _publicar_notificacao_ocorrencia_criada(ocorrencia):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Ocorrência | Novo Registrado",
+        mensagem=(
+            f"Ocorrência #{ocorrencia.id} registrada"
+            f"{f' na unidade {ocorrencia.unidade_sigla}' if ocorrencia.unidade_sigla else ''}."
+        ),
+        link=ocorrencia.get_absolute_url(),
+        tipo=Notificacao.TIPO_INFO,
+        unidade=ocorrencia.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
+
+
+def _publicar_notificacao_ocorrencia_finalizada(ocorrencia):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Ocorrência | Concluído",
+        mensagem=(
+            f"Ocorrência #{ocorrencia.id} concluída"
+            f"{f' na unidade {ocorrencia.unidade_sigla}' if ocorrencia.unidade_sigla else ''}."
+        ),
+        link=ocorrencia.get_absolute_url(),
+        tipo=Notificacao.TIPO_SUCESSO,
+        unidade=ocorrencia.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
+
+
+def _publicar_notificacao_ocorrencia_atualizada(ocorrencia):
+    grupo = _grupo_siop()
+    if not grupo:
+        return
+
+    publicar_notificacao(
+        titulo="Ocorrência | Atualizado",
+        mensagem=(
+            f"Ocorrência #{ocorrencia.id} atualizada"
+            f"{f' na unidade {ocorrencia.unidade_sigla}' if ocorrencia.unidade_sigla else ''}."
+        ),
+        link=ocorrencia.get_absolute_url(),
+        tipo=Notificacao.TIPO_ALERTA,
+        unidade=ocorrencia.unidade,
+        modulo=Notificacao.MODULO_SIOP,
+        grupo=grupo,
+    )
 
 
 def registrar_ocorrencia(*, data, files, user):
@@ -57,6 +120,7 @@ def registrar_ocorrencia(*, data, files, user):
         anexo_model=Anexo,
         files=files,
     )
+    _publicar_notificacao_ocorrencia_criada(ocorrencia)
     return ocorrencia
 
 
@@ -85,6 +149,8 @@ def editar_ocorrencia(*, ocorrencia, data, files, user, strict_required=False):
         required=True,
     )
 
+    was_finalizada = ocorrencia.status
+
     ocorrencia.tipo_pessoa = tipo_pessoa
     ocorrencia.data_ocorrencia = data_evento
     ocorrencia.natureza = natureza
@@ -104,6 +170,12 @@ def editar_ocorrencia(*, ocorrencia, data, files, user, strict_required=False):
         anexo_model=Anexo,
         files=files,
     )
+
+    if not was_finalizada and ocorrencia.status:
+        _publicar_notificacao_ocorrencia_finalizada(ocorrencia)
+    else:
+        _publicar_notificacao_ocorrencia_atualizada(ocorrencia)
+
     return ocorrencia
 
 
