@@ -3,87 +3,41 @@
   "tipo": "grupos",
   "grupos": [
     {
-      "chave": "artificie_civil",
-      "valor": "Artificie Civil",
+      "chave": "radio",
+      "valor": "Rádio",
       "itens": [
-        {
-          "chave": "radio",
-          "valor": "Rádio"
-        },
-        {
-          "chave": "tablet",
-          "valor": "Tablet"
-        }
+        { "chave": "radio_01", "valor": "Rádio 01" },
+        { "chave": "radio_02", "valor": "Rádio 02" },
+        { "chave": "radio_03", "valor": "Rádio 03" },
+        { "chave": "radio_04", "valor": "Rádio 04" },
+        { "chave": "radio_05", "valor": "Rádio 05" },
+        { "chave": "radio_06", "valor": "Rádio 06" },
+        { "chave": "radio_07", "valor": "Rádio 07" },
+        { "chave": "radio_08", "valor": "Rádio 08" },
+        { "chave": "radio_09", "valor": "Rádio 09" },
+        { "chave": "radio_10", "valor": "Rádio 10" },
+        { "chave": "radio_11", "valor": "Rádio 11" },
+        { "chave": "radio_12", "valor": "Rádio 12" },
+        { "chave": "radio_13", "valor": "Rádio 13" },
+        { "chave": "radio_14", "valor": "Rádio 14" },
+        { "chave": "radio_15", "valor": "Rádio 15" },
+        { "chave": "radio_16", "valor": "Rádio 16" },
+        { "chave": "radio_17", "valor": "Rádio 17" },
+        { "chave": "radio_18", "valor": "Rádio 18" },
+        { "chave": "radio_19", "valor": "Rádio 19" },
+        { "chave": "radio_20", "valor": "Rádio 20" }
       ]
     },
     {
-      "chave": "bombeiro_hidraulico",
-      "valor": "Bombeiro Hidraulico",
+      "chave": "tablet",
+      "valor": "Tablet",
       "itens": [
-        {
-          "chave": "radio",
-          "valor": "Rádio"
-        },
-        {
-          "chave": "tablet",
-          "valor": "Tablet"
-        }
-      ]
-    },
-    {
-      "chave": "bombeiro_civil",
-      "valor": "Bombeiro Civil",
-      "itens": [
-        {
-          "chave": "radio",
-          "valor": "Rádio"
-        },
-        {
-          "chave": "tablet",
-          "valor": "Tablet"
-        }
-      ]
-    },
-    {
-      "chave": "eletrica",
-      "valor": "Eletrica",
-      "itens": [
-        {
-          "chave": "radio",
-          "valor": "Rádio"
-        },
-        {
-          "chave": "tablet",
-          "valor": "Tablet"
-        }
-      ]
-    },
-    {
-      "chave": "jardinagem",
-      "valor": "Jardinagem",
-      "itens": [
-        {
-          "chave": "radio",
-          "valor": "Rádio"
-        },
-        {
-          "chave": "tablet",
-          "valor": "Tablet"
-        }
-      ]
-    },
-    {
-      "chave": "limpeza",
-      "valor": "Limpeza",
-      "itens": [
-        {
-          "chave": "radio",
-          "valor": "Rádio"
-        },
-        {
-          "chave": "tablet",
-          "valor": "Tablet"
-        }
+        { "chave": "tablet_artifice_civil", "valor": "Tablet Artífice Civil" },
+        { "chave": "tablet_bombeiro_civil", "valor": "Tablet Bombeiro Civil" },
+        { "chave": "tablet_bombeiro_hidraulico", "valor": "Tablet Bombeiro Hidráulico" },
+        { "chave": "tablet_eletrica", "valor": "Tablet Elétrica" },
+        { "chave": "tablet_jardinagem", "valor": "Tablet Jardinagem" },
+        { "chave": "tablet_limpeza", "valor": "Tablet Limpeza" }
       ]
     }
   ]

@@ -1,0 +1,94 @@
+{% extends 'siop/efetivo/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Edição do registro</div></div>
+  <div class="card-body">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
+    <form method="post" data-async-form="true">
+      {% csrf_token %}
+      {% if non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for error in non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="row g-4">
+        {% for field in form_fields %}
+        <div class="{% if field.name == 'plantao' %}col-md-4{% else %}col-md-6{% endif %}">
+          <label for="id_{{ field.name }}" class="form-label">{{ field.label }}</label>
+          {% if field.type == "select" %}
+          <select id="id_{{ field.name }}" name="{{ field.name }}" class="form-select{% if field.error %} is-invalid{% endif %}" {% if field.required %}required{% endif %}>
+            <option value="">Selecione</option>
+            {% for item in field.options %}
+            <option value="{{ item.chave }}" {% if field.value == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          {% else %}
+          <input type="text" id="id_{{ field.name }}" name="{{ field.name }}" class="form-control{% if field.error %} is-invalid{% endif %}" value="{{ field.value }}" {% if field.required %}required{% endif %}>
+          {% endif %}
+          {% if field.error %}<div class="invalid-feedback d-block">{{ field.error }}</div>{% endif %}
+        </div>
+        {% if field.name == 'plantao' %}<div class="w-100"></div>{% endif %}
+        {% endfor %}
+        <div class="col-12">
+          <label for="id_observacao" class="form-label">Observação</label>
+          <textarea id="id_observacao" name="observacao" class="form-control{% if observacao_error %} is-invalid{% endif %}" rows="5">{{ observacao_value }}</textarea>
+          {% if observacao_error %}<div class="invalid-feedback d-block">{{ observacao_error }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <a href="{% url 'siop:efetivo_view' efetivo.id %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script>
+  (function () {
+    const bc1 = document.getElementById("id_bombeiro_civil");
+    const bc2 = document.getElementById("id_bombeiro_civil_2");
+    if (!bc1 || !bc2) return;
+
+    const snapshot = (select) =>
+      Array.from(select.options).map((option) => ({
+        value: option.value,
+        label: option.textContent,
+        selected: option.selected,
+      }));
+
+    const bc1Options = snapshot(bc1);
+    const bc2Options = snapshot(bc2);
+
+    function rebuild(select, options, blockedValue, preferredValue) {
+      select.innerHTML = "";
+      options.forEach((option) => {
+        if (option.value && option.value === blockedValue) return;
+        const node = document.createElement("option");
+        node.value = option.value;
+        node.textContent = option.label;
+        node.selected = option.value === preferredValue;
+        select.appendChild(node);
+      });
+      if (!Array.from(select.options).some((option) => option.value === preferredValue)) {
+        select.value = "";
+      }
+    }
+
+    function syncBcSelects() {
+      rebuild(bc1, bc1Options, bc2.value, bc1.value);
+      rebuild(bc2, bc2Options, bc1.value, bc2.value);
+    }
+
+    bc1.addEventListener("change", syncBcSelects);
+    bc2.addEventListener("change", syncBcSelects);
+    syncBcSelects();
+  })();
+</script>
+{% endblock %}

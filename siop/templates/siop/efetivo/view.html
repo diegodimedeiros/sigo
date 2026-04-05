@@ -1,0 +1,57 @@
+{% extends 'siop/efetivo/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Resumo do registro</div></div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6"><label class="form-label text-muted">Responsável Plantão</label><div class="fw-semibold">{{ efetivo.plantao|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Atendimento</label><div class="fw-semibold">{{ efetivo.atendimento|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Bilheteria</label><div class="fw-semibold">{{ efetivo.bilheteria|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Bombeiro Civil 1</label><div class="fw-semibold">{{ efetivo.bombeiro_civil|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Bombeiro Civil 2</label><div class="fw-semibold">{{ efetivo.bombeiro_civil_2|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Bombeiro Hidráulico</label><div class="fw-semibold">{{ efetivo.bombeiro_hidraulico|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">CIOP</label><div class="fw-semibold">{{ efetivo.ciop|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Elétrica</label><div class="fw-semibold">{{ efetivo.eletrica|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Artífice Civil</label><div class="fw-semibold">{{ efetivo.artifice_civil|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">T.I</label><div class="fw-semibold">{{ efetivo.ti|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Facilities</label><div class="fw-semibold">{{ efetivo.facilities|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Manutenção</label><div class="fw-semibold">{{ efetivo.manutencao|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Jardinagem</label><div class="fw-semibold">{{ efetivo.jardinagem|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Limpeza</label><div class="fw-semibold">{{ efetivo.limpeza|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Segurança do Trabalho</label><div class="fw-semibold">{{ efetivo.seguranca_trabalho|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Segurança Patrimonial</label><div class="fw-semibold">{{ efetivo.seguranca_patrimonial|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Meio Ambiente</label><div class="fw-semibold">{{ efetivo.meio_ambiente|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Engenharia</label><div class="fw-semibold">{{ efetivo.engenharia|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Estapar</label><div class="fw-semibold">{{ efetivo.estapar|default:"-" }}</div></div>
+          <div class="col-12"><label class="form-label text-muted">Observação</label><div class="detail-note-box">{{ efetivo.observacao|default:"Sem observações informadas." }}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Auditoria</div></div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6"><label class="form-label text-muted">Criado em</label><div class="fw-semibold">{{ efetivo.criado_em|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Criado por</label><div class="fw-semibold">{{ efetivo.criado_por|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Última atualização</label><div class="fw-semibold">{{ efetivo.modificado_em|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Atualizado por</label><div class="fw-semibold">{{ efetivo.modificado_por|default:"-" }}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Ações rápidas</div></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'siop:efetivo_edit' efetivo.id %}" class="btn btn-primary">Editar registro</a>
+        <a href="{% url 'siop:efetivo_export_view_pdf' efetivo.id %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'siop:efetivo_index' %}" class="btn btn-label-secondary">Página inicial da área</a>
+        <a href="{% url 'siop:efetivo_list' %}" class="btn btn-label-info">Voltar para listagem</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

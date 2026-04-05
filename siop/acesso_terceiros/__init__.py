@@ -11,6 +11,8 @@ from .query import build_acesso_filtered_qs, build_acesso_page_context, render_a
 from .serializers import serialize_acesso_detail, serialize_acesso_list_item
 from .services import create_acesso_terceiros, edit_acesso_terceiros
 from .views import (
+    api_acesso_terceiros,
+    api_acesso_terceiros_detail,
     acesso_terceiros_edit,
     acesso_terceiros_export,
     acesso_terceiros_export_view_pdf,
@@ -28,6 +30,8 @@ __all__ = [
     "acesso_terceiros_list",
     "acesso_terceiros_new",
     "acesso_terceiros_view",
+    "api_acesso_terceiros",
+    "api_acesso_terceiros_detail",
     "build_acesso_filtered_qs",
     "build_acesso_page_context",
     "create_acesso_terceiros",

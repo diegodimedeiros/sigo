@@ -49,7 +49,7 @@
               <li class="nav-item {% block nav_siop_home_active %}{% if request.resolver_match.namespace == 'siop' and request.resolver_match.url_name == 'home' %}active{% endif %}{% endblock %}">
                 <a href="{% url 'siop:home' %}">
                   <i class="fas fa-home"></i>
-                  <p>Painel SIOP</p>
+                  <p>Painel Módulo SIOP</p>
                 </a>
               </li>
               <li class="nav-section">
@@ -75,31 +75,31 @@
                 </a>
               </li>
               <li class="nav-item {% block nav_siop_controle_chaves_active %}{% endblock %}">
-                <a href="#">
+                <a href="{% url 'siop:controle_chaves_index' %}">
                   <i class="fas fa-key"></i>
                   <p>Controle de Chaves</p>
                 </a>
               </li>
               <li class="nav-item {% block nav_siop_controle_ativos_active %}{% endblock %}">
-                <a href="#">
+                <a href="{% url 'siop:controle_ativos_index' %}">
                   <i class="fas fa-boxes"></i>
                   <p>Controle Ativos</p>
                 </a>
               </li>
               <li class="nav-item {% block nav_siop_crachas_provisorios_active %}{% endblock %}">
-                <a href="#">
+                <a href="{% url 'siop:crachas_provisorios_index' %}">
                   <i class="fas fa-id-badge"></i>
                   <p>Crachás Provisórios</p>
                 </a>
               </li>
               <li class="nav-item {% block nav_siop_efetivo_active %}{% endblock %}">
-                <a href="#">
+                <a href="{% url 'siop:efetivo_index' %}">
                   <i class="fas fa-users"></i>
                   <p>Efetivo</p>
                 </a>
               </li>
               <li class="nav-item {% block nav_siop_liberacao_acesso_active %}{% endblock %}">
-                <a href="#">
+                <a href="{% url 'siop:liberacao_acesso_index' %}">
                   <i class="fas fa-door-open"></i>
                   <p>Liberação de Acesso</p>
                 </a>
@@ -283,9 +283,9 @@
             {% block hero %}
             <div class="card module-hero mb-4">
               <div class="card-body py-4">
-                <h1 class="h3 mb-2">Base do módulo SIOP</h1>
+                <h1 class="h3 mb-2">Dashboard do módulo SIOP</h1>
                 <p class="mb-0 text-muted">
-                  Esta estrutura já está pronta para receber a área de ocorrências, acesso de terceiros e achados e perdidos.
+                  Acompanhe indicadores, acessos rápidos e o panorama geral do módulo em um único lugar.
                 </p>
               </div>
             </div>

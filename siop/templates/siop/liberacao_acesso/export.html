@@ -1,0 +1,42 @@
+{% extends 'siop/liberacao_acesso/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Configuração da exportação</div></div>
+      <div class="card-body">
+        <form method="post" class="row g-4">
+          {% csrf_token %}
+          <div class="col-md-4">
+            <label class="form-label">Formato</label>
+            <select name="formato" class="form-select">
+              <option value="pdf" {% if request_data.formato == "pdf" %}selected{% endif %}>PDF</option>
+              <option value="xlsx" {% if request_data.formato == "xlsx" %}selected{% endif %}>XLSX</option>
+              <option value="csv" {% if request_data.formato == "csv" %}selected{% endif %}>CSV</option>
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label">Início</label><input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}"></div>
+          <div class="col-md-4"><label class="form-label">Fim</label><input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}"></div>
+          <div class="d-flex flex-wrap gap-2 mt-4"><button type="submit" class="btn btn-success">Gerar exportação</button><a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-info">Voltar</a></div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Prévia do relatório</div></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" role="alert">{{ total_liberacoes }} liberação{{ total_liberacoes|pluralize:"ões" }} disponível{{ total_liberacoes|pluralize:"is" }} para exportação.</div>
+        <ul class="mb-0 ps-3">
+          <li>Pessoa</li>
+          <li>Documento</li>
+          <li>Empresa</li>
+          <li>Solicitante</li>
+          <li>Data da liberação</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

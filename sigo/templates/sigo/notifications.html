@@ -111,12 +111,14 @@
               </div>
               <p class="notification-list-message text-muted">{{ notif.mensagem }}</p>
               <div class="notification-list-meta">
+                <div class="notification-list-badges">
                 {% if notif.modulo %}
                 <span class="badge badge-count bg-info-subtle text-info-emphasis">{{ notif.get_modulo_display }}</span>
                 {% endif %}
                 <span class="badge {% if notif.lida_por_usuario %}badge-count bg-secondary-subtle text-secondary-emphasis{% else %}badge-count bg-primary-subtle text-primary-emphasis{% endif %}">
                   {% if notif.lida_por_usuario %}Lida{% else %}Não lida{% endif %}
                 </span>
+                </div>
               </div>
             </div>
           </a>

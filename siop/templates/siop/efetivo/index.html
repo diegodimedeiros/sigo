@@ -1,0 +1,90 @@
+{% extends 'siop/efetivo/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Acesso rápido</div></div>
+      <div class="card-body">
+        <div class="row g-3 quick-access-grid">
+          <div class="col-md-4"><a href="{% url 'siop:efetivo_list' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-list me-2"></i>Listagem</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:efetivo_new' %}" class="btn btn-primary quick-access-btn w-100"><i class="fas fa-plus-circle me-2"></i>Novo</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:efetivo_export' %}" class="btn btn-label-success quick-access-btn w-100"><i class="fas fa-file-export me-2"></i>Exportar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Painel rápido</div></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" role="alert">
+          {% if dashboard.registro_hoje %}
+          Registro do dia lançado.
+          {% else %}
+          Sem registro hoje.
+          {% endif %}
+        </div>
+        <div class="alert alert-warning mb-3" role="alert">{{ dashboard.postos_pendentes }} posto{{ dashboard.postos_pendentes|pluralize:"s" }} pendente{{ dashboard.postos_pendentes|pluralize:"s" }}.</div>
+        <div class="alert alert-success mb-0" role="alert">
+          {% if dashboard.observacao_hoje %}
+          {{ dashboard.observacao_hoje|truncatechars:90 }}
+          {% else %}
+          Sem observação do plantão.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Últimos registros</div></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Plantão</th>
+                <th>Criado em</th>
+                <th>Criado por</th>
+                <th>Atualizado em</th>
+                <th class="text-end">Abrir</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for registro in recentes %}
+              <tr>
+                <td>#{{ registro.id }}</td>
+                <td>{{ registro.plantao|default:"-" }}</td>
+                <td>{{ registro.criado_em|date:"d/m/Y H:i" }}</td>
+                <td>{{ registro.criado_por|default:"-" }}</td>
+                <td>{{ registro.modificado_em|date:"d/m/Y H:i" }}</td>
+                <td class="text-end"><a href="{% url 'siop:efetivo_view' registro.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro de efetivo cadastrado ainda.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fila operacional</div></div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Preencher responsáveis</li>
+          <li class="mb-3">Conferir postos</li>
+          <li class="mb-3">Salvar o registro</li>
+          <li>Atualizar mudanças</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

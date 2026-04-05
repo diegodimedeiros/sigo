@@ -7,12 +7,29 @@ from .catalogos import (
     catalogo_tipos_por_natureza,
 )
 from .common import (
+    build_ocorrencias_edit_context,
+    build_ocorrencias_new_context,
+    build_sort_link_meta,
     display_user,
+    extract_error_details,
     extract_request_payload,
     format_datetime,
+    is_ajax_request,
+    normalize_bool_value,
     parse_date_term,
     service_error_response,
     unexpected_error_response,
+)
+from .views import (
+    api_ocorrencia_detail,
+    api_ocorrencias,
+    ocorrencias_edit,
+    ocorrencias_export,
+    ocorrencias_export_view_pdf,
+    ocorrencias_index,
+    ocorrencias_list,
+    ocorrencias_new,
+    ocorrencias_view,
 )
 from .query import build_ocorrencia_filtered_qs
 from .serializers import serialize_ocorrencia_detail, serialize_ocorrencia_list_item
@@ -20,7 +37,10 @@ from .services import build_ocorrencias_dashboard, editar_ocorrencia, filter_oco
 
 __all__ = [
     "build_ocorrencia_filtered_qs",
+    "build_ocorrencias_edit_context",
     "build_ocorrencias_dashboard",
+    "build_ocorrencias_new_context",
+    "build_sort_link_meta",
     "catalogo_areas",
     "catalogo_locais_por_area",
     "catalogo_naturezas",
@@ -29,10 +49,22 @@ __all__ = [
     "catalogo_tipos_por_natureza",
     "display_user",
     "editar_ocorrencia",
+    "extract_error_details",
     "extract_request_payload",
     "filter_ocorrencias",
     "format_datetime",
     "get_recent_ocorrencias",
+    "api_ocorrencia_detail",
+    "api_ocorrencias",
+    "is_ajax_request",
+    "normalize_bool_value",
+    "ocorrencias_edit",
+    "ocorrencias_export",
+    "ocorrencias_export_view_pdf",
+    "ocorrencias_index",
+    "ocorrencias_list",
+    "ocorrencias_new",
+    "ocorrencias_view",
     "parse_date_term",
     "registrar_ocorrencia",
     "serialize_ocorrencia_detail",

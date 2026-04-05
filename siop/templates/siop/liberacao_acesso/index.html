@@ -1,0 +1,84 @@
+{% extends 'siop/liberacao_acesso/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Acesso rápido</div></div>
+      <div class="card-body">
+        <div class="row g-3 quick-access-grid">
+          <div class="col-md-4"><a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-list me-2"></i>Listagem</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:liberacao_acesso_new' %}" class="btn btn-primary quick-access-btn w-100"><i class="fas fa-plus-circle me-2"></i>Novo</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:liberacao_acesso_export' %}" class="btn btn-label-success quick-access-btn w-100"><i class="fas fa-file-export me-2"></i>Exportar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Painel rápido</div></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" role="alert">{{ dashboard.total }} liberação{{ dashboard.total|pluralize:"ões" }} cadastrada{{ dashboard.total|pluralize:"s" }}.</div>
+        <div class="alert alert-warning mb-3" role="alert">{{ dashboard.hoje }} registrada{{ dashboard.hoje|pluralize:"s" }} hoje.</div>
+        <div class="alert alert-success mb-0" role="alert">{{ dashboard.chegadas_registradas }} chegada{{ dashboard.chegadas_registradas|pluralize:"s" }} registrada{{ dashboard.chegadas_registradas|pluralize:"s" }}.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Últimos registros</div></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Pessoas</th>
+                <th>Empresa</th>
+                <th>Solicitante</th>
+                <th>Liberação</th>
+                <th class="text-end">Detalhe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for registro in registros_recentes %}
+              <tr>
+                <td>#{{ registro.id }}</td>
+                <td>
+                  {% if registro.pessoas_resumo_display %}
+                  <span title="{{ registro.pessoas_nomes_display }}">{{ registro.pessoas_resumo_display }}</span>
+                  {% else %}
+                  -
+                  {% endif %}
+                </td>
+                <td>{{ registro.empresa|default:"-" }}</td>
+                <td>{{ registro.solicitante|default:"-" }}</td>
+                <td>{{ registro.data_liberacao|date:"d/m/Y H:i" }}</td>
+                <td class="text-end"><a href="{% url 'siop:liberacao_acesso_view' registro.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhuma liberação de acesso cadastrada ainda.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fila operacional</div></div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Registrar solicitante</li>
+          <li class="mb-3">Validar motivo</li>
+          <li class="mb-3">Conferir empresa</li>
+          <li>Rastrear auditoria</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

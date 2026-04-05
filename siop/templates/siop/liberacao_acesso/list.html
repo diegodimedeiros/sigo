@@ -1,0 +1,75 @@
+{% extends 'siop/liberacao_acesso/base.html' %}
+
+{% block area_heading %}Listagem de Liberação de Acesso{% endblock %}
+{% block content %}
+<div class="card listing-filter-card mb-4">
+  <div class="card-body">
+    <form method="get" class="filter-panel-grid">
+      <div class="filter-span-6"><label class="form-label" for="filtro-q">Busca rápida</label><input id="filtro-q" type="text" name="q" class="form-control" placeholder="Nome, documento, empresa..." value="{{ filters.q }}"></div>
+      <div class="filter-span-3"><label class="form-label" for="filtro-empresa">Empresa</label><input id="filtro-empresa" type="text" name="empresa" class="form-control" value="{{ filters.empresa }}"></div>
+      <div class="filter-span-3"><label class="form-label" for="filtro-solicitante">Solicitante</label><input id="filtro-solicitante" type="text" name="solicitante" class="form-control" value="{{ filters.solicitante }}"></div>
+      <div class="filter-span-3"><label class="form-label" for="filtro-data-inicio">Data inicial</label><input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}"></div>
+      <div class="filter-span-3"><label class="form-label" for="filtro-data-fim">Data final</label><input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}"></div>
+      <div class="filter-span-6 filter-actions"><button class="btn btn-label-info">Aplicar filtros</button><a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-secondary">Limpar</a></div>
+    </form>
+  </div>
+</div>
+
+<div class="card listing-table-card">
+  <div class="card-header">
+    <div class="listing-table-header">
+      <div>
+        <div class="card-title mb-1">Resultado da listagem</div>
+        <div class="listing-table-meta">{{ total_liberacoes }} liberação{{ total_liberacoes|pluralize:"ões" }} encontrada{{ total_liberacoes|pluralize:"s" }}.</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive listing-table-wrapper">
+      <table class="table table-striped table-hover listing-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Pessoas</th>
+            <th>Documentos</th>
+            <th>Empresa</th>
+            <th>Solicitante</th>
+            <th>Unidade</th>
+            <th>Liberação</th>
+            <th class="text-end">Detalhe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for liberacao in liberacoes %}
+          <tr>
+            <td>#{{ liberacao.id }}</td>
+            <td>
+              {% if liberacao.pessoas_resumo_display %}
+              <span title="{{ liberacao.pessoas_nomes_display }}">{{ liberacao.pessoas_resumo_display }}</span>
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>
+              {% if liberacao.pessoas_documentos_resumo_display %}
+              <span title="{{ liberacao.pessoas_documentos_display }}">{{ liberacao.pessoas_documentos_resumo_display }}</span>
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>{{ liberacao.empresa|default:"-" }}</td>
+            <td>{{ liberacao.solicitante|default:"-" }}</td>
+            <td>{{ liberacao.unidade_sigla|default:"-" }}</td>
+            <td>{{ liberacao.data_liberacao|date:"d/m/Y H:i" }}</td>
+            <td class="text-end"><a href="{% url 'siop:liberacao_acesso_view' liberacao.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center py-4 text-muted">Nenhuma liberação de acesso encontrada para os filtros informados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_liberacoes %}
+</div>
+{% endblock %}

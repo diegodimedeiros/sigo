@@ -1,0 +1,75 @@
+{% extends 'siop/crachas_provisorios/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Formulário de registro</div>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
+    <form method="post" data-async-form="true">
+      {% csrf_token %}
+      {% if non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for error in non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label for="id_cracha" class="form-label">Crachá provisório</label>
+          <select id="id_cracha" name="cracha" class="form-select{% if errors.cracha %} is-invalid{% endif %}" required>
+            <option value="">Selecione...</option>
+            {% for item in catalogo_crachas %}
+            <option value="{{ item.chave }}" {% if request_data.cracha == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">A lista mostra apenas crachás disponíveis para nova entrega no momento.</div>
+          {% if errors.cracha %}<div class="invalid-feedback d-block">{{ errors.cracha }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_entrega" class="form-label">Entrega</label>
+          <input type="datetime-local" id="id_entrega" name="entrega" class="form-control{% if errors.entrega %} is-invalid{% endif %}" value="{{ request_data.entrega }}" required>
+          {% if errors.entrega %}<div class="invalid-feedback d-block">{{ errors.entrega }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_devolucao" class="form-label">Devolução</label>
+          <input type="datetime-local" id="id_devolucao" name="devolucao" class="form-control{% if errors.devolucao %} is-invalid{% endif %}" value="{{ request_data.devolucao }}">
+          {% if errors.devolucao %}<div class="invalid-feedback d-block">{{ errors.devolucao }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_pessoa_nome" class="form-label">Nome da pessoa</label>
+          <input type="text" id="id_pessoa_nome" name="pessoa_nome" class="form-control{% if errors.pessoa_nome %} is-invalid{% endif %}" value="{{ request_data.pessoa_nome }}" placeholder="Informe o nome completo" required>
+          {% if errors.pessoa_nome %}<div class="invalid-feedback d-block">{{ errors.pessoa_nome }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_pessoa_documento" class="form-label">Documento</label>
+          <input type="text" id="id_pessoa_documento" name="pessoa_documento" class="form-control{% if errors.pessoa_documento %} is-invalid{% endif %}" value="{{ request_data.pessoa_documento }}" placeholder="CPF, RG ou identificador" required>
+          {% if errors.pessoa_documento %}<div class="invalid-feedback d-block">{{ errors.pessoa_documento }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label for="id_observacao" class="form-label">Observação</label>
+          <textarea id="id_observacao" name="observacao" class="form-control{% if errors.observacao %} is-invalid{% endif %}" rows="6" placeholder="Observações operacionais do uso do crachá">{{ request_data.observacao }}</textarea>
+          {% if errors.observacao %}<div class="invalid-feedback d-block">{{ errors.observacao }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar crachá</button>
+        <button type="reset" class="btn btn-label-secondary">Limpar</button>
+        <a href="{% url 'siop:crachas_provisorios_list' %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'siop/controle_ativos/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Acesso rápido</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 quick-access-grid">
+          <div class="col-md-4"><a href="{% url 'siop:controle_ativos_list' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-list me-2"></i>Listagem</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:controle_ativos_new' %}" class="btn btn-primary quick-access-btn w-100"><i class="fas fa-plus-circle me-2"></i>Novo</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:controle_ativos_export' %}" class="btn btn-label-success quick-access-btn w-100"><i class="fas fa-file-export me-2"></i>Exportar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Painel rápido</div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" role="alert">{{ dashboard.total }} ativo{{ dashboard.total|pluralize:"s" }} registrado{{ dashboard.total|pluralize:"s" }}.</div>
+        <div class="alert alert-warning mb-3" role="alert">{{ dashboard.em_uso }} em uso no momento.</div>
+        <div class="alert alert-success mb-0" role="alert">{{ dashboard.devolvidos }} devolvido{{ dashboard.devolvidos|pluralize:"s" }} e {{ dashboard.retirados_hoje }} retirada{{ dashboard.retirados_hoje|pluralize:"s" }} hoje.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Últimos registros</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ativo</th>
+                <th>Responsável</th>
+                <th>Destino</th>
+                <th>Retirada</th>
+                <th>Status</th>
+                <th class="text-end">Abrir</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ativo in recentes %}
+              <tr>
+                <td>#{{ ativo.id }}</td>
+                <td>{{ ativo.equipamento_label|default:ativo.equipamento|default:"-" }}</td>
+                <td>{{ ativo.pessoa.nome|default:"-" }}</td>
+                <td>{{ ativo.destino_label|default:ativo.destino|default:"-" }}</td>
+                <td>{{ ativo.retirada|date:"d/m/Y H:i" }}</td>
+                <td>
+                  {% if ativo.devolucao %}
+                  <span class="badge badge-success">{{ ativo.status_label }}</span>
+                  {% else %}
+                  <span class="badge badge-warning">{{ ativo.status_label }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end"><a href="{% url 'siop:controle_ativos_view' ativo.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum controle de ativo cadastrado ainda.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Fila operacional</div>
+      </div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Selecionar o tipo</li>
+          <li class="mb-3">Escolher o ativo</li>
+          <li class="mb-3">Registrar a retirada</li>
+          <li>Registrar a devolução</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

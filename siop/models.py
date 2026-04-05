@@ -9,7 +9,13 @@ from sigo_core.catalogos import (
     catalogo_achado_classificacao_label,
     catalogo_achado_situacao_label,
     catalogo_achado_status_label,
+    catalogo_ativo_label,
     catalogo_area_label,
+    catalogo_chave_area,
+    catalogo_chave_label,
+    catalogo_chave_numero,
+    catalogo_cracha_provisorio_label,
+    catalogo_funcao_ativo_label,
     catalogo_local_label,
     catalogo_natureza_label,
     catalogo_tipo_label,
@@ -283,3 +289,170 @@ class AchadosPerdidos(BaseModel):
     @property
     def local_label(self):
         return catalogo_local_label(self.area, self.local)
+
+class ControleAtivos(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="controles_ativos", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
+    retirada = models.DateTimeField(verbose_name="Data e Hora da Retirada", db_index=True, null=False, blank=False)
+    devolucao = models.DateTimeField(verbose_name="Data e Hora da Devolução", db_index=True, null=True, blank=True)
+    pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE, related_name="controles_ativos")
+    equipamento = models.CharField(max_length=255, verbose_name="Equipamento", null=False, blank=False)
+    destino = models.CharField(max_length=255, verbose_name="Destino", null=False, blank=False)
+    observacao = models.TextField(verbose_name="Observação", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.equipamento} - {self.destino} ({self.retirada.strftime('%d/%m/%Y %H:%M')})"
+
+    def get_absolute_url(self):
+        return reverse("siop:controle_ativos_view", kwargs={"pk": self.pk})
+
+    @property
+    def equipamento_label(self):
+        return catalogo_ativo_label(self.equipamento)
+
+    @property
+    def destino_label(self):
+        return catalogo_funcao_ativo_label(self.destino)
+
+
+class ControleChaves(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="controles_chaves", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
+    retirada = models.DateTimeField(verbose_name="Data e Hora da Retirada", db_index=True, null=False, blank=False)
+    devolucao = models.DateTimeField(verbose_name="Data e Hora da Devolução", db_index=True, null=True, blank=True)
+    pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE, related_name="controles_chaves")
+    chave = models.CharField(max_length=255, verbose_name="Chave", null=False, blank=False, db_index=True)
+    observacao = models.TextField(verbose_name="Observação", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.chave} ({self.retirada.strftime('%d/%m/%Y %H:%M')})"
+
+    def get_absolute_url(self):
+        return reverse("siop:controle_chaves_view", kwargs={"pk": self.pk})
+
+    @property
+    def chave_label(self):
+        return catalogo_chave_label(self.chave)
+
+    @property
+    def chave_numero(self):
+        return catalogo_chave_numero(self.chave)
+
+    @property
+    def chave_area(self):
+        return catalogo_chave_area(self.chave)
+
+class CrachaProvisorio(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="crachas_provisorios", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
+    cracha = models.CharField(max_length=50, verbose_name="Crachá", db_index=True, null=False, blank=False)
+    entrega = models.DateTimeField(verbose_name="Data e Hora da Entrega", db_index=True, null=False, blank=False)
+    devolucao = models.DateTimeField(verbose_name="Data e Hora da Devolução", db_index=True, null=True, blank=True)
+    pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE, related_name="crachas_provisorios")
+    documento = models.CharField(max_length=20, verbose_name="Documento da Pessoa", null=True, blank=True)
+    observacao = models.TextField(verbose_name="Observação", blank=True, null=True)
+
+    def get_absolute_url(self):
+        return reverse("siop:crachas_provisorios_view", kwargs={"pk": self.pk})
+
+    @property
+    def cracha_label(self):
+        return catalogo_cracha_provisorio_label(self.cracha)
+
+class ControleEfetivo(BaseModel):
+    plantao = models.CharField(max_length=100, verbose_name="Responsável Plantão", null=True, blank=True, db_index=True)
+    atendimento = models.CharField(max_length=255, verbose_name="Responsável Atendimento", null=True, blank=True)
+    bilheteria = models.CharField(max_length=255, verbose_name="Responsável Bilheteria", null=True, blank=True)
+    bombeiro_civil = models.CharField(max_length=255, verbose_name="Bombeiro Civil 1", null=True, blank=True)
+    bombeiro_civil_2 = models.CharField(max_length=255, verbose_name="Bombeiro Civil 2", null=True, blank=True)
+    bombeiro_hidraulico = models.CharField(max_length=255, verbose_name="Bombeiro Hidráulico", null=True, blank=True)
+    ciop = models.CharField(max_length=100, verbose_name="CIOP", null=True, blank=True, db_index=True)    
+    eletrica = models.CharField(max_length=255, verbose_name="Responsável Elétrica", null=True, blank=True)
+    artifice_civil = models.CharField(max_length=255, verbose_name="Responsável Artífice Civil", null=True, blank=True)
+    ti = models.CharField(max_length=255, verbose_name="Responsável TI", null=True, blank=True)
+    facilities = models.CharField(max_length=255, verbose_name="Responsável Facilities", null=True, blank=True)
+    manutencao = models.CharField(max_length=255, verbose_name="Responsável Manutenção", null=True, blank=True, db_column="manutenção")
+    jardinagem = models.CharField(max_length=255, verbose_name="Responsável Jardinagem", null=True, blank=True)
+    limpeza = models.CharField(max_length=255, verbose_name="Responsável Limpeza", null=True, blank=True)
+    seguranca_trabalho = models.CharField(max_length=255, verbose_name="Responsável Segurança do Trabalho", null=True, blank=True)
+    seguranca_patrimonial = models.CharField(max_length=255, verbose_name="Responsável Segurança Patrimonial", null=True, blank=True)
+    meio_ambiente = models.CharField(max_length=255, verbose_name="Responsável Meio Ambiente", null=True, blank=True)
+    engenharia = models.CharField(max_length=255, verbose_name="Responsável Engenharia", null=True, blank=True)
+    estapar = models.CharField(max_length=255, verbose_name="Responsável Estapar", null=True, blank=True)
+    observacao = models.TextField(verbose_name="Observação", blank=True, null=True)
+
+    def __str__(self):
+        return f"Efetivo #{self.pk or 'novo'} - Atendimento: {self.atendimento}"
+
+    def get_absolute_url(self):
+        return reverse("siop:efetivo_view", kwargs={"pk": self.pk})
+
+class LiberacaoAcesso(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="liberacoes_acesso", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
+    pessoas = models.ManyToManyField(Pessoa, related_name="liberacoes_acesso", verbose_name="Pessoas")
+    chegadas_registradas = models.JSONField(default=list, blank=True, verbose_name="Pessoas com chegada registrada")
+    motivo = models.TextField(verbose_name="Motivo da Liberação de Acesso", blank=False, null=False)
+    data_liberacao = models.DateTimeField(verbose_name="Data e Hora da Liberação de Acesso", db_index=True)
+    empresa = models.CharField(max_length=255, verbose_name="Empresa", null=True, blank=True)
+    solicitante = models.CharField(max_length=255, verbose_name="Solicitante", null=True, blank=True)
+    anexos = GenericRelation(Anexo)
+
+    def __str__(self):
+        if not self.pk:
+            pessoas_label = "sem pessoas"
+        else:
+            pessoas = list(self.pessoas.all()[:2])
+            total = self.pessoas.count()
+            if total == 0:
+                pessoas_label = "sem pessoas"
+            elif total == 1:
+                pessoas_label = pessoas[0].nome
+            else:
+                pessoas_label = f"{pessoas[0].nome} e mais {total - 1}"
+        return f"Liberação de Acesso - {pessoas_label} ({self.data_liberacao.strftime('%d/%m/%Y %H:%M')})"
+
+    def get_absolute_url(self):
+        return reverse("siop:liberacao_acesso_view", kwargs={"pk": self.pk})
+
+    @property
+    def pessoas_nomes_display(self):
+        if not self.pk:
+            return ""
+        return ", ".join(
+            pessoa.nome
+            for pessoa in self.pessoas.all()
+            if pessoa.nome
+        )
+
+    @property
+    def pessoas_documentos_display(self):
+        if not self.pk:
+            return ""
+        return ", ".join(
+            pessoa.documento
+            for pessoa in self.pessoas.all()
+            if pessoa.documento
+        )
+
+    @property
+    def pessoas_resumo_display(self):
+        if not self.pk:
+            return ""
+        pessoas = [pessoa.nome for pessoa in self.pessoas.all() if pessoa.nome]
+        if not pessoas:
+            return ""
+        if len(pessoas) == 1:
+            return pessoas[0]
+        return f"{pessoas[0]} + {len(pessoas) - 1}"
+
+    @property
+    def pessoas_documentos_resumo_display(self):
+        if not self.pk:
+            return ""
+        documentos = [pessoa.documento for pessoa in self.pessoas.all() if pessoa.documento]
+        if not documentos:
+            return ""
+        if len(documentos) == 1:
+            return documentos[0]
+        return f"{documentos[0]} + {len(documentos) - 1}"

@@ -125,6 +125,7 @@ Painel de leitura completa com campos principais, contexto operacional, anexos e
         <a href="{% url 'siop:ocorrencias_edit' ocorrencia.pk %}" class="btn btn-label-warning">Editar ocorrência</a>
         {% endif %}
         <a href="{% url 'siop:ocorrencias_export_view_pdf' ocorrencia.pk %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'siop:ocorrencias_index' %}" class="btn btn-label-secondary">Página inicial da área</a>
         <a href="{% url 'siop:ocorrencias_list' %}" class="btn btn-label-info">Voltar para listagem</a>
       </div>
     </div>

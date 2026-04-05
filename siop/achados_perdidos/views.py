@@ -5,9 +5,17 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_GET
 from django.utils import timezone
 
-from sigo_core.api import ApiStatus, api_success, is_json_request
+from sigo_core.api import (
+    ApiStatus,
+    api_error,
+    api_method_not_allowed,
+    api_success,
+    is_json_request,
+    parse_limit_offset,
+)
 from sigo_core.catalogos import (
     catalogo_achado_classificacao_items,
     catalogo_achado_classificacao_label,
@@ -26,7 +34,13 @@ from sigo_core.shared.pdf_export import build_numbered_canvas_class, draw_pdf_la
 
 from siop.models import AchadosPerdidos
 
-from .common import extract_request_payload, service_error_response, unexpected_error_response
+from .common import (
+    extract_request_payload,
+    serialize_achado_detail,
+    serialize_achado_list_item,
+    service_error_response,
+    unexpected_error_response,
+)
 from .query import build_achado_filtered_qs
 from .services import FINAL_STATUS, build_achados_dashboard, create_achado_perdido, edit_achado_perdido, get_recent_achados
 
@@ -127,6 +141,56 @@ def achados_perdidos_list(request):
     return render(request, "siop/achados_perdidos/list.html", context)
 
 
+@require_GET
+@login_required
+def api_achados_perdidos(request):
+    itens, _, _, _ = build_achado_filtered_qs(request)
+
+    limit, offset, pagination_error = parse_limit_offset(
+        request.GET,
+        default_limit=None,
+        max_limit=500,
+    )
+    if pagination_error:
+        return api_error(
+            code="invalid_pagination",
+            message="Parâmetros de paginação inválidos.",
+            status=ApiStatus.UNPROCESSABLE_ENTITY,
+            details=pagination_error,
+        )
+
+    total = itens.count()
+    if limit is not None:
+        itens = itens[offset : offset + limit]
+
+    data = [serialize_achado_list_item(item) for item in itens]
+    return api_success(
+        data={"itens": data},
+        message="Itens carregados com sucesso.",
+        meta={
+            "pagination": {
+                "total": total,
+                "limit": limit,
+                "offset": offset,
+                "count": len(data),
+            }
+        },
+    )
+
+
+@require_GET
+@login_required
+def api_achado_perdido_detail(request, pk):
+    item = get_object_or_404(
+        AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos", "assinaturas"),
+        pk=pk,
+    )
+    return api_success(
+        data=serialize_achado_detail(item),
+        message="Item carregado com sucesso.",
+    )
+
+
 @login_required
 def achados_perdidos_new(request):
     if request.method == "POST":
@@ -175,10 +239,33 @@ def achados_perdidos_edit(request, pk):
         AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos", "assinaturas"),
         pk=pk,
     )
+    expects_api_response = is_json_request(request)
     if (item.status or "").strip().lower() in FINAL_STATUS and request.method == "GET":
         messages.warning(request, "Itens com status final não podem ser editados.")
         return redirect("siop:achados_perdidos_view", pk=item.pk)
-    if request.method == "POST":
+
+    if request.method in {"POST", "PATCH"}:
+        if expects_api_response:
+            try:
+                data, files, payload_error = extract_request_payload(request)
+                if payload_error:
+                    return payload_error
+
+                edit_achado_perdido(
+                    achado=item,
+                    data=data,
+                    files=files,
+                    user=request.user,
+                )
+                return api_success(
+                    data={"id": item.id, "redirect_url": item.get_absolute_url()},
+                    message="Item alterado com sucesso.",
+                )
+            except Exception as exc:
+                if hasattr(exc, "code") and hasattr(exc, "message"):
+                    return service_error_response(exc)
+                return unexpected_error_response("Erro inesperado ao editar item de achados e perdidos")
+
         payload = request.POST.dict()
         try:
             edit_achado_perdido(
@@ -194,6 +281,10 @@ def achados_perdidos_edit(request, pk):
             context = _base_form_context(payload=payload, errors=details)
             context["item"] = item
             return render(request, "siop/achados_perdidos/edit.html", context)
+
+    if request.method not in {"GET", "POST", "PATCH"}:
+        return api_method_not_allowed()
+
     payload = {
         "tipo": item.tipo,
         "situacao": item.situacao,

@@ -1,0 +1,74 @@
+{
+  "catalogo": "funcoes_ativos",
+  "tipo": "lista",
+  "itens": [
+    {
+      "chave": "artifice_civil",
+      "valor": "Artífice Civil"
+    },
+    {
+      "chave": "atendimento",
+      "valor": "Atendimento"
+    },
+    {
+      "chave": "bilheteria",
+      "valor": "Bilheteria"
+    },
+    {
+      "chave": "bombeiro_civil",
+      "valor": "Bombeiro Civil"
+    },
+    {
+      "chave": "bombeiro_hidraulico",
+      "valor": "Bombeiro Hidráulico"
+    },
+    {
+      "chave": "ciop",
+      "valor": "CIOP"
+    },
+    {
+      "chave": "eletrica",
+      "valor": "Elétrica"
+    },
+    {
+      "chave": "engenharia",
+      "valor": "Engenharia"
+    },
+    {
+      "chave": "estapar",
+      "valor": "Estapar"
+    },
+    {
+      "chave": "facilities",
+      "valor": "Facilities"
+    },
+    {
+      "chave": "jardinagem",
+      "valor": "Jardinagem"
+    },
+    {
+      "chave": "limpeza",
+      "valor": "Limpeza"
+    },
+    {
+      "chave": "meio_ambiente",
+      "valor": "Meio Ambiente"
+    },
+    {
+      "chave": "seguranca_trabalho",
+      "valor": "Segurança do Trabalho"
+    },
+    {
+      "chave": "seguranca_patrimonial",
+      "valor": "Segurança Patrimonial"
+    },
+    {
+      "chave": "ti",
+      "valor": "T.I"
+    },
+    {
+      "chave": "verzani",
+      "valor": "Verzani"
+    }
+  ]
+}

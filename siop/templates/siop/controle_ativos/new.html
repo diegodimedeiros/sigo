@@ -1,0 +1,129 @@
+{% extends 'siop/controle_ativos/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Formulário de registro</div>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
+    <form method="post" data-async-form="true">
+      {% csrf_token %}
+      {% if non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for error in non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label for="id_tipo_ativo" class="form-label">Tipo do ativo</label>
+          <select id="id_tipo_ativo" name="tipo_ativo" class="form-select">
+            <option value="">Selecione...</option>
+            {% for grupo in catalogo_ativos_grupos %}
+            <option value="{{ grupo.chave }}" {% if request_data.tipo_ativo == grupo.chave %}selected{% endif %}>{{ grupo.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Selecione Rádio ou Tablet para facilitar a busca no campo de ativo.</div>
+        </div>
+        <div class="col-md-6">
+          <label for="id_equipamento" class="form-label">Ativo</label>
+          <select id="id_equipamento" name="equipamento" class="form-select{% if errors.equipamento %} is-invalid{% endif %}" required>
+            <option value="">Selecione...</option>
+            {% for grupo in catalogo_ativos_grupos %}
+            <optgroup label="{{ grupo.valor }}" data-grupo="{{ grupo.chave }}">
+              {% for item in grupo.itens %}
+              <option value="{{ item.chave }}" {% if request_data.equipamento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endfor %}
+          </select>
+          <div class="form-text">A lista mostra apenas ativos disponíveis para nova retirada no momento.</div>
+          {% if errors.equipamento %}<div class="invalid-feedback d-block">{{ errors.equipamento }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_destino" class="form-label">Destino</label>
+          <select id="id_destino" name="destino" class="form-select{% if errors.destino %} is-invalid{% endif %}" required>
+            <option value="">Selecione...</option>
+            {% for item in catalogo_destinos %}
+            <option value="{{ item.chave }}" {% if request_data.destino == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.destino %}<div class="invalid-feedback d-block">{{ errors.destino }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_retirada" class="form-label">Retirada</label>
+          <input type="datetime-local" id="id_retirada" name="retirada" class="form-control{% if errors.retirada %} is-invalid{% endif %}" value="{{ request_data.retirada }}" required>
+          {% if errors.retirada %}<div class="invalid-feedback d-block">{{ errors.retirada }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_devolucao" class="form-label">Devolução</label>
+          <input type="datetime-local" id="id_devolucao" name="devolucao" class="form-control{% if errors.devolucao %} is-invalid{% endif %}" value="{{ request_data.devolucao }}">
+          {% if errors.devolucao %}<div class="invalid-feedback d-block">{{ errors.devolucao }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_pessoa_nome" class="form-label">Nome da pessoa</label>
+          <input type="text" id="id_pessoa_nome" name="pessoa_nome" class="form-control{% if errors.pessoa_nome %} is-invalid{% endif %}" value="{{ request_data.pessoa_nome }}" placeholder="Informe o nome completo" required>
+          {% if errors.pessoa_nome %}<div class="invalid-feedback d-block">{{ errors.pessoa_nome }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label for="id_observacao" class="form-label">Observação</label>
+          <textarea id="id_observacao" name="observacao" class="form-control{% if errors.observacao %} is-invalid{% endif %}" rows="6" placeholder="Observações operacionais sobre o uso do ativo">{{ request_data.observacao }}</textarea>
+          {% if errors.observacao %}<div class="invalid-feedback d-block">{{ errors.observacao }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar ativo</button>
+        <button type="reset" class="btn btn-label-secondary">Limpar</button>
+        <a href="{% url 'siop:controle_ativos_list' %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script>
+  (function () {
+    const tipoSelect = document.getElementById("id_tipo_ativo");
+    const ativoSelect = document.getElementById("id_equipamento");
+    if (!tipoSelect || !ativoSelect) return;
+
+    const grupos = Array.from(ativoSelect.querySelectorAll("optgroup"));
+    const placeholder = ativoSelect.querySelector('option[value=""]');
+
+    function aplicarFiltro() {
+      const tipoSelecionado = tipoSelect.value;
+      let ativoAtualAindaVisivel = false;
+
+      grupos.forEach((grupo) => {
+        const visivel = !tipoSelecionado || grupo.dataset.grupo === tipoSelecionado;
+        grupo.disabled = !visivel;
+        grupo.hidden = !visivel;
+        if (visivel && grupo.querySelector(`option[value="${ativoSelect.value}"]`)) {
+          ativoAtualAindaVisivel = true;
+        }
+      });
+
+      if (placeholder) {
+        placeholder.hidden = false;
+      }
+
+      if (ativoSelect.value && !ativoAtualAindaVisivel) {
+        ativoSelect.value = "";
+      }
+    }
+
+    tipoSelect.addEventListener("change", aplicarFiltro);
+    aplicarFiltro();
+  })();
+</script>
+{% endblock %}

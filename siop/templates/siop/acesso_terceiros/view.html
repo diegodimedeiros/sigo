@@ -124,6 +124,7 @@
         <a href="{% url 'siop:acesso_terceiros_edit' acesso.id %}" class="btn btn-primary">Editar acesso</a>
         {% endif %}
         <a href="{% url 'siop:acesso_terceiros_export_view_pdf' acesso.id %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'siop:acesso_terceiros_index' %}" class="btn btn-label-secondary">Página inicial da área</a>
         <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-info">Voltar para listagem</a>
       </div>
     </div>

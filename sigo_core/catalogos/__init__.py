@@ -114,6 +114,14 @@ def catalogo_p1_items():
     return catalogo_lista_items("p1")
 
 
+def catalogo_cracha_provisorio_items():
+    return catalogo_lista_items("cracha_provisorio")
+
+
+def catalogo_bc_items():
+    return catalogo_lista_items("bc")
+
+
 def catalogo_natureza_groups():
     return catalogo_grupos("natureza")
 
@@ -122,8 +130,38 @@ def catalogo_area_groups():
     return catalogo_grupos("area")
 
 
+def catalogo_funcoes_ativos_items():
+    return catalogo_lista_items("funcoes_ativos")
+
+
+def _normalize_funcao_ativo_value(value):
+    normalized = str(value or "").strip()
+    if normalized == "facilites":
+        return "facilities"
+    return normalized
+
+
+def _catalogo_ativos_flattened_items():
+    data = carregar_catalogo_padronizado("ativos")
+    if data.get("tipo") == "lista":
+        return _normalize_items(data.get("itens", []))
+    if data.get("tipo") == "grupos":
+        items = []
+        for grupo in catalogo_grupos("ativos"):
+            items.extend(grupo.get("itens", []))
+        return items
+    raise ValidationError("Catálogo ativos possui tipo inválido.")
+
+
+def catalogo_ativos_items():
+    return _catalogo_ativos_flattened_items()
+
+
 def catalogo_ativos_groups():
-    return catalogo_grupos("ativos")
+    data = carregar_catalogo_padronizado("ativos")
+    if data.get("tipo") == "grupos":
+        return catalogo_grupos("ativos")
+    return [{"chave": "ativos", "valor": "Ativos", "itens": catalogo_ativos_items()}]
 
 
 def catalogo_tipo_pessoa_choices():
@@ -136,6 +174,10 @@ def catalogo_tipo_ocorrencia_choices():
 
 def catalogo_p1_choices():
     return _choices_from_items(catalogo_p1_items())
+
+
+def catalogo_cracha_provisorio_choices():
+    return _choices_from_items(catalogo_cracha_provisorio_items())
 
 
 def catalogo_natureza_choices():
@@ -152,8 +194,16 @@ def catalogo_area_choices():
 
 def catalogo_ativos_area_choices():
     return _choices_from_items(
-        [{"chave": grupo["chave"], "valor": grupo["valor"]} for grupo in catalogo_ativos_groups()]
+        catalogo_funcoes_ativos_items()
     )
+
+
+def catalogo_funcoes_ativos_choices():
+    return _choices_from_items(catalogo_funcoes_ativos_items())
+
+
+def catalogo_ativos_choices():
+    return _choices_from_items(catalogo_ativos_items())
 
 
 def catalogo_naturezas_data():
@@ -176,6 +226,18 @@ def catalogo_areas_data():
 
 
 def catalogo_ativos_areas_data():
+    return catalogo_funcoes_ativos_items()
+
+
+def catalogo_funcoes_ativos_data():
+    return catalogo_funcoes_ativos_items()
+
+
+def catalogo_ativos_data():
+    return catalogo_ativos_items()
+
+
+def catalogo_ativos_groups_data():
     return catalogo_ativos_groups()
 
 
@@ -195,14 +257,8 @@ def catalogo_locais_por_area_data(area):
 
 
 def catalogo_ativos_equipamentos_por_area(area):
-    area_key = catalogo_ativos_area_key(area)
-    if not area_key:
-        return []
-
-    for grupo in catalogo_ativos_groups():
-        if grupo["chave"] == area_key:
-            return grupo["itens"]
-    return []
+    # Compatibilidade: os ativos não são mais restritos por função/área.
+    return catalogo_ativos_items()
 
 
 def catalogo_ativos_equipamentos_por_area_data(area):
@@ -221,6 +277,14 @@ def catalogo_p1_data():
     return catalogo_p1_items()
 
 
+def catalogo_cracha_provisorio_data():
+    return catalogo_cracha_provisorio_items()
+
+
+def catalogo_bc_data():
+    return catalogo_bc_items()
+
+
 def catalogo_tipo_pessoa_key(value):
     return _coerce_key(catalogo_tipo_pessoa_items(), value)
 
@@ -235,6 +299,18 @@ def catalogo_p1_key(value):
 
 def catalogo_p1_label(value):
     return _coerce_label(catalogo_p1_items(), value)
+
+
+def catalogo_cracha_provisorio_key(value):
+    return _coerce_key(catalogo_cracha_provisorio_items(), value)
+
+
+def catalogo_bc_key(value):
+    return _coerce_key(catalogo_bc_items(), value)
+
+
+def catalogo_cracha_provisorio_label(value):
+    return _coerce_label(catalogo_cracha_provisorio_items(), value)
 
 
 def catalogo_natureza_key(value):
@@ -274,17 +350,19 @@ def catalogo_area_label(value):
 
 
 def catalogo_ativos_area_key(value):
-    return _coerce_key(
-        [{"chave": grupo["chave"], "valor": grupo["valor"]} for grupo in catalogo_ativos_groups()],
-        value,
-    )
+    return _coerce_key(catalogo_funcoes_ativos_items(), value)
 
 
 def catalogo_ativos_area_label(value):
-    return _coerce_label(
-        [{"chave": grupo["chave"], "valor": grupo["valor"]} for grupo in catalogo_ativos_groups()],
-        value,
-    )
+    return _coerce_label(catalogo_funcoes_ativos_items(), value)
+
+
+def catalogo_funcao_ativo_key(value):
+    return _coerce_key(catalogo_funcoes_ativos_items(), _normalize_funcao_ativo_value(value))
+
+
+def catalogo_funcao_ativo_label(value):
+    return _coerce_label(catalogo_funcoes_ativos_items(), _normalize_funcao_ativo_value(value))
 
 
 def catalogo_local_key(area, value):
@@ -296,11 +374,23 @@ def catalogo_local_label(area, value):
 
 
 def catalogo_ativos_equipamento_key(area, value):
-    return _coerce_key(catalogo_ativos_equipamentos_por_area(area), value)
+    return _coerce_key(catalogo_ativos_items(), value)
 
 
 def catalogo_ativos_equipamento_label(area, value):
-    return _coerce_label(catalogo_ativos_equipamentos_por_area(area), value)
+    return _coerce_label(catalogo_ativos_items(), value)
+
+
+def catalogo_ativo_key(value):
+    return _coerce_key(catalogo_ativos_items(), value)
+
+
+def catalogo_ativo_label(value):
+    return _coerce_label(catalogo_ativos_items(), value)
+
+
+def catalogo_bc_label(value):
+    return _coerce_label(catalogo_bc_items(), value)
 
 
 def _grupo_itens_por_chave(nome, grupo_chave):
@@ -364,6 +454,17 @@ def catalogo_colaborador_items():
             "chave": str(setor.get("chave", "")).strip(),
             "valor": str(setor.get("valor", "")).strip(),
         }
+        funcao = item.get("funcao") or {}
+        current["funcao"] = {
+            "chave": str(funcao.get("chave", "")).strip(),
+            "valor": str(funcao.get("valor", "")).strip(),
+        }
+        area = item.get("area") or {}
+        current["area"] = {
+            "chave": str(area.get("chave", "")).strip(),
+            "valor": str(area.get("valor", "")).strip(),
+        }
+        current["nome_completo"] = str(item.get("nome_completo", "")).strip()
         items.append(current)
     return items
 
@@ -378,7 +479,7 @@ def catalogo_chaves_items():
         if not current:
             continue
         current["numero"] = str(item.get("numero", "")).strip()
-        current["local"] = str(item.get("local", "")).strip()
+        current["area"] = str(item.get("area", item.get("local", ""))).strip()
         items.append(current)
     return items
 
@@ -402,11 +503,15 @@ def catalogo_chave_numero(value):
     return ""
 
 
-def catalogo_chave_local(value):
+def catalogo_chave_area(value):
     item = _find_in_items(catalogo_chaves_items(), value)
     if item:
-        return item.get("local", "")
+        return item.get("area", "")
     return ""
+
+
+def catalogo_chave_local(value):
+    return catalogo_chave_area(value)
 
 
 def catalogo_colaborador_key(value):
@@ -432,7 +537,7 @@ def catalogo_colaborador_setor_key(value):
 
 
 def colaboradores_ciop_items():
-    return [item for item in catalogo_colaborador_items() if item.get("setor", {}).get("chave") == "ciop"]
+    return [item for item in catalogo_colaborador_items() if item.get("area", {}).get("chave") == "ciop"]
 
 
 def colaboradores_options():

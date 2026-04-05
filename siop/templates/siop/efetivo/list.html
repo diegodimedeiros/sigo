@@ -1,0 +1,47 @@
+{% extends 'siop/efetivo/base.html' %}
+
+{% block area_heading %}Listagem de Efetivo{% endblock %}
+{% block content %}
+<div class="card listing-filter-card mb-4">
+  <div class="card-body">
+    <form method="get" class="filter-panel-grid">
+      <div class="filter-span-6"><label class="form-label" for="filtro-q">Busca rápida</label><input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, atendimento, CIOP, engenharia..." value="{{ filters.q }}"></div>
+      <div class="filter-span-6 filter-actions"><button class="btn btn-label-info">Aplicar filtros</button><a href="{% url 'siop:efetivo_list' %}" class="btn btn-label-secondary">Limpar</a></div>
+    </form>
+  </div>
+</div>
+<div class="card listing-table-card">
+  <div class="card-header"><div class="listing-table-header"><div><div class="card-title mb-1">Resultado da listagem</div><div class="listing-table-meta">{{ total_registros }} registro{{ total_registros|pluralize:"s" }} encontrado{{ total_registros|pluralize:"s" }}.</div></div></div></div>
+  <div class="card-body p-0">
+    <div class="table-responsive listing-table-wrapper">
+      <table class="table table-striped table-hover listing-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Responsável Plantão</th>
+            <th>Criado em</th>
+            <th>Criado por</th>
+            <th>Atualizado em</th>
+            <th class="text-end">Detalhe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for registro in registros %}
+          <tr>
+            <td>#{{ registro.id }}</td>
+            <td>{{ registro.plantao|default:"-" }}</td>
+            <td>{{ registro.criado_em|date:"d/m/Y H:i" }}</td>
+            <td>{{ registro.criado_por|default:"-" }}</td>
+            <td>{{ registro.modificado_em|date:"d/m/Y H:i" }}</td>
+            <td class="text-end"><a href="{% url 'siop:efetivo_view' registro.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_registros %}
+</div>
+{% endblock %}

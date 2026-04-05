@@ -2,27 +2,28 @@
 
 Sistema Integrado de Gestão Operacional.
 
-O projeto centraliza módulos internos com interface administrativa baseada em Django, usando um layout comum e áreas organizadas por domínio.
+O projeto reúne módulos internos com interface administrativa em Django, layout compartilhado e organização por domínio operacional.
 
 ## Módulos
 
-- `SIGO`: portal principal, autenticação e perfil do usuário
-- `SIOP`: operações
-- `SESMT`: saúde e segurança
+- `SIGO`: autenticação, perfil, notificações e modelos compartilhados
+- `SIOP`: operação, portaria, controle e auditoria
+- `SESMT`: saúde e segurança do trabalho
 
-## Áreas já estruturadas
+## Estado atual
 
-No `SIOP`:
+No `SIOP`, já existem áreas com fluxo real de cadastro, listagem, visualização, edição e exportação:
 
 - `Ocorrências`
 - `Acesso de Terceiros`
 - `Achados e Perdidos`
+- `Controle de Ativos`
+- `Controle de Chaves`
+- `Crachás Provisórios`
+- `Efetivo`
+- `Liberação de Acesso`
 
-No `SESMT`:
-
-- `Atendimento`
-- `Manejo`
-- `Flora`
+No `SESMT`, a estrutura base do módulo já existe, mas ainda está em estágio anterior ao `SIOP`.
 
 ## Stack
 
@@ -30,43 +31,107 @@ No `SESMT`:
 - Django
 - SQLite para ambiente local
 - Kaiadmin como base visual
+- ReportLab para exportação PDF
 
 ## Estrutura
 
 ```text
 sigo/
-  autenticacao, perfil e modelos compartilhados
+  autenticacao, perfil, notificacoes e modelos compartilhados
 
 sigo_core/
   configuracao do projeto
   helpers compartilhados
   catalogos padronizados
+  utilitarios de exportacao e anexos
 
 siop/
   modulo operacional
-  areas separadas por pasta:
+  areas separadas entre pacotes e modulos por responsabilidade:
+    dashboard_views.py
+    download_views.py
     ocorrencias/
+    operacoes/
     acesso_terceiros/
     achados_perdidos/
+    views.py
+    operacoes_support.py
+    operacoes_views.py
 
 sesmt/
   modulo de saude e seguranca
 ```
 
+## Funcionalidades implementadas
+
+- login e logout
+- perfil do usuário com troca de foto e senha
+- avatar de operador salvo no banco
+- dark mode
+- layout base compartilhado entre módulos
+- paginação padrão nas listagens
+- dashboard operacional do `SIOP` separado por área
+- notificações por módulo
+- rótulos de ação padronizados no front, como `Exportar`
+- anexos em áreas que exigem evidência documental
+- exportação PDF por registro nos resumos das áreas implementadas
+- exportação geral em PDF, XLSX e CSV nas áreas operacionais novas:
+  - `Controle de Ativos`
+  - `Controle de Chaves`
+  - `Crachás Provisórios`
+  - `Efetivo`
+  - `Liberação de Acesso`
+- formulários assíncronos com `fetch` no padrão do `SIOP` para:
+  - `Ocorrências`
+  - `Controle de Ativos`
+  - `Controle de Chaves`
+  - `Crachás Provisórios`
+  - `Efetivo`
+  - `Liberação de Acesso`
+- APIs JSON padronizadas para:
+  - `Ocorrências`
+  - `Acesso de Terceiros`
+  - `Achados e Perdidos`
+
+## Fluxos já consolidados no SIOP
+
+- `Acesso de Terceiros`: entrada, saída, anexos e exportação PDF
+- `Achados e Perdidos`: recebimento, devolução, fotos, anexos, API e PDF
+- `Controle de Ativos`: retirada, devolução, bloqueio de item em aberto, submit assíncrono e PDF
+- `Controle de Chaves`: retirada, devolução, bloqueio de chave em aberto, submit assíncrono e PDF
+- `Crachás Provisórios`: entrega, devolução, indisponibilidade enquanto em uso, submit assíncrono e PDF
+- `Efetivo`: um registro por dia, composição operacional, submit assíncrono e PDF
+- `Liberação de Acesso`: múltiplas pessoas por autorização, registro de chegada, anexos, integração operacional com `Acesso de Terceiros`, submit assíncrono e PDF
+
 ## Catálogos
 
-Os catálogos padronizados ficam em:
+Os catálogos ficam em:
 
 - `sigo_core/catalogos/catalogos`
 
-O padrão usado é:
+O padrão principal é:
 
-- `chave`: valor técnico persistido no banco
-- `valor`: texto exibido no front
+- `chave`: valor técnico persistido
+- `valor`: texto exibido
+
+Alguns catálogos também incluem metadados extras, como:
+
+- `setor`
+- `funcao`
+- `area`
+- `numero`
+- `nome_completo`
+- agrupamentos por tipo
+
+Notas atuais de compatibilidade:
+
+- `catalogo_cracha_provisorio.json` usa o identificador corrigido `cracha_provisorio`
+- `catalogo_funcoes_ativos.json` usa a chave técnica `facilities`
+- o loader mantém compatibilidade com o valor legado `facilites` para evitar quebra em registros antigos
 
 ## Como rodar localmente
 
-Crie e ative um ambiente virtual:
+Crie e ative o ambiente virtual:
 
 ```bash
 python3 -m venv .venv
@@ -76,63 +141,59 @@ source .venv/bin/activate
 Instale as dependências:
 
 ```bash
-pip install -r requirements.txt
+./.venv/bin/pip install -r requirements.txt
 ```
 
 Aplique as migrações:
 
 ```bash
-python manage.py migrate
+./.venv/bin/python manage.py migrate
 ```
 
 Crie um superusuário:
 
 ```bash
-python manage.py createsuperuser
+./.venv/bin/python manage.py createsuperuser
 ```
 
 Rode o servidor:
 
 ```bash
-python manage.py runserver
+./.venv/bin/python manage.py runserver
 ```
 
 ## Comandos úteis
 
-Validar projeto:
+Validar o projeto:
 
 ```bash
-python manage.py check
+./.venv/bin/python manage.py check
 ```
 
-Rodar testes:
+Rodar todos os testes:
 
 ```bash
-python manage.py test
+./.venv/bin/python manage.py test
 ```
 
-Rodar apenas o módulo `siop`:
+Rodar apenas o `SIOP`:
 
 ```bash
-python manage.py test siop -v 1
+./.venv/bin/python manage.py test siop -v 1
 ```
 
-## Funcionalidades já presentes
+## Documentação adicional
 
-- login e logout
-- perfil do usuário com troca de foto e senha
-- avatar de operador salvo no banco
-- dark mode
-- layout base compartilhado entre módulos
-- paginação padrão nas listagens
-- ordenação por clique nas tabelas reais
-- exportação PDF por registro em áreas já implementadas
+- [Visão geral do SIOP](docs/siop.md)
+- [Catálogos e convenções](docs/catalogos.md)
 
 ## Observações
 
-- o projeto está em construção ativa
-- a arquitetura está sendo organizada por área para evitar regras espalhadas
-- o projeto antigo em `siop_src` está sendo usado como referência funcional de migração
+- o projeto segue em construção ativa
+- o `SIOP` é hoje o módulo mais maduro da base
+- `views.py` e `operacoes_support.py` hoje funcionam como camadas finas de compatibilidade; a lógica principal foi puxada para módulos por responsabilidade
+- a modelagem e os fluxos estão sendo organizados por área para evitar regras espalhadas
+- a pasta `docs/` foi iniciada para consolidar decisões e facilitar manutenção
 
 ## Licença
 

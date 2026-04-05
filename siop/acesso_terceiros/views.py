@@ -5,9 +5,17 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_GET
 from django.utils import timezone
 
-from sigo_core.api import ApiStatus, api_success, is_json_request
+from sigo_core.api import (
+    ApiStatus,
+    api_error,
+    api_method_not_allowed,
+    api_success,
+    is_json_request,
+    parse_limit_offset,
+)
 from sigo_core.catalogos import catalogo_p1_data, catalogo_p1_label
 from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.pdf_export import (
@@ -27,6 +35,7 @@ from .services import (
     edit_acesso_terceiros,
     get_recent_acessos,
 )
+from .serializers import serialize_acesso_detail, serialize_acesso_list_item
 
 
 def _build_sort_link_meta(request, current_sort, current_dir, fields):
@@ -99,6 +108,56 @@ def acesso_terceiros_list(request):
         ),
     }
     return render(request, "siop/acesso_terceiros/list.html", context)
+
+
+@require_GET
+@login_required
+def api_acesso_terceiros(request):
+    acessos, _, _, _, _ = build_acesso_filtered_qs(request)
+
+    limit, offset, pagination_error = parse_limit_offset(
+        request.GET,
+        default_limit=None,
+        max_limit=500,
+    )
+    if pagination_error:
+        return api_error(
+            code="invalid_pagination",
+            message="Parâmetros de paginação inválidos.",
+            status=ApiStatus.UNPROCESSABLE_ENTITY,
+            details=pagination_error,
+        )
+
+    total = acessos.count()
+    if limit is not None:
+        acessos = acessos[offset : offset + limit]
+
+    data = [serialize_acesso_list_item(acesso) for acesso in acessos]
+    return api_success(
+        data={"acessos": data},
+        message="Acessos carregados com sucesso.",
+        meta={
+            "pagination": {
+                "total": total,
+                "limit": limit,
+                "offset": offset,
+                "count": len(data),
+            }
+        },
+    )
+
+
+@require_GET
+@login_required
+def api_acesso_terceiros_detail(request, pk):
+    acesso = get_object_or_404(
+        AcessoTerceiros.objects.select_related("pessoa").prefetch_related("anexos"),
+        pk=pk,
+    )
+    return api_success(
+        data=serialize_acesso_detail(acesso),
+        message="Acesso carregado com sucesso.",
+    )
 
 
 @login_required
@@ -205,12 +264,37 @@ def acesso_terceiros_edit(request, pk):
         AcessoTerceiros.objects.select_related("pessoa").prefetch_related("anexos"),
         pk=pk,
     )
+    expects_api_response = is_json_request(request)
 
     if acesso.saida is not None and request.method == "GET":
         messages.warning(request, "Acessos com saída registrada não podem ser editados.")
         return redirect("siop:acesso_terceiros_view", pk=acesso.pk)
 
-    if request.method == "POST":
+    if request.method in {"POST", "PATCH"}:
+        if expects_api_response:
+            try:
+                data, files, payload_error = extract_request_payload(request)
+                if payload_error:
+                    return payload_error
+
+                edit_acesso_terceiros(
+                    acesso=acesso,
+                    data=data,
+                    files=files,
+                    user=request.user,
+                )
+                return api_success(
+                    data={"id": acesso.id, "redirect_url": acesso.get_absolute_url()},
+                    message="Acesso de terceiros alterado com sucesso.",
+                )
+            except Exception as exc:
+                if hasattr(exc, "code") and hasattr(exc, "message"):
+                    return service_error_response(exc)
+                return unexpected_error_response(
+                    "Erro inesperado ao editar acesso de terceiros",
+                    acesso_id=pk,
+                )
+
         payload = request.POST.dict()
         try:
             edit_acesso_terceiros(
@@ -230,6 +314,9 @@ def acesso_terceiros_edit(request, pk):
                 error_details["__all__"] = [default_message]
             context = _build_acesso_edit_context(acesso, payload=payload, errors=error_details)
             return render(request, "siop/acesso_terceiros/edit.html", context)
+
+    if request.method not in {"GET", "POST", "PATCH"}:
+        return api_method_not_allowed()
 
     context = _build_acesso_edit_context(acesso)
     return render(request, "siop/acesso_terceiros/edit.html", context)

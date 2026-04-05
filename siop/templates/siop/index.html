@@ -4,167 +4,301 @@
 {% block title %}SIOP | Painel{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-primary">
-            <i class="fas fa-bell"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Ocorrências do dia</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.ocorrencias_dia }}">{{ dashboard.ocorrencias_dia }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Ocorrências em pendência</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.ocorrencias_pendencia }}">{{ dashboard.ocorrencias_pendencia }}</h4>
+<div class="row g-4 mb-4">
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Ocorrências</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Total de ocorrências registradas no dia atual.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-primary">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Ocorrências do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.ocorrencias_dia }}">{{ dashboard.ocorrencias_dia }}</h4>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-info">
-            <i class="fas fa-id-card"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Acesso terceiro do dia</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.acessos_dia }}">{{ dashboard.acessos_dia }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-secondary">
-            <i class="fas fa-door-open"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Acesso em aberto</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.acessos_abertos }}">{{ dashboard.acessos_abertos }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-success">
-            <i class="fas fa-box-open"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Achados do dia</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.achados_dia }}">{{ dashboard.achados_dia }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-danger">
-            <i class="fas fa-search"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Perdidos do dia</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.perdidos_dia }}">{{ dashboard.perdidos_dia }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <div class="card card-stats card-round h-100">
-      <div class="card-body">
-        <div class="dashboard-stat-layout">
-          <div class="dashboard-stat-icon dashboard-stat-icon-teal">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <div class="numbers dashboard-stat-copy">
-            <p class="card-category">Entregues do dia</p>
-            <h4 class="card-title" data-counter-value="{{ dashboard.entregues_dia }}">{{ dashboard.entregues_dia }}</h4>
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Quantidade de ocorrências ainda não finalizadas.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Ocorrências em pendência</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.ocorrencias_pendencia }}">{{ dashboard.ocorrencias_pendencia }}</h4>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+</div>
 
-<div class="row g-4 mt-1">
-  <div class="col-12">
-    <div class="card dashboard-chart-card">
-      <div class="card-header">
-        <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3">
-          <div>
-            <div class="card-title mb-1">Ocorrências por Natureza</div>
-            <p class="card-category mb-0">Volume das naturezas mais recorrentes no período.</p>
-          </div>
-          <div class="dashboard-period-switch" role="group" aria-label="Período do gráfico">
-            {% for option in period_options %}
-            <a href="?periodo={{ option.value }}" class="btn btn-sm {% if option.active %}btn-primary{% else %}btn-label-primary{% endif %}">
-              {{ option.label }}
-            </a>
-            {% endfor %}
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Acesso de Terceiros</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Total de acessos de terceiros registrados no dia atual.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-info">
+                <i class="fas fa-id-card"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Acesso terceiro do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.acessos_dia }}">{{ dashboard.acessos_dia }}</h4>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="card-body">
-        <canvas id="siopMovimentoChart" class="dashboard-chart-canvas dashboard-chart-canvas-lg"></canvas>
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Quantidade de acessos de terceiros ainda sem saída registrada.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-secondary">
+                <i class="fas fa-door-open"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Acesso em aberto</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.acessos_abertos }}">{{ dashboard.acessos_abertos }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
-    <div class="card dashboard-chart-card h-100">
-      <div class="card-header">
-        <div class="card-title mb-1">Total de Ocorrências</div>
-        <p class="card-category mb-0">Volume diário total de ocorrências nos últimos 7 dias.</p>
-      </div>
-      <div class="card-body">
-        <canvas id="siopOcorrenciasTotalChart" class="dashboard-chart-canvas"></canvas>
+</div>
+</div>
+
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Liberação de Acesso</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Total de pessoas vinculadas às liberações de acesso previstas para hoje e ainda pendentes de chegada.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-primary">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Liberações previstas do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.pessoas_previstas_dia }}">{{ dashboard.pessoas_previstas_dia }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
-    <div class="card dashboard-chart-card h-100">
-      <div class="card-header">
-        <div class="card-title mb-1">Achados por status</div>
-        <p class="card-category mb-0">Situação atual dos itens vinculados ao módulo.</p>
+</div>
+</div>
+
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Achados e Perdidos</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Total de registros de achados cadastrados no dia atual.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-success">
+                <i class="fas fa-box-open"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Achados do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.achados_dia }}">{{ dashboard.achados_dia }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <canvas id="siopAchadosStatusChart" class="dashboard-chart-canvas"></canvas>
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Total de registros de itens perdidos cadastrados no dia atual.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-danger">
+                <i class="fas fa-search"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Perdidos do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.perdidos_dia }}">{{ dashboard.perdidos_dia }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Itens de Achados e Perdidos marcados como entregues no dia atual.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-teal">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Itens entregues do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.entregues_dia }}">{{ dashboard.entregues_dia }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
-    <div class="card dashboard-chart-card h-100">
-      <div class="card-header">
-        <div class="card-title mb-1">Acessos por status</div>
-        <p class="card-category mb-0">Relação entre acessos ainda em permanência e finalizados.</p>
+</div>
+</div>
+
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Controle de Ativos</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Quantidade de ativos ainda sem devolução registrada.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-info">
+                <i class="fas fa-box"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Ativos não devolvidos</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.ativos_nao_entregues }}">{{ dashboard.ativos_nao_entregues }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <canvas id="siopAcessosStatusChart" class="dashboard-chart-canvas"></canvas>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Controle de Chaves</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Quantidade de chaves ainda sem devolução registrada.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-warning">
+                <i class="fas fa-key"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Chaves não devolvidas</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.chaves_nao_devolvidas }}">{{ dashboard.chaves_nao_devolvidas }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="col-xl-6">
+<div class="card h-100">
+  <div class="card-header"><div class="card-title">Crachás Provisórios</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Quantidade de crachás provisórios ainda sem devolução registrada.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-primary">
+                <i class="fas fa-id-badge"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Crachás não devolvidos</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.crachas_nao_entregues }}">{{ dashboard.crachas_nao_entregues }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header"><div class="card-title">Gráficos Operacionais</div></div>
+  <div class="card-body">
+    <div class="row g-4 mt-1">
+      <div class="col-12">
+        <div class="card dashboard-chart-card">
+          <div class="card-header">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3">
+              <div>
+                <div class="card-title mb-1">Ocorrências por Natureza</div>
+                <p class="card-category mb-0">Volume das naturezas mais recorrentes no período.</p>
+              </div>
+              <div class="dashboard-period-switch" role="group" aria-label="Período do gráfico">
+                {% for option in period_options %}
+                <a href="?periodo={{ option.value }}" class="btn btn-sm {% if option.active %}btn-primary{% else %}btn-label-primary{% endif %}">
+                  {{ option.label }}
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <canvas id="siopMovimentoChart" class="dashboard-chart-canvas dashboard-chart-canvas-lg"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card dashboard-chart-card h-100">
+          <div class="card-header">
+            <div class="card-title mb-1">Total de Ocorrências</div>
+            <p class="card-category mb-0">Volume diário total de ocorrências nos últimos 7 dias.</p>
+          </div>
+          <div class="card-body">
+            <canvas id="siopOcorrenciasTotalChart" class="dashboard-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card dashboard-chart-card h-100">
+          <div class="card-header">
+            <div class="card-title mb-1">Achados por status</div>
+            <p class="card-category mb-0">Situação atual dos itens vinculados ao módulo.</p>
+          </div>
+          <div class="card-body">
+            <canvas id="siopAchadosStatusChart" class="dashboard-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card dashboard-chart-card h-100">
+          <div class="card-header">
+            <div class="card-title mb-1">Acessos por status</div>
+            <p class="card-category mb-0">Relação entre acessos ainda em permanência e finalizados.</p>
+          </div>
+          <div class="card-body">
+            <canvas id="siopAcessosStatusChart" class="dashboard-chart-canvas"></canvas>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -1,0 +1,107 @@
+{% extends 'siop/controle_chaves/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Edição do registro</div>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
+    <form method="post" data-async-form="true">
+      {% csrf_token %}
+      {% if non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for error in non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label for="id_area_chave" class="form-label">Área</label>
+          <select id="id_area_chave" name="area_chave" class="form-select{% if errors.area_chave %} is-invalid{% endif %}" required>
+            <option value="">Selecione...</option>
+            {% for item in catalogo_chaves_areas %}
+            <option value="{{ item.chave }}" {% if request_data.area_chave == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.area_chave %}<div class="invalid-feedback d-block">{{ errors.area_chave }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_chave" class="form-label">Chave</label>
+          <select id="id_chave" name="chave" class="form-select{% if errors.chave %} is-invalid{% endif %}" required>
+            <option value="">Selecione...</option>
+            {% for item in catalogo_chaves %}
+            <option value="{{ item.chave }}" data-area="{{ item.area }}" {% if request_data.chave == item.chave %}selected{% endif %}>{{ item.numero }} - {{ item.valor }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Chaves em uso por outros registros ficam bloqueadas até a devolução.</div>
+          {% if errors.chave %}<div class="invalid-feedback d-block">{{ errors.chave }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_retirada" class="form-label">Retirada</label>
+          <input type="datetime-local" id="id_retirada" name="retirada" class="form-control{% if errors.retirada %} is-invalid{% endif %}" value="{{ request_data.retirada }}" required>
+          {% if errors.retirada %}<div class="invalid-feedback d-block">{{ errors.retirada }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_devolucao" class="form-label">Devolução</label>
+          <input type="datetime-local" id="id_devolucao" name="devolucao" class="form-control{% if errors.devolucao %} is-invalid{% endif %}" value="{{ request_data.devolucao }}">
+          {% if errors.devolucao %}<div class="invalid-feedback d-block">{{ errors.devolucao }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_pessoa_nome" class="form-label">Nome da pessoa</label>
+          <input type="text" id="id_pessoa_nome" name="pessoa_nome" class="form-control{% if errors.pessoa_nome %} is-invalid{% endif %}" value="{{ request_data.pessoa_nome }}" required>
+          {% if errors.pessoa_nome %}<div class="invalid-feedback d-block">{{ errors.pessoa_nome }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label for="id_observacao" class="form-label">Observação</label>
+          <textarea id="id_observacao" name="observacao" class="form-control{% if errors.observacao %} is-invalid{% endif %}" rows="6">{{ request_data.observacao }}</textarea>
+          {% if errors.observacao %}<div class="invalid-feedback d-block">{{ errors.observacao }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <a href="{% url 'siop:controle_chaves_view' chave_obj.id %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script>
+  (function () {
+    const areaSelect = document.getElementById("id_area_chave");
+    const chaveSelect = document.getElementById("id_chave");
+    if (!areaSelect || !chaveSelect) return;
+
+    const options = Array.from(chaveSelect.querySelectorAll("option[data-area]"));
+
+    function aplicarFiltro() {
+      const area = areaSelect.value;
+      let atualVisivel = false;
+
+      options.forEach((option) => {
+        const visivel = !area || option.dataset.area === area;
+        option.hidden = !visivel;
+        option.disabled = !visivel;
+        if (visivel && option.value === chaveSelect.value) {
+          atualVisivel = true;
+        }
+      });
+
+      if (chaveSelect.value && !atualVisivel) {
+        chaveSelect.value = "";
+      }
+    }
+
+    areaSelect.addEventListener("change", aplicarFiltro);
+    aplicarFiltro();
+  })();
+</script>
+{% endblock %}

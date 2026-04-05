@@ -91,3 +91,48 @@ def achado_base_payload(item):
         "setor": item.setor or "",
         "ciop": item.ciop or "",
     }
+
+
+def serialize_achado_list_item(item):
+    payload = achado_base_payload(item)
+    payload.update(
+        {
+            "total_fotos": getattr(item, "total_fotos", item.fotos.count()),
+            "total_anexos": getattr(item, "total_anexos", item.anexos.count()),
+            "criado_em": format_datetime(item.criado_em),
+            "data_devolucao": format_datetime(item.data_devolucao),
+        }
+    )
+    return payload
+
+
+def serialize_achado_detail(item):
+    fotos = [serialize_foto(foto) for foto in item.fotos.all()]
+    anexos = [serialize_anexo(anexo) for anexo in item.anexos.all()]
+    assinatura = item.assinaturas.order_by("-id").first()
+
+    payload = achado_base_payload(item)
+    payload.update(
+        {
+            "descricao": item.descricao,
+            "pessoa": (
+                {
+                    "nome": item.pessoa.nome,
+                    "documento": item.pessoa.documento,
+                }
+                if item.pessoa_id
+                else None
+            ),
+            "data_devolucao": format_datetime(item.data_devolucao),
+            "fotos": fotos,
+            "fotos_total": len(fotos),
+            "anexos": anexos,
+            "anexos_total": len(anexos),
+            "assinatura": serialize_anexo(assinatura) if assinatura else None,
+            "criado_em": format_datetime(item.criado_em),
+            "criado_por": display_user(item.criado_por),
+            "modificado_em": format_datetime(item.modificado_em),
+            "modificado_por": display_user(item.modificado_por),
+        }
+    )
+    return payload

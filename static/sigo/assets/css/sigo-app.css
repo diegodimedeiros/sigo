@@ -175,6 +175,16 @@ textarea,
   border-bottom-color: rgba(216, 226, 237, 0.92) !important;
 }
 
+.form-control {
+  border-color: #aeafb1;
+  border-width: 2px;
+}
+
+.form-select {
+  border-color: #aeafb1;
+  border-width: 2px;
+}
+
 .brand-logo-img {
   width: 2.4rem;
   height: 2.4rem;
@@ -721,15 +731,24 @@ html[data-sigo-theme="dark"] .dashboard-stat-copy .card-title {
 .notification-list-meta {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.notification-list-badges {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  flex-wrap: nowrap;
 }
 
 .notification-list-meta .badge-count {
   border-radius: 999px;
-  padding: 0.38rem 0.6rem;
+  padding: 0.34rem 0.58rem;
   font-size: 0.78rem;
   font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .notification-empty-state {

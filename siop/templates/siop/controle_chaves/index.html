@@ -1,0 +1,95 @@
+{% extends 'siop/controle_chaves/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Acesso rápido</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 quick-access-grid">
+          <div class="col-md-4"><a href="{% url 'siop:controle_chaves_list' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-list me-2"></i>Listagem</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:controle_chaves_new' %}" class="btn btn-primary quick-access-btn w-100"><i class="fas fa-plus-circle me-2"></i>Novo</a></div>
+          <div class="col-md-4"><a href="{% url 'siop:controle_chaves_export' %}" class="btn btn-label-success quick-access-btn w-100"><i class="fas fa-file-export me-2"></i>Exportar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Painel rápido</div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" role="alert">{{ dashboard.total }} chave{{ dashboard.total|pluralize:"s" }} registrada{{ dashboard.total|pluralize:"s" }}.</div>
+        <div class="alert alert-warning mb-3" role="alert">{{ dashboard.em_uso }} em uso no momento.</div>
+        <div class="alert alert-success mb-0" role="alert">{{ dashboard.devolvidas }} devolvida{{ dashboard.devolvidas|pluralize:"s" }} e {{ dashboard.retiradas_hoje }} retirada{{ dashboard.retiradas_hoje|pluralize:"s" }} hoje.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Últimos registros</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Número</th>
+                <th>Chave</th>
+                <th>Área</th>
+                <th>Responsável</th>
+                <th>Status</th>
+                <th class="text-end">Abrir</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for chave in recentes %}
+              <tr>
+                <td>#{{ chave.id }}</td>
+                <td>{{ chave.chave_numero|default:"-" }}</td>
+                <td>{{ chave.chave_label|default:chave.chave|default:"-" }}</td>
+                <td>{{ chave.chave_area|default:"-" }}</td>
+                <td>{{ chave.pessoa.nome|default:"-" }}</td>
+                <td>
+                  {% if chave.devolucao %}
+                  <span class="badge badge-success">{{ chave.status_label }}</span>
+                  {% else %}
+                  <span class="badge badge-warning">{{ chave.status_label }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end"><a href="{% url 'siop:controle_chaves_view' chave.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum controle de chave cadastrado ainda.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Fila operacional</div>
+      </div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Selecionar a área</li>
+          <li class="mb-3">Escolher a chave</li>
+          <li class="mb-3">Registrar a retirada</li>
+          <li>Registrar a devolução</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

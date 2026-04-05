@@ -5,7 +5,16 @@
     {
       "chave": "abner_mauricio",
       "valor": "Abner Mauricio",
+      "nome_completo": "Abner Mauricio Gomes Da Silva",
+      "funcao": {
+        "chave": "coordenador_de_manutencao_e_facilities",
+        "valor": "Coordenador de Manutenção e Facilities"
+      },
       "setor": {
+        "chave": "coordenacao_de_manutencao_e_facilities",
+        "valor": "Coordenação de Manutenção e Facilities"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -13,15 +22,33 @@
     {
       "chave": "adriele_conceicao",
       "valor": "Adriele Conceição",
+      "nome_completo": "Adriele Vargas Da Conceição",
+      "funcao": {
+        "chave": "operador_de_bilheteria_i",
+        "valor": "Operador de Bilheteria I"
+      },
       "setor": {
-        "chave": "bilheteria",
-        "valor": "Bilheteria"
+        "chave": "coordenacao_operacoes_financeiras",
+        "valor": "Coordenação Operações Financeiras"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "aline_branchini",
       "valor": "Aline Branchini",
+      "nome_completo": "Aline Dressel Branchini",
+      "funcao": {
+        "chave": "analista_de_gente_e_gestao_senior",
+        "valor": "Analista de Gente & Gestão Sênior"
+      },
       "setor": {
+        "chave": "coordenacao_de_gente_e_performance",
+        "valor": "Coordenação de Gente e Performance"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -29,31 +56,50 @@
     {
       "chave": "aline_oliveira",
       "valor": "Aline Oliveira",
+      "nome_completo": "Aline Santos De Oliveira",
+      "funcao": {
+        "chave": "analista_financeiro_pleno",
+        "valor": "Analista Financeiro Pleno"
+      },
       "setor": {
+        "chave": "financeiro",
+        "valor": "Financeiro"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
     },
     {
-      "chave": "amilton_filho",
-      "valor": "Amilton Filho",
-      "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
-      }
-    },
-    {
       "chave": "ana_silva",
       "valor": "Ana Silva",
+      "nome_completo": "Ana Valéria Da Silva",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "antonio_jaskulski",
       "valor": "Antônio Jaskulski",
+      "nome_completo": "Antônio Ricardo Jaskulski",
+      "funcao": {
+        "chave": "coordenador_de_seguranca_patrimonial",
+        "valor": "Coordenador de Segurança Patrimonial"
+      },
       "setor": {
+        "chave": "seguranca_patrimonial",
+        "valor": "Segurança Patrimonial"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -61,15 +107,33 @@
     {
       "chave": "camila_santos",
       "valor": "Camila Santos",
+      "nome_completo": "Camila De Oliveira Brito Santos",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "caroline_ribeiro",
       "valor": "Caroline Ribeiro",
+      "nome_completo": "Caroline Ribeiro",
+      "funcao": {
+        "chave": "analista_comercial_junior",
+        "valor": "Analista Comercial Junior"
+      },
       "setor": {
+        "chave": "coordenacao_de_negocios_e_comercial",
+        "valor": "Coordenação de Negócios e Comercial"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -77,15 +141,33 @@
     {
       "chave": "carolyne_hahn",
       "valor": "Carolyne Hahn",
+      "nome_completo": "Carolyne Rafael Hahn",
+      "funcao": {
+        "chave": "operador_de_bilheteria_i",
+        "valor": "Operador de Bilheteria I"
+      },
       "setor": {
-        "chave": "bilheteria",
-        "valor": "Bilheteria"
+        "chave": "coordenacao_operacoes_financeiras",
+        "valor": "Coordenação Operações Financeiras"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "daniel_aninha",
       "valor": "Daniel Aninha",
+      "nome_completo": "Daniel Aninha",
+      "funcao": {
+        "chave": "operador_c_f_t_v",
+        "valor": "Operador C.F.T.V"
+      },
       "setor": {
+        "chave": "coordenacao_de_seguranca_patrimonial",
+        "valor": "Coordenação de Segurança Patrimonial"
+      },
+      "area": {
         "chave": "ciop",
         "valor": "CIOP"
       }
@@ -93,7 +175,16 @@
     {
       "chave": "deise_souza",
       "valor": "Deise Souza",
+      "nome_completo": "Deise Leão De Souza",
+      "funcao": {
+        "chave": "coordenadora_de_gente_e_performance",
+        "valor": "Coordenadora de Gente e Performance"
+      },
       "setor": {
+        "chave": "coordenacao_de_gente_e_performance",
+        "valor": "Coordenação de Gente e Performance"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -101,7 +192,16 @@
     {
       "chave": "diego_medeiros",
       "valor": "Diego Medeiros",
+      "nome_completo": "Diego Gustavo Dos Santos Medeiros",
+      "funcao": {
+        "chave": "analiste_de_suporte_pleno",
+        "valor": "Analiste de Suporte Pleno"
+      },
       "setor": {
+        "chave": "coordenacao_de_infraestrutura_de_ti",
+        "valor": "Coordenação de Infraestrutura de TI"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -109,15 +209,33 @@
     {
       "chave": "diocilei_amaral",
       "valor": "Diocilei Amaral",
+      "nome_completo": "Diocilei Martins Do Amaral",
+      "funcao": {
+        "chave": "condutor_a_de_turismo_de_aventura",
+        "valor": "Condutor(a) de Turismo de Aventura"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "edison_junior",
       "valor": "Edison Júnior",
+      "nome_completo": "Edison Luiz Pereira Júnior",
+      "funcao": {
+        "chave": "analista_de_negocios_senior",
+        "valor": "Analista de Negócios Sênior"
+      },
       "setor": {
+        "chave": "coordenacao_de_negocios_e_comercial",
+        "valor": "Coordenação de Negócios e Comercial"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -125,7 +243,16 @@
     {
       "chave": "eduarda_borin",
       "valor": "Eduarda Borin",
+      "nome_completo": "Eduarda Borin",
+      "funcao": {
+        "chave": "coordenador_de_marketing",
+        "valor": "Coordenador de Marketing"
+      },
       "setor": {
+        "chave": "coordenacao_de_marketing",
+        "valor": "Coordenação de Marketing"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -133,7 +260,16 @@
     {
       "chave": "esteban_scherer",
       "valor": "Esteban Scherer",
+      "nome_completo": "Esteban Etchegaray Scherer",
+      "funcao": {
+        "chave": "especialista_de_obras",
+        "valor": "Especialista de Obras"
+      },
       "setor": {
+        "chave": "gerencia_de_operacoes",
+        "valor": "Gerencia de Operações"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -141,15 +277,33 @@
     {
       "chave": "fernanda_westerhofer",
       "valor": "Fernanda Westerhofer",
+      "nome_completo": "Fernanda Westerhofer Gonçalves",
+      "funcao": {
+        "chave": "coordenador_a_de_experiencia_do_visitante",
+        "valor": "Coordenador(a) de Experiência do Visitante"
+      },
       "setor": {
-        "chave": "administrativo",
-        "valor": "Administrativo"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "fernando_mota",
       "valor": "Fernando Mota",
+      "nome_completo": "Fernando Rodrigo Mota",
+      "funcao": {
+        "chave": "assistente_administrativo",
+        "valor": "Assistente Administrativo"
+      },
       "setor": {
+        "chave": "supervisao_financeiro_administrativo",
+        "valor": "Supervisão Financeiro Administrativo"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -157,23 +311,33 @@
     {
       "chave": "gabriel_silva",
       "valor": "Gabriel Silva",
+      "nome_completo": "Gabriel Da Silva",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
-      }
-    },
-    {
-      "chave": "gisele_machado",
-      "valor": "Gisele Machado",
-      "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "guilherme_sparrenberger",
       "valor": "Guilherme Sparrenberger",
+      "nome_completo": "Guilherme Sparrenberger",
+      "funcao": {
+        "chave": "analista_de_suprimentos_senior",
+        "valor": "Analista de Suprimentos Sênior"
+      },
       "setor": {
+        "chave": "depatamento_de_suprimentos",
+        "valor": "Depatamento de Suprimentos"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -181,39 +345,101 @@
     {
       "chave": "gustavo_muller",
       "valor": "Gustavo Müller",
+      "nome_completo": "Gustavo De Lima Müller",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
+      }
+    },
+    {
+      "chave": "heitor_santos",
+      "valor": "Heitor Santos",
+      "nome_completo": "Heitor Da Paixão Alves Dos Santos",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
+      "setor": {
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "iuri_gomes",
       "valor": "Iuri Gomes",
+      "nome_completo": "Iuri Demie Gomes",
+      "funcao": {
+        "chave": "condutor_de_turismo_de_aventura",
+        "valor": "Condutor de Turismo de Aventura"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "joao_bergamin",
       "valor": "João Bergamin",
+      "nome_completo": "João Gabriel Bergamin",
+      "funcao": {
+        "chave": "assistente_de_suporte",
+        "valor": "Assistente de Suporte"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_infraestrutura_ti",
+        "valor": "Coordenação de Infraestrutura TI"
+      },
+      "area": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
       }
     },
     {
       "chave": "joao_pedro",
       "valor": "João Pedro",
+      "nome_completo": "João Pedro Fontoura Da Silva",
+      "funcao": {
+        "chave": "lider_de_experiencia_do_visitante",
+        "valor": "Líder de Experiência do Visitante"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "jonatas_andrade",
       "valor": "Jonatas Andrade",
+      "nome_completo": "Jonatas Kehl Andrade",
+      "funcao": {
+        "chave": "tecnico_em_eletroeletronica",
+        "valor": "Técnico em Eletroeletrônica"
+      },
       "setor": {
+        "chave": "coordenacao_de_manutencao_e_facilities",
+        "valor": "Coordenação de Manutenção e Facilities"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -221,7 +447,16 @@
     {
       "chave": "kathuci_marques",
       "valor": "Kathuci Marques",
+      "nome_completo": "Kathuci Carvalho Marques",
+      "funcao": {
+        "chave": "tecnica_de_seguranca_do_trabalho",
+        "valor": "Técnica de Segurança do Trabalho"
+      },
       "setor": {
+        "chave": "coordenacao_de_meio_ambiente_e_seguranca_do_trabalho",
+        "valor": "Coordenação de Meio Ambiente e Segurança do Trabalho"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -229,55 +464,101 @@
     {
       "chave": "kauan_gomes",
       "valor": "Kauan Gomes",
+      "nome_completo": "Kauan Leandro Dos Santos Gomes",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenador_de_experiencia_do_visitante",
+        "valor": "Coordenador de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "kawan_silva",
       "valor": "Kawãn Silva",
+      "nome_completo": "Kawãn Lucas Aguiar Faustino Silva",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "kevina_jukneviciene",
       "valor": "Kévina Jukneviciene",
+      "nome_completo": "Kévina Gadêlha Ribeiro Jukneviciene",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "lara_cruz",
       "valor": "Lara Cruz",
+      "nome_completo": "Lara Manuela Guimarães Taha Da Cruz",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "larissa_lima",
       "valor": "Larissa Lima",
+      "nome_completo": "Larissa De Souza Carvalho De Lima",
+      "funcao": {
+        "chave": "menor_aprendiz",
+        "valor": "Menor Aprendiz"
+      },
       "setor": {
+        "chave": "coordenacao_de_gente_e_performance",
+        "valor": "Coordenação de Gente e Performance"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
     },
     {
-      "chave": "leonardo_fonseca",
-      "valor": "Leonardo Fonseca",
-      "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
-      }
-    },
-    {
       "chave": "leticia_kahler",
       "valor": "Leticia Kahler",
+      "nome_completo": "Leticia Freeza Kahler",
+      "funcao": {
+        "chave": "supervisor_a_de_negocios",
+        "valor": "Supervisor(a) de Negócios"
+      },
       "setor": {
+        "chave": "coordenacao_de_negocios_e_comercial",
+        "valor": "Coordenação de Negócios e Comercial"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -285,7 +566,16 @@
     {
       "chave": "maiara_costa",
       "valor": "Maiara Costa",
+      "nome_completo": "Maiara Gabrieli Palhano Da Costa",
+      "funcao": {
+        "chave": "jovem_aprendiz_relacoes_institucionais",
+        "valor": "Jovem Aprendiz Relações Institucionais"
+      },
       "setor": {
+        "chave": "relacoes_institucionais",
+        "valor": "Relações Institucionais"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -293,7 +583,16 @@
     {
       "chave": "maicon_cruz",
       "valor": "Maicon Cruz",
+      "nome_completo": "Maicon Da Cruz Silva",
+      "funcao": {
+        "chave": "operador_c_f_t_v",
+        "valor": "Operador C.F.T.V"
+      },
       "setor": {
+        "chave": "coordenacao_de_seguranca_patrimonial_e_ciop",
+        "valor": "Coordenação de Segurança Patrimonial e CIOP"
+      },
+      "area": {
         "chave": "ciop",
         "valor": "CIOP"
       }
@@ -301,15 +600,67 @@
     {
       "chave": "maicon_santos",
       "valor": "Maicon Santos",
+      "nome_completo": "Maicon Dos Santos",
+      "funcao": {
+        "chave": "coordenador_de_negocios_e_comercial",
+        "valor": "Coordenador de Negócios e Comercial"
+      },
       "setor": {
+        "chave": "coordenacao_de_negocios_e_comercial",
+        "valor": "Coordenação de Negócios e Comercial"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
     },
     {
+      "chave": "maria_domingos",
+      "valor": "Maria Domingos",
+      "nome_completo": "Maria Eduarda Domingos",
+      "funcao": {
+        "chave": "analista_de_marketing_pleno",
+        "valor": "Analista de Marketing Pleno"
+      },
+      "setor": {
+        "chave": "marketing",
+        "valor": "Marketing"
+      },
+      "area": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
+      }
+    },
+    {
+      "chave": "maria_lima",
+      "valor": "Maria Lima",
+      "nome_completo": "Maria Olívia Moreira Lima",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
+      "setor": {
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
+      }
+    },
+    {
       "chave": "marilu_rosa",
       "valor": "Marilu Rosa",
+      "nome_completo": "Marilu Rosa Dos Santos Souza",
+      "funcao": {
+        "chave": "coordenador_a_de_saude_seguranca_e_meio_ambiente",
+        "valor": "Coordenador(a) de Saúde Segurança e Meio Ambiente"
+      },
       "setor": {
+        "chave": "coordenacao_de_meio_ambiente_e_seguranca_do_trabalho",
+        "valor": "Coordenação de Meio Ambiente e Segurança do Trabalho"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -317,23 +668,50 @@
     {
       "chave": "matheus_cruz",
       "valor": "Matheus Cruz",
+      "nome_completo": "Matheus Adams Da Cruz",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "mayerlinger_lima",
       "valor": "Mayerlinger Lima",
+      "nome_completo": "Mayerlinger Rodriguez Buitron De Lima",
+      "funcao": {
+        "chave": "condutor_de_turismo_de_aventura",
+        "valor": "Condutor de Turismo de Aventura"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "moises_souza",
       "valor": "Moises Souza",
+      "nome_completo": "Moises De Souza",
+      "funcao": {
+        "chave": "analista_de_negocios_senior",
+        "valor": "Analista de Negócios Senior"
+      },
       "setor": {
+        "chave": "coordenacao_de_negocios_e_comercial",
+        "valor": "Coordenação de Negócios e Comercial"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -341,15 +719,33 @@
     {
       "chave": "nestor_neto",
       "valor": "Nestor Neto",
+      "nome_completo": "Nestor De Souza Morais Neto",
+      "funcao": {
+        "chave": "operador_de_bilheteria_i",
+        "valor": "Operador de Bilheteria I"
+      },
       "setor": {
-        "chave": "bilheteria",
-        "valor": "Bilheteria"
+        "chave": "supervisao_operacoes_financeiras",
+        "valor": "Supervisão Operações Financeiras"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "nicolas_felippetti",
       "valor": "Nicolas Felippetti",
+      "nome_completo": "Nicolas Sperb Felippetti",
+      "funcao": {
+        "chave": "analista_de_marketing_junior",
+        "valor": "Analista de Marketing Junior"
+      },
       "setor": {
+        "chave": "coordenacao_de_marketing",
+        "valor": "Coordenação de Marketing"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -357,15 +753,33 @@
     {
       "chave": "pablo_oliveira",
       "valor": "Pablo Oliveira",
+      "nome_completo": "Pablo Jardel Borges De Oliveira",
+      "funcao": {
+        "chave": "condutor_de_turismo_de_aventura",
+        "valor": "Condutor de Turismo de Aventura"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "paulo_abreu",
       "valor": "Paulo Abreu",
+      "nome_completo": "Paulo Leandro De Abreu",
+      "funcao": {
+        "chave": "analista_de_saude_seguranca_e_meio_ambiente_pleno",
+        "valor": "Analista de Saúde Segurança e Meio Ambiente Pleno"
+      },
       "setor": {
+        "chave": "coordenacao_de_meio_ambiente_e_seguranca_do_trabalho",
+        "valor": "Coordenação de Meio Ambiente e Segurança do Trabalho"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -373,7 +787,16 @@
     {
       "chave": "paulo_fernandes",
       "valor": "Paulo Fernandes",
+      "nome_completo": "Paulo Roberto Mendes Fernandes",
+      "funcao": {
+        "chave": "operador_c_f_t_v",
+        "valor": "Operador C.F.T.V"
+      },
       "setor": {
+        "chave": "coordenacao_de_seguranca_patrimonial_e_ciop",
+        "valor": "Coordenação de Segurança Patrimonial e CIOP"
+      },
+      "area": {
         "chave": "ciop",
         "valor": "CIOP"
       }
@@ -381,23 +804,84 @@
     {
       "chave": "priscila_hahn",
       "valor": "Priscila Hahn",
+      "nome_completo": "Priscila Hahn",
+      "funcao": {
+        "chave": "supervisor_a_administrativo_e_financeiro",
+        "valor": "Supervisor(a) Administrativo e Financeiro"
+      },
       "setor": {
+        "chave": "supervisao_administrativo_financeiro",
+        "valor": "Supervisão Administrativo Financeiro"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
     },
     {
+      "chave": "rafaela_macari",
+      "valor": "Rafaela Macari",
+      "nome_completo": "Rafaela Macari",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
+      "setor": {
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
+      }
+    },
+    {
       "chave": "rafael_ribeiro",
       "valor": "Rafael Ribeiro",
+      "nome_completo": "Rafael Camilo Ribeiro",
+      "funcao": {
+        "chave": "supervisor_de_condutor_de_turismo_de_aventura",
+        "valor": "Supervisor de Condutor de Turismo de Aventura"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
+      }
+    },
+    {
+      "chave": "rafael_souza",
+      "valor": "Rafael Souza",
+      "nome_completo": "Rafael De Souza",
+      "funcao": {
+        "chave": "gerente_de_operacoes",
+        "valor": "Gerente de Operações"
+      },
+      "setor": {
+        "chave": "gerencia_de_operacoes",
+        "valor": "Gerência de Operações"
+      },
+      "area": {
+        "chave": "administrativo",
+        "valor": "Administrativo"
       }
     },
     {
       "chave": "raquel_andrade",
       "valor": "Raquel Andrade",
+      "nome_completo": "Raquel Santos Silva Andrade",
+      "funcao": {
+        "chave": "assistente_administrativo_de_operacoes",
+        "valor": "Assistente Administrativo de Operações"
+      },
       "setor": {
+        "chave": "gerencia_de_operacoes",
+        "valor": "Gerencia de Operações"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -405,7 +889,16 @@
     {
       "chave": "rita_souza",
       "valor": "Rita Souza",
+      "nome_completo": "Rita Daniela Oliveira De Souza",
+      "funcao": {
+        "chave": "analista_de_relacionamento_com_a_comunidade_pleno",
+        "valor": "Analista de Relacionamento com a Comunidade Pleno"
+      },
       "setor": {
+        "chave": "coordenacao_de_gente_e_performance",
+        "valor": "Coordenação de Gente & Performance"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -413,7 +906,16 @@
     {
       "chave": "roberto_fernandes",
       "valor": "Roberto Fernandes",
+      "nome_completo": "Roberto Duran Mendes Fernandes",
+      "funcao": {
+        "chave": "operador_c_f_t_v",
+        "valor": "Operador C.F.T.V"
+      },
       "setor": {
+        "chave": "coordenacao_de_seguranca_patrimonial_e_ciop",
+        "valor": "Coordenação de Segurança Patrimonial e CIOP"
+      },
+      "area": {
         "chave": "ciop",
         "valor": "CIOP"
       }
@@ -421,15 +923,33 @@
     {
       "chave": "samuel_lima",
       "valor": "Samuel Lima",
+      "nome_completo": "Samuel John Garcez Lima",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "sandra_ferraz",
       "valor": "Sandra Ferraz",
+      "nome_completo": "Sandra Ferraz Da Silva",
+      "funcao": {
+        "chave": "gerente_geral",
+        "valor": "Gerente Geral"
+      },
       "setor": {
+        "chave": "gerencia_de_geral",
+        "valor": "Gerência de Geral"
+      },
+      "area": {
         "chave": "administrativo",
         "valor": "Administrativo"
       }
@@ -437,15 +957,33 @@
     {
       "chave": "stefanie_carasai",
       "valor": "Stefanie Carasai",
+      "nome_completo": "Stefanie Fontana Carasai",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     },
     {
       "chave": "valmir_catriel",
       "valor": "Valmir Catriel",
+      "nome_completo": "Valmir Catriel Machado Martins",
+      "funcao": {
+        "chave": "operador_c_f_t_v",
+        "valor": "Operador C.F.T.V"
+      },
       "setor": {
+        "chave": "coordenacao_de_seguranca_patrimonial_e_ciop",
+        "valor": "Coordenação de Segurança Patrimonial e CIOP"
+      },
+      "area": {
         "chave": "ciop",
         "valor": "CIOP"
       }
@@ -453,9 +991,18 @@
     {
       "chave": "william_canto",
       "valor": "William Canto",
+      "nome_completo": "William Severo Soares De Canto",
+      "funcao": {
+        "chave": "atendente_i",
+        "valor": "Atendente I"
+      },
       "setor": {
-        "chave": "experiencia_visitante",
-        "valor": "Experiência do Visitante"
+        "chave": "coordenacao_de_experiencia_do_visitante",
+        "valor": "Coordenação de Experiência do Visitante"
+      },
+      "area": {
+        "chave": "operacional",
+        "valor": "Operacional"
       }
     }
   ]

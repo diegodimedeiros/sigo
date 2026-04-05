@@ -1,0 +1,68 @@
+{% extends 'siop/efetivo/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Configuração da exportação</div></div>
+      <div class="card-body">
+        <form method="post" class="row g-4">
+          {% csrf_token %}
+          <div class="col-md-4">
+            <label class="form-label">Formato</label>
+            <select name="formato" class="form-select">
+              <option value="pdf" {% if request_data.formato == "pdf" %}selected{% endif %}>PDF</option>
+              <option value="xlsx" {% if request_data.formato == "xlsx" %}selected{% endif %}>XLSX</option>
+              <option value="csv" {% if request_data.formato == "csv" %}selected{% endif %}>CSV</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Data inicial</label>
+            <input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Data final</label>
+            <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}">
+          </div>
+          <div class="col-md-6">
+            <div class="fw-semibold mb-2">Composição</div>
+            <ul class="mb-0 ps-3">
+              <li>Atendimento e Bilheteria</li>
+              <li>Bombeiros e CIOP</li>
+              <li>Infraestrutura e apoio</li>
+              <li>Segurança e engenharia</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-semibold mb-2">Auditoria</div>
+            <ul class="mb-0 ps-3">
+              <li>Data de criação</li>
+              <li>Data de atualização</li>
+              <li>Criado por</li>
+              <li>Atualizado por</li>
+            </ul>
+          </div>
+          <div class="col-12">
+            <div class="alert alert-info mb-0" role="alert">
+              Há {{ total_registros }} registro{{ total_registros|pluralize:"s" }} disponível{% if total_registros != 1 %}eis{% endif %} para exportação.
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button type="submit" class="btn btn-success">Gerar exportação</button>
+            <a href="{% url 'siop:efetivo_list' %}" class="btn btn-label-info">Voltar</a>
+            <a href="{% url 'siop:efetivo_new' %}" class="btn btn-primary">Novo registro</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Escopo da saída</div></div>
+      <div class="card-body">
+        <p class="text-muted mb-0">A exportação inclui a composição do plantão, observação e dados básicos de auditoria do registro.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

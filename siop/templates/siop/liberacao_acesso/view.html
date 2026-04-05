@@ -1,0 +1,156 @@
+{% extends 'siop/liberacao_acesso/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Resumo do registro</div></div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-12">
+            <label class="form-label text-muted">Pessoas liberadas</label>
+            <div class="detail-note-box">
+              {% for item in pessoas_status %}
+              <div class="d-flex flex-column flex-lg-row justify-content-between gap-3{% if not forloop.last %} mb-3 pb-3 border-bottom{% endif %}">
+                <div>
+                  <div class="fw-semibold">{{ item.pessoa.nome|default:"-" }}</div>
+                  <div class="text-muted">{{ item.pessoa.documento|default:"-" }}</div>
+                  <div class="small mt-1 {% if item.chegada_registrada %}text-success{% else %}text-muted{% endif %}">
+                    {% if item.chegada_registrada %}Chegada registrada{% else %}Aguardando chegada{% endif %}
+                  </div>
+                </div>
+                <div class="d-grid align-content-start">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-label-primary registrar-chegada-btn"
+                    data-chegada-acao="single"
+                    data-pessoa-id="{{ item.pessoa.id }}"
+                    data-pessoa-nome="{{ item.pessoa.nome }}"
+                    {% if item.chegada_registrada %}disabled{% endif %}
+                  >
+                    {% if item.chegada_registrada %}Chegada registrada{% else %}Registrar chegada{% endif %}
+                  </button>
+                </div>
+              </div>
+              {% empty %}
+              <div class="fw-semibold">-</div>
+              {% endfor %}
+            </div>
+            {% if pessoas_status %}
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button
+                type="button"
+                class="btn btn-primary registrar-chegada-btn"
+                data-chegada-acao="all"
+                data-pessoa-nome="todas as pessoas"
+                {% if not tem_chegada_pendente %}disabled{% endif %}
+              >
+                {% if tem_chegada_pendente %}Registrar chegada de todos{% else %}Todas as chegadas já registradas{% endif %}
+              </button>
+            </div>
+            <form method="post" id="registrar-chegada-form" class="card mt-3 d-none">
+              {% csrf_token %}
+              <input type="hidden" name="chegada_acao" id="id_chegada_acao" value="single">
+              <input type="hidden" name="pessoa_id" id="id_pessoa_id" value="">
+              <div class="card-body">
+                <div class="fw-semibold mb-3" id="registrar-chegada-label">Registrar chegada</div>
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-6">
+                    <label for="id_p1_chegada" class="form-label">P1 no momento</label>
+                    <select id="id_p1_chegada" name="p1" class="form-select" required>
+                      <option value="">Selecione...</option>
+                      {% for item in p1_responsaveis %}
+                      <option value="{{ item.chave }}">{{ item.valor }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="id_placa_veiculo_chegada" class="form-label">Placa do veículo</label>
+                    <input type="text" id="id_placa_veiculo_chegada" name="placa_veiculo" class="form-control" placeholder="ABC1D23">
+                  </div>
+                  <div class="col-12 d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                    <button type="button" id="cancelar-chegada-btn" class="btn btn-label-secondary">Cancelar</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+            {% endif %}
+          </div>
+          <div class="col-md-6"><label class="form-label text-muted">Empresa</label><div class="fw-semibold">{{ liberacao.empresa|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Solicitante</label><div class="fw-semibold">{{ liberacao.solicitante|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Unidade</label><div class="fw-semibold">{{ liberacao.unidade_sigla|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Data da liberação</label><div class="fw-semibold">{{ liberacao.data_liberacao|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-12"><label class="form-label text-muted">Motivo</label><div class="detail-note-box">{{ liberacao.motivo|default:"-" }}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Auditoria</div></div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6"><label class="form-label text-muted">Criado em</label><div class="fw-semibold">{{ liberacao.criado_em|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Criado por</label><div class="fw-semibold">{{ liberacao.criado_por|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Última atualização</label><div class="fw-semibold">{{ liberacao.modificado_em|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Atualizado por</label><div class="fw-semibold">{{ liberacao.modificado_por|default:"-" }}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Anexos</div></div>
+      <div class="card-body">
+        {% if liberacao.anexos.all %}
+        <div class="detail-file-list">
+          {% for anexo in liberacao.anexos.all %}
+          <a href="{% url 'siop:anexo_download' anexo.id %}" class="detail-file-item">
+            <span class="detail-file-name">{{ anexo.nome_arquivo }}</span>
+            <span class="detail-file-meta">{{ anexo.tamanho|filesizeformat }}</span>
+          </a>
+          {% empty %}
+          <div class="detail-empty-state">Nenhum anexo registrado.</div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="detail-empty-state">Nenhum anexo registrado.</div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Ações rápidas</div></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'siop:liberacao_acesso_edit' liberacao.id %}" class="btn btn-primary">Editar registro</a>
+        <a href="{% url 'siop:liberacao_acesso_export_view_pdf' liberacao.id %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'siop:liberacao_acesso_index' %}" class="btn btn-label-secondary">Página inicial da área</a>
+        <a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-info">Voltar para listagem</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    const form = document.getElementById("registrar-chegada-form");
+    if (!form) return;
+
+    const actionInput = document.getElementById("id_chegada_acao");
+    const pessoaInput = document.getElementById("id_pessoa_id");
+    const label = document.getElementById("registrar-chegada-label");
+    const cancelButton = document.getElementById("cancelar-chegada-btn");
+
+    document.querySelectorAll(".registrar-chegada-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        actionInput.value = button.dataset.chegadaAcao;
+        pessoaInput.value = button.dataset.pessoaId || "";
+        label.textContent = "Registrar chegada para " + button.dataset.pessoaNome;
+        form.classList.remove("d-none");
+        form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    });
+
+    cancelButton.addEventListener("click", function () {
+      form.classList.add("d-none");
+    });
+  })();
+</script>
+{% endblock %}

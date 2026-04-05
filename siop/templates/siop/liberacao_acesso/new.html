@@ -1,0 +1,121 @@
+{% extends 'siop/liberacao_acesso/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Formulário de registro</div></div>
+  <div class="card-body">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
+    <form method="post" enctype="multipart/form-data" data-async-form="true">
+      {% csrf_token %}
+      {% if non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {% for error in non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="row g-4">
+        <div class="col-12">
+          <label class="form-label">Pessoas liberadas</label>
+          <div id="pessoas-container" class="d-grid gap-3">
+            {% for pessoa in request_data.pessoas %}
+            <div class="row g-3 pessoa-nome-row align-items-end">
+              <div class="col-lg-6 col-md-5">
+                <input type="text" name="pessoa_nome" class="form-control{% if errors.pessoa_nome %} is-invalid{% endif %}" value="{{ pessoa.nome }}" placeholder="Nome completo" required>
+              </div>
+              <div class="col-lg-4 col-md-4">
+                <input type="text" name="pessoa_documento" class="form-control{% if errors.pessoa_documento %} is-invalid{% endif %}" value="{{ pessoa.documento }}" placeholder="Documento" required>
+              </div>
+              <div class="col-lg-2 col-md-3 d-grid">
+                <button type="button" class="btn btn-label-danger pessoa-remove-btn"{% if forloop.first and request_data.pessoas|length == 1 %} style="display:none"{% endif %}>Remover</button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% if errors.pessoa_nome %}<div class="invalid-feedback d-block">{{ errors.pessoa_nome }}</div>{% endif %}
+          {% if errors.pessoa_documento %}<div class="invalid-feedback d-block">{{ errors.pessoa_documento }}</div>{% endif %}
+          <button type="button" id="add-pessoa-btn" class="btn btn-label-primary mt-3">Adicionar pessoa</button>
+        </div>
+        <div class="col-md-6">
+          <label for="id_empresa" class="form-label">Empresa</label>
+          <input id="id_empresa" type="text" name="empresa" class="form-control{% if errors.empresa %} is-invalid{% endif %}" value="{{ request_data.empresa }}">
+          {% if errors.empresa %}<div class="invalid-feedback d-block">{{ errors.empresa }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_solicitante" class="form-label">Solicitante</label>
+          <input id="id_solicitante" type="text" name="solicitante" class="form-control{% if errors.solicitante %} is-invalid{% endif %}" value="{{ request_data.solicitante }}">
+          {% if errors.solicitante %}<div class="invalid-feedback d-block">{{ errors.solicitante }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label for="id_data_liberacao" class="form-label">Data e hora da liberação</label>
+          <input id="id_data_liberacao" type="datetime-local" name="data_liberacao" class="form-control{% if errors.data_liberacao %} is-invalid{% endif %}" value="{{ request_data.data_liberacao }}" required>
+          {% if errors.data_liberacao %}<div class="invalid-feedback d-block">{{ errors.data_liberacao }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label for="id_motivo" class="form-label">Motivo</label>
+          <textarea id="id_motivo" name="motivo" class="form-control{% if errors.motivo %} is-invalid{% endif %}" rows="6" required>{{ request_data.motivo }}</textarea>
+          {% if errors.motivo %}<div class="invalid-feedback d-block">{{ errors.motivo }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label for="id_anexos" class="form-label">Adicionar anexos</label>
+          <input type="file" id="id_anexos" name="anexos" class="form-control" multiple>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar liberação</button>
+        <button type="reset" class="btn btn-label-secondary">Limpar</button>
+        <a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-info">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+<template id="pessoa-nome-template">
+  <div class="row g-3 pessoa-nome-row align-items-end">
+    <div class="col-lg-6 col-md-5">
+      <input type="text" name="pessoa_nome" class="form-control" placeholder="Nome completo" required>
+    </div>
+    <div class="col-lg-4 col-md-4">
+      <input type="text" name="pessoa_documento" class="form-control" placeholder="Documento" required>
+    </div>
+    <div class="col-lg-2 col-md-3 d-grid">
+      <button type="button" class="btn btn-label-danger pessoa-remove-btn">Remover</button>
+    </div>
+  </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script>
+  (function () {
+    const container = document.getElementById("pessoas-container");
+    const addButton = document.getElementById("add-pessoa-btn");
+    const template = document.getElementById("pessoa-nome-template");
+
+    function syncRemoveButtons() {
+      const rows = container.querySelectorAll(".pessoa-nome-row");
+      rows.forEach((row, index) => {
+        const button = row.querySelector(".pessoa-remove-btn");
+        button.style.display = rows.length === 1 && index === 0 ? "none" : "";
+      });
+    }
+
+    addButton.addEventListener("click", function () {
+      container.appendChild(template.content.firstElementChild.cloneNode(true));
+      syncRemoveButtons();
+    });
+
+    container.addEventListener("click", function (event) {
+      if (!event.target.classList.contains("pessoa-remove-btn")) {
+        return;
+      }
+      event.target.closest(".pessoa-nome-row").remove();
+      syncRemoveButtons();
+    });
+
+    syncRemoveButtons();
+  })();
+</script>
+{% endblock %}

@@ -3,13 +3,15 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from sigo.models import Assinatura, ConfiguracaoSistema, Notificacao, Pessoa, Unidade
+from sigo_core.catalogos import catalogo_bc_data
 
-from .models import AcessoTerceiros, AchadosPerdidos, Ocorrencia
+from .models import AcessoTerceiros, AchadosPerdidos, ControleAtivos, ControleChaves, ControleEfetivo, CrachaProvisorio, LiberacaoAcesso, Ocorrencia
 
 
 class OcorrenciasFlowTests(TestCase):
@@ -231,6 +233,82 @@ class AcessoTerceirosFlowTests(TestCase):
             modificado_por=self.user,
         )
 
+    def test_api_acesso_terceiros_list_returns_success_contract(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("siop:api_acesso_terceiros"),
+            {"limit": 10, "offset": 0},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertIn("data", payload)
+        self.assertIn("meta", payload)
+        self.assertIn("pagination", payload["meta"])
+        self.assertEqual(payload["meta"]["pagination"]["count"], 1)
+        self.assertEqual(payload["data"]["acessos"][0]["id"], self.acesso.pk)
+
+    def test_api_acesso_terceiros_invalid_pagination_returns_standard_error(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("siop:api_acesso_terceiros"),
+            {"limit": "abc", "offset": "xyz"},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "invalid_pagination")
+
+    def test_acesso_terceiros_create_json_returns_success_and_persists(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:acesso_terceiros_new"),
+            data=json.dumps(
+                {
+                    "entrada": "2026-03-29T18:30",
+                    "saida": "",
+                    "empresa": "Visitantes SA",
+                    "nome": "Carla Souza",
+                    "documento": "98765432100",
+                    "p1": "antonio_garcia",
+                    "placa_veiculo": "BRA2E19",
+                    "descricao": "Cadastro criado via teste JSON.",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        body = response.json()
+        self.assertTrue(body["ok"])
+        created = AcessoTerceiros.objects.get(pk=body["data"]["id"])
+        self.assertEqual(created.nome, "Carla Souza")
+        self.assertEqual(created.documento, "98765432100")
+        self.assertEqual(created.p1, "antonio_garcia")
+        notification = Notificacao.objects.get(titulo="Acesso de Terceiros | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, created.get_absolute_url())
+
+    def test_api_acesso_terceiros_detail_returns_structured_payload(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("siop:api_acesso_terceiros_detail", args=[self.acesso.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["id"], self.acesso.pk)
+        self.assertEqual(payload["data"]["nome"], "Marcos Lima")
+        self.assertEqual(payload["data"]["documento"], "12345678900")
+
     def test_acesso_terceiros_create_html_redirects_and_persists(self):
         self.client.force_login(self.user)
 
@@ -306,6 +384,40 @@ class AcessoTerceirosFlowTests(TestCase):
         self.assertEqual(notification.grupo, self.group_siop)
         self.assertEqual(notification.link, self.acesso.get_absolute_url())
 
+    def test_acesso_terceiros_edit_json_returns_success_and_updates(self):
+        self.client.force_login(self.user)
+        entrada_local = timezone.localtime(self.acesso.entrada)
+        saida_local = entrada_local + timedelta(hours=1)
+
+        response = self.client.post(
+            reverse("siop:acesso_terceiros_edit", args=[self.acesso.pk]),
+            data=json.dumps(
+                {
+                    "entrada": entrada_local.strftime("%Y-%m-%dT%H:%M"),
+                    "saida": saida_local.strftime("%Y-%m-%dT%H:%M"),
+                    "empresa": "PrestServ Atualizada JSON",
+                    "nome": "Marcos Lima",
+                    "documento": "12345678900",
+                    "p1": "antonio_garcia",
+                    "placa_veiculo": "XYZ9K88",
+                    "descricao": "Descrição alterada via teste JSON.",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.acesso.refresh_from_db()
+        self.assertEqual(self.acesso.empresa, "PrestServ Atualizada JSON")
+        self.assertEqual(self.acesso.placa_veiculo, "XYZ9K88")
+        self.assertIsNotNone(self.acesso.saida)
+        notification = Notificacao.objects.get(titulo="Acesso de Terceiros | Concluído")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+        self.assertEqual(notification.link, self.acesso.get_absolute_url())
+
     def test_acesso_terceiros_edit_sem_saida_publica_notificacao_de_atualizacao(self):
         self.client.force_login(self.user)
         entrada_local = timezone.localtime(self.acesso.entrada)
@@ -364,6 +476,35 @@ class AcessoTerceirosFlowTests(TestCase):
         self.acesso.refresh_from_db()
         self.assertEqual(self.acesso.empresa, "PrestServ")
 
+    def test_acesso_terceiros_com_saida_nao_pode_ser_editado_via_json(self):
+        self.client.force_login(self.user)
+        self.acesso.saida = self.acesso.entrada + timedelta(hours=1)
+        self.acesso.save(update_fields=["saida"])
+
+        response = self.client.post(
+            reverse("siop:acesso_terceiros_edit", args=[self.acesso.pk]),
+            data=json.dumps(
+                {
+                    "entrada": timezone.localtime(self.acesso.entrada).strftime("%Y-%m-%dT%H:%M"),
+                    "saida": timezone.localtime(self.acesso.saida).strftime("%Y-%m-%dT%H:%M"),
+                    "empresa": "Nao deve alterar",
+                    "nome": "Marcos Lima",
+                    "documento": "12345678900",
+                    "p1": "antonio_garcia",
+                    "placa_veiculo": "XYZ9K88",
+                    "descricao": "Não deve salvar",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 409)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "business_rule_violation")
+        self.acesso.refresh_from_db()
+        self.assertEqual(self.acesso.empresa, "PrestServ")
+
 
 class AchadosPerdidosFlowTests(TestCase):
     def setUp(self):
@@ -384,6 +525,77 @@ class AchadosPerdidosFlowTests(TestCase):
             criado_por=self.user,
             modificado_por=self.user,
         )
+
+    def test_api_achados_perdidos_list_returns_success_contract(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("siop:api_achados_perdidos"),
+            {"limit": 10, "offset": 0},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertIn("data", payload)
+        self.assertIn("meta", payload)
+        self.assertIn("pagination", payload["meta"])
+        self.assertEqual(payload["meta"]["pagination"]["count"], 1)
+        self.assertEqual(payload["data"]["itens"][0]["id"], self.item.pk)
+
+    def test_api_achados_perdidos_invalid_pagination_returns_standard_error(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("siop:api_achados_perdidos"),
+            {"limit": "abc", "offset": "xyz"},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "invalid_pagination")
+
+    def test_achados_perdidos_create_json_returns_success_and_persists(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_new"),
+            data=json.dumps(
+                {
+                    "tipo": "documentos",
+                    "situacao": "achado",
+                    "status": "recebido",
+                    "area": "area_administrativo",
+                    "local": "ciop",
+                    "organico": "false",
+                    "descricao": "Novo item criado via teste JSON.",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        created = AchadosPerdidos.objects.get(pk=payload["data"]["id"])
+        self.assertEqual(created.tipo, "documentos")
+        self.assertEqual(created.situacao, "achado")
+        self.assertEqual(created.status, "recebido")
+
+    def test_api_achado_perdido_detail_returns_structured_payload(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("siop:api_achado_perdido_detail", args=[self.item.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["id"], self.item.pk)
+        self.assertEqual(payload["data"]["tipo"], "documentos")
+        self.assertEqual(payload["data"]["situacao"], "achado")
 
     def test_achados_perdidos_create_html_redirects_and_persists(self):
         self.client.force_login(self.user)
@@ -507,6 +719,58 @@ class AchadosPerdidosFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("siop:achados_perdidos_view", args=[self.item.pk]))
 
+    def test_achados_perdidos_edit_json_returns_success_and_updates(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_edit", args=[self.item.pk]),
+            data=json.dumps(
+                {
+                    "tipo": "documentos",
+                    "situacao": "achado",
+                    "status": "recebido",
+                    "area": "area_administrativo",
+                    "local": "ciop",
+                    "organico": "false",
+                    "descricao": "Item alterado via teste JSON.",
+                    "colaborador": "Prestador Externo",
+                    "setor": "Terceirizada",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.descricao, "Item alterado via teste JSON.")
+        self.assertEqual(self.item.colaborador, "Prestador Externo")
+        self.assertEqual(self.item.setor, "Terceirizada")
+
+    def test_achados_perdidos_status_final_nao_pode_ser_editado_via_json(self):
+        self.client.force_login(self.user)
+        self.item.status = "entregue"
+        self.item.pessoa = Pessoa.objects.create(nome="Ana Paula", documento="11122233344")
+        self.item.data_devolucao = timezone.now()
+        self.item.save()
+
+        response = self.client.post(
+            reverse("siop:achados_perdidos_edit", args=[self.item.pk]),
+            data=json.dumps(
+                {
+                    "descricao": "Nao deve alterar",
+                    "status": "entregue",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 409)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "business_rule_violation")
+
     def test_achados_perdidos_entregue_exige_assinatura(self):
         self.client.force_login(self.user)
 
@@ -581,6 +845,1202 @@ class AchadosPerdidosFlowTests(TestCase):
         self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
         self.assertEqual(notification.grupo, self.group_siop)
         self.assertEqual(notification.link, self.item.get_absolute_url())
+
+
+class CrachaProvisorioFlowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(
+            username="crachas",
+            password="senha-forte-123",
+        )
+        self.group_siop = Group.objects.get_or_create(name="group_siop")[0]
+        self.unidade = Unidade.objects.create(
+            nome="Parque do Caracol",
+            sigla="PC",
+            cidade="Canela",
+            uf="RS",
+        )
+        ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
+
+    def test_retirada_do_cracha_persiste_registro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:crachas_provisorios_new"),
+            data={
+                "cracha": "cracha_provisorio_01",
+                "entrega": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "pessoa_documento": "12345678900",
+                "observacao": "Retirada inicial do crachá.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = CrachaProvisorio.objects.latest("id")
+        self.assertEqual(created.cracha, "cracha_provisorio_01")
+        self.assertIsNone(created.devolucao)
+        self.assertEqual(created.unidade, self.unidade)
+        self.assertEqual(created.unidade_sigla, self.unidade.sigla)
+        notification = Notificacao.objects.get(titulo="Crachás Provisórios | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+
+    def test_mesmo_cracha_nao_pode_ser_retirado_sem_devolucao(self):
+        self.client.force_login(self.user)
+        CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_01",
+            entrega=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            documento="12345678900",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:crachas_provisorios_new"),
+            data={
+                "cracha": "cracha_provisorio_01",
+                "entrega": "2026-03-29T20:00",
+                "devolucao": "",
+                "pessoa_nome": "Ana Lima",
+                "pessoa_documento": "98765432100",
+                "observacao": "Tentativa de retirada duplicada.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Este crachá ainda está em uso e só ficará disponível após a devolução.",
+        )
+        self.assertEqual(CrachaProvisorio.objects.count(), 1)
+
+    def test_cracha_volta_a_ficar_disponivel_apos_devolucao(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Carlos Souza", documento="12345678900")
+        cracha = CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_01",
+            entrega=timezone.now(),
+            pessoa=pessoa,
+            documento="12345678900",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:crachas_provisorios_edit", args=[cracha.pk]),
+            data={
+                "cracha": "cracha_provisorio_01",
+                "entrega": timezone.localtime(cracha.entrega).strftime("%Y-%m-%dT%H:%M"),
+                "devolucao": (timezone.localtime(cracha.entrega) + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
+                "pessoa_nome": "Carlos Souza",
+                "pessoa_documento": "12345678900",
+                "observacao": "Crachá devolvido.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        cracha.refresh_from_db()
+        self.assertIsNotNone(cracha.devolucao)
+        notification = Notificacao.objects.get(titulo="Crachás Provisórios | Concluído")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+
+        second_response = self.client.post(
+            reverse("siop:crachas_provisorios_new"),
+            data={
+                "cracha": "cracha_provisorio_01",
+                "entrega": "2026-03-30T08:00",
+                "devolucao": "",
+                "pessoa_nome": "Ana Lima",
+                "pessoa_documento": "98765432100",
+                "observacao": "Nova retirada após devolução.",
+            },
+        )
+
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(CrachaProvisorio.objects.count(), 2)
+        novo = CrachaProvisorio.objects.latest("id")
+        self.assertEqual(novo.cracha, "cracha_provisorio_01")
+        self.assertIsNone(novo.devolucao)
+
+    def test_cracha_edit_atualiza_registro(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Carlos Souza", documento="12345678900")
+        cracha = CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_01",
+            entrega=timezone.now(),
+            pessoa=pessoa,
+            documento="12345678900",
+            observacao="Inicial",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:crachas_provisorios_edit", args=[cracha.pk]),
+            data={
+                "cracha": "cracha_provisorio_01",
+                "entrega": timezone.localtime(cracha.entrega).strftime("%Y-%m-%dT%H:%M"),
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza Atualizado",
+                "pessoa_documento": "12345678900",
+                "observacao": "Atualizado",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        cracha.refresh_from_db()
+        self.assertEqual(cracha.pessoa.nome, "Carlos Souza Atualizado")
+        self.assertEqual(cracha.observacao, "Atualizado")
+
+    def test_cracha_export_csv_returns_file(self):
+        self.client.force_login(self.user)
+        CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_01",
+            entrega=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            documento="12345678900",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:crachas_provisorios_export"),
+            data={"formato": "csv"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response["Content-Type"])
+
+    def test_cracha_list_filtra_em_uso(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Carlos Souza", documento="12345678900")
+        CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_01",
+            entrega=timezone.now(),
+            pessoa=pessoa,
+            documento="12345678900",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_02",
+            entrega=timezone.now(),
+            devolucao=timezone.now() + timedelta(hours=1),
+            pessoa=Pessoa.objects.create(nome="Ana Lima", documento="98765432100"),
+            documento="98765432100",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:crachas_provisorios_list"), {"status": "em_uso"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Carlos Souza")
+        self.assertNotContains(response, "Ana Lima")
+
+    def test_cracha_list_renderiza_status_em_uso(self):
+        self.client.force_login(self.user)
+        CrachaProvisorio.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            cracha="cracha_provisorio_01",
+            entrega=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            documento="12345678900",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:crachas_provisorios_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Carlos Souza")
+        self.assertContains(response, "Em uso")
+
+
+class ControleAtivosFlowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(
+            username="ativos",
+            password="senha-forte-123",
+        )
+        self.group_siop = Group.objects.get_or_create(name="group_siop")[0]
+        self.unidade = Unidade.objects.create(
+            nome="Parque do Caracol",
+            sigla="PC",
+            cidade="Canela",
+            uf="RS",
+        )
+        ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
+
+    def test_retirada_do_ativo_persiste_registro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_new"),
+            data={
+                "equipamento": "radio_01",
+                "destino": "bombeiro_civil",
+                "retirada": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Retirada inicial do ativo.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = ControleAtivos.objects.latest("id")
+        self.assertEqual(created.equipamento, "radio_01")
+        self.assertEqual(created.destino, "bombeiro_civil")
+        self.assertIsNone(created.devolucao)
+        self.assertEqual(created.unidade, self.unidade)
+        self.assertEqual(created.unidade_sigla, self.unidade.sigla)
+        notification = Notificacao.objects.get(titulo="Controle de Ativos | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+
+    def test_mesmo_ativo_nao_pode_ser_retirado_sem_devolucao(self):
+        self.client.force_login(self.user)
+        ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="radio_01",
+            destino="bombeiro_civil",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_new"),
+            data={
+                "equipamento": "radio_01",
+                "destino": "atendimento",
+                "retirada": "2026-03-29T20:00",
+                "devolucao": "",
+                "pessoa_nome": "Ana Lima",
+                "observacao": "Tentativa de retirada duplicada.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Este ativo ainda está em uso e só ficará disponível após a devolução.",
+        )
+        self.assertEqual(ControleAtivos.objects.count(), 1)
+
+    def test_ativo_volta_a_ficar_disponivel_apos_devolucao(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Carlos Souza", documento="12345678900")
+        ativo = ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="radio_01",
+            destino="bombeiro_civil",
+            retirada=timezone.now(),
+            pessoa=pessoa,
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_edit", args=[ativo.pk]),
+            data={
+                "equipamento": "radio_01",
+                "destino": "bombeiro_civil",
+                "retirada": timezone.localtime(ativo.retirada).strftime("%Y-%m-%dT%H:%M"),
+                "devolucao": (timezone.localtime(ativo.retirada) + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Ativo devolvido.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        ativo.refresh_from_db()
+        self.assertIsNotNone(ativo.devolucao)
+        notification = Notificacao.objects.get(titulo="Controle de Ativos | Concluído")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+
+        second_response = self.client.post(
+            reverse("siop:controle_ativos_new"),
+            data={
+                "equipamento": "radio_01",
+                "destino": "limpeza",
+                "retirada": "2026-03-30T08:00",
+                "devolucao": "",
+                "pessoa_nome": "Ana Lima",
+                "observacao": "Nova retirada após devolução.",
+            },
+        )
+
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(ControleAtivos.objects.count(), 2)
+        novo = ControleAtivos.objects.latest("id")
+        self.assertEqual(novo.equipamento, "radio_01")
+        self.assertEqual(novo.destino, "limpeza")
+        self.assertIsNone(novo.devolucao)
+
+    def test_ativo_edit_atualiza_registro(self):
+        self.client.force_login(self.user)
+        ativo = ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="radio_01",
+            destino="bombeiro_civil",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            observacao="Inicial",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_edit", args=[ativo.pk]),
+            data={
+                "equipamento": "radio_01",
+                "destino": "limpeza",
+                "retirada": timezone.localtime(ativo.retirada).strftime("%Y-%m-%dT%H:%M"),
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza Atualizado",
+                "observacao": "Atualizado",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        ativo.refresh_from_db()
+        self.assertEqual(ativo.destino, "limpeza")
+        self.assertEqual(ativo.pessoa.nome, "Carlos Souza Atualizado")
+        self.assertEqual(ativo.observacao, "Atualizado")
+
+    def test_ativo_export_xlsx_returns_file(self):
+        self.client.force_login(self.user)
+        ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="radio_01",
+            destino="bombeiro_civil",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_export"),
+            data={"formato": "xlsx"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            response["Content-Type"],
+        )
+
+    def test_ativo_rejeita_destino_fora_da_lista_permitida(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_new"),
+            data={
+                "equipamento": "radio_01",
+                "destino": "ciop",
+                "retirada": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Destino inválido.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione um destino permitido para o controle de ativos.")
+        self.assertEqual(ControleAtivos.objects.count(), 0)
+
+    def test_ativo_destino_invalido_retorna_erro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:controle_ativos_new"),
+            data={
+                "equipamento": "radio_01",
+                "destino": "facilities",
+                "retirada": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Destino inválido.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione um destino permitido para o controle de ativos.")
+        self.assertEqual(ControleAtivos.objects.count(), 0)
+
+
+class ControleChavesFlowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(
+            username="chaves",
+            password="senha-forte-123",
+        )
+        self.group_siop = Group.objects.get_or_create(name="group_siop")[0]
+        self.unidade = Unidade.objects.create(
+            nome="Parque do Caracol",
+            sigla="PC",
+            cidade="Canela",
+            uf="RS",
+        )
+        ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
+
+    def test_retirada_da_chave_persiste_registro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:controle_chaves_new"),
+            data={
+                "area_chave": "Administrativo",
+                "chave": "adm_001",
+                "retirada": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Retirada inicial da chave.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = ControleChaves.objects.latest("id")
+        self.assertEqual(created.chave, "adm_001")
+        self.assertIsNone(created.devolucao)
+        self.assertEqual(created.unidade, self.unidade)
+        self.assertEqual(created.unidade_sigla, self.unidade.sigla)
+        notification = Notificacao.objects.get(titulo="Controle de Chaves | Novo Registrado")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+
+    def test_mesma_chave_nao_pode_ser_retirada_sem_devolucao(self):
+        self.client.force_login(self.user)
+        ControleChaves.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            chave="adm_001",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_chaves_new"),
+            data={
+                "area_chave": "Administrativo",
+                "chave": "adm_001",
+                "retirada": "2026-03-29T20:00",
+                "devolucao": "",
+                "pessoa_nome": "Ana Lima",
+                "observacao": "Tentativa de retirada duplicada.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Esta chave ainda está em uso e só ficará disponível após a devolução.",
+        )
+        self.assertEqual(ControleChaves.objects.count(), 1)
+
+    def test_chave_volta_a_ficar_disponivel_apos_devolucao(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Carlos Souza", documento="12345678900")
+        chave = ControleChaves.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            chave="adm_001",
+            retirada=timezone.now(),
+            pessoa=pessoa,
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_chaves_edit", args=[chave.pk]),
+            data={
+                "area_chave": "Administrativo",
+                "chave": "adm_001",
+                "retirada": timezone.localtime(chave.retirada).strftime("%Y-%m-%dT%H:%M"),
+                "devolucao": (timezone.localtime(chave.retirada) + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Chave devolvida.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        chave.refresh_from_db()
+        self.assertIsNotNone(chave.devolucao)
+        notification = Notificacao.objects.get(titulo="Controle de Chaves | Concluído")
+        self.assertEqual(notification.modulo, Notificacao.MODULO_SIOP)
+        self.assertEqual(notification.grupo, self.group_siop)
+
+        second_response = self.client.post(
+            reverse("siop:controle_chaves_new"),
+            data={
+                "area_chave": "Administrativo",
+                "chave": "adm_001",
+                "retirada": "2026-03-30T08:00",
+                "devolucao": "",
+                "pessoa_nome": "Ana Lima",
+                "observacao": "Nova retirada após devolução.",
+            },
+        )
+
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(ControleChaves.objects.count(), 2)
+        novo = ControleChaves.objects.latest("id")
+        self.assertEqual(novo.chave, "adm_001")
+        self.assertIsNone(novo.devolucao)
+
+    def test_chave_list_renderiza_registro(self):
+        self.client.force_login(self.user)
+        ControleChaves.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            chave="adm_001",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            observacao="Registro para listagem",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:controle_chaves_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Carlos Souza")
+        self.assertContains(response, "Porta do Administrativo")
+
+    def test_chave_export_pdf_returns_file(self):
+        self.client.force_login(self.user)
+        ControleChaves.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            chave="adm_001",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Carlos Souza", documento="12345678900"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:controle_chaves_export"),
+            data={"formato": "pdf"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_chave_rejeita_area_incompativel(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:controle_chaves_new"),
+            data={
+                "area_chave": "CIOP",
+                "chave": "adm_001",
+                "retirada": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Área incompatível.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione uma chave compatível com a área escolhida.")
+        self.assertEqual(ControleChaves.objects.count(), 0)
+
+    def test_chave_exige_compatibilidade_entre_area_e_chave(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("siop:controle_chaves_new"),
+            data={
+                "area_chave": "Portaria",
+                "chave": "adm_001",
+                "retirada": "2026-03-29T19:00",
+                "devolucao": "",
+                "pessoa_nome": "Carlos Souza",
+                "observacao": "Área incompatível.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione uma chave compatível com a área escolhida.")
+        self.assertEqual(ControleChaves.objects.count(), 0)
+
+
+class ControleEfetivoFlowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(
+            username="efetivo",
+            password="senha-forte-123",
+        )
+        self.catalogo_bc = catalogo_bc_data()
+
+    def _payload(self):
+        return {
+            "plantao": "Diurno",
+            "atendimento": "Ana Atendimento",
+            "bilheteria": "Bruno Bilheteria",
+            "bombeiro_civil": self.catalogo_bc[0]["chave"],
+            "bombeiro_civil_2": self.catalogo_bc[1]["chave"],
+            "bombeiro_hidraulico": "Edu BH",
+            "ciop": "Fernanda CIOP",
+            "eletrica": "Guilherme Elétrica",
+            "artifice_civil": "Helena Artífice",
+            "ti": "Igor TI",
+            "facilities": "Julia Facilities",
+            "manutencao": "Kaique Manutenção",
+            "jardinagem": "Larissa Jardinagem",
+            "limpeza": "Marcos Limpeza",
+            "seguranca_trabalho": "Nina ST",
+            "seguranca_patrimonial": "Otávio SP",
+            "meio_ambiente": "Paula MA",
+            "engenharia": "Rafael Engenharia",
+            "estapar": "Sofia Estapar",
+        }
+
+    def test_efetivo_create_persiste_registro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse("siop:efetivo_new"), data=self._payload())
+
+        self.assertEqual(response.status_code, 302)
+        created = ControleEfetivo.objects.latest("id")
+        self.assertEqual(created.plantao, "Diurno")
+        self.assertEqual(created.atendimento, "Ana Atendimento")
+        self.assertEqual(created.bombeiro_civil, self.catalogo_bc[0]["valor"])
+        self.assertEqual(created.bombeiro_civil_2, self.catalogo_bc[1]["valor"])
+        self.assertEqual(created.ciop, "Fernanda CIOP")
+        self.assertEqual(created.modificado_por, self.user)
+
+    def test_efetivo_edit_atualiza_registro(self):
+        self.client.force_login(self.user)
+        registro = ControleEfetivo.objects.create(
+            plantao="Inicial",
+            atendimento="Inicial Atendimento",
+            bilheteria="Inicial Bilheteria",
+            bombeiro_civil="Inicial BC1",
+            bombeiro_civil_2="Inicial BC2",
+            bombeiro_hidraulico="Inicial BH",
+            ciop="Inicial CIOP",
+            eletrica="Inicial Elétrica",
+            artifice_civil="Inicial Artífice",
+            ti="Inicial TI",
+            facilities="Inicial Facilities",
+            manutencao="Inicial Manutenção",
+            jardinagem="Inicial Jardinagem",
+            limpeza="Inicial Limpeza",
+            seguranca_trabalho="Inicial ST",
+            seguranca_patrimonial="Inicial SP",
+            meio_ambiente="Inicial MA",
+            engenharia="Inicial Engenharia",
+            estapar="Inicial Estapar",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        payload = self._payload()
+        payload["plantao"] = "Noturno"
+        payload["atendimento"] = "Atendimento Atualizado"
+        payload["ciop"] = "Novo CIOP"
+
+        response = self.client.post(reverse("siop:efetivo_edit", args=[registro.pk]), data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        registro.refresh_from_db()
+        self.assertEqual(registro.plantao, "Noturno")
+        self.assertEqual(registro.atendimento, "Atendimento Atualizado")
+        self.assertEqual(registro.ciop, "Novo CIOP")
+
+    def test_efetivo_nao_permite_repetir_bombeiro_civil(self):
+        self.client.force_login(self.user)
+        payload = self._payload()
+        payload["bombeiro_civil_2"] = payload["bombeiro_civil"]
+
+        response = self.client.post(reverse("siop:efetivo_new"), data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bombeiro Civil 2 não pode repetir o mesmo nome do Bombeiro Civil 1.")
+        self.assertEqual(ControleEfetivo.objects.count(), 0)
+
+    def test_efetivo_permite_apenas_um_registro_por_dia(self):
+        self.client.force_login(self.user)
+        ControleEfetivo.objects.create(
+            plantao="Diurno",
+            atendimento="Inicial Atendimento",
+            bilheteria="Inicial Bilheteria",
+            bombeiro_civil=self.catalogo_bc[0]["valor"],
+            bombeiro_civil_2=self.catalogo_bc[1]["valor"],
+            bombeiro_hidraulico="Inicial BH",
+            ciop="Inicial CIOP",
+            eletrica="Inicial Elétrica",
+            artifice_civil="Inicial Artífice",
+            ti="Inicial TI",
+            facilities="Inicial Facilities",
+            manutencao="Inicial Manutenção",
+            jardinagem="Inicial Jardinagem",
+            limpeza="Inicial Limpeza",
+            seguranca_trabalho="Inicial ST",
+            seguranca_patrimonial="Inicial SP",
+            meio_ambiente="Inicial MA",
+            engenharia="Inicial Engenharia",
+            estapar="Inicial Estapar",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(reverse("siop:efetivo_new"), data=self._payload())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Já existe um registro de efetivo criado hoje. Edite o registro existente em vez de criar um novo.")
+        self.assertEqual(ControleEfetivo.objects.count(), 1)
+
+    def test_efetivo_export_csv_returns_file(self):
+        self.client.force_login(self.user)
+        ControleEfetivo.objects.create(
+            plantao="Diurno",
+            atendimento="Inicial Atendimento",
+            bilheteria="Inicial Bilheteria",
+            bombeiro_civil=self.catalogo_bc[0]["valor"],
+            bombeiro_civil_2=self.catalogo_bc[1]["valor"],
+            bombeiro_hidraulico="Inicial BH",
+            ciop="Inicial CIOP",
+            eletrica="Inicial Elétrica",
+            artifice_civil="Inicial Artífice",
+            ti="Inicial TI",
+            facilities="Inicial Facilities",
+            manutencao="Inicial Manutenção",
+            jardinagem="Inicial Jardinagem",
+            limpeza="Inicial Limpeza",
+            seguranca_trabalho="Inicial ST",
+            seguranca_patrimonial="Inicial SP",
+            meio_ambiente="Inicial MA",
+            engenharia="Inicial Engenharia",
+            estapar="Inicial Estapar",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:efetivo_export"),
+            data={"formato": "csv"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response["Content-Type"])
+
+    def test_efetivo_list_renderiza_registro_criado(self):
+        self.client.force_login(self.user)
+        ControleEfetivo.objects.create(
+            plantao="Diurno",
+            atendimento="Inicial Atendimento",
+            bilheteria="Inicial Bilheteria",
+            bombeiro_civil=self.catalogo_bc[0]["valor"],
+            bombeiro_civil_2=self.catalogo_bc[1]["valor"],
+            bombeiro_hidraulico="Inicial BH",
+            ciop="Inicial CIOP",
+            eletrica="Inicial Elétrica",
+            artifice_civil="Inicial Artífice",
+            ti="Inicial TI",
+            facilities="Inicial Facilities",
+            manutencao="Inicial Manutenção",
+            jardinagem="Inicial Jardinagem",
+            limpeza="Inicial Limpeza",
+            seguranca_trabalho="Inicial ST",
+            seguranca_patrimonial="Inicial SP",
+            meio_ambiente="Inicial MA",
+            engenharia="Inicial Engenharia",
+            estapar="Inicial Estapar",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:efetivo_list"), {"q": "Diurno"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Diurno")
+        self.assertContains(response, self.user.username)
+
+    def test_efetivo_dashboard_conta_plantao_como_posto_pendente(self):
+        self.client.force_login(self.user)
+        ControleEfetivo.objects.create(
+            plantao="",
+            atendimento="Inicial Atendimento",
+            bilheteria="Inicial Bilheteria",
+            bombeiro_civil=self.catalogo_bc[0]["valor"],
+            bombeiro_civil_2=self.catalogo_bc[1]["valor"],
+            bombeiro_hidraulico="Inicial BH",
+            ciop="Inicial CIOP",
+            eletrica="Inicial Elétrica",
+            artifice_civil="Inicial Artífice",
+            ti="Inicial TI",
+            facilities="Inicial Facilities",
+            manutencao="Inicial Manutenção",
+            jardinagem="Inicial Jardinagem",
+            limpeza="Inicial Limpeza",
+            seguranca_trabalho="Inicial ST",
+            seguranca_patrimonial="Inicial SP",
+            meio_ambiente="Inicial MA",
+            engenharia="Inicial Engenharia",
+            estapar="Inicial Estapar",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:efetivo_index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["dashboard"]["postos_pendentes"], 1)
+
+    def test_efetivo_export_pdf_returns_file(self):
+        self.client.force_login(self.user)
+        ControleEfetivo.objects.create(
+            plantao="Diurno",
+            atendimento="Inicial Atendimento",
+            bilheteria="Inicial Bilheteria",
+            bombeiro_civil=self.catalogo_bc[0]["valor"],
+            bombeiro_civil_2=self.catalogo_bc[1]["valor"],
+            bombeiro_hidraulico="Inicial BH",
+            ciop="Inicial CIOP",
+            eletrica="Inicial Elétrica",
+            artifice_civil="Inicial Artífice",
+            ti="Inicial TI",
+            facilities="Inicial Facilities",
+            manutencao="Inicial Manutenção",
+            jardinagem="Inicial Jardinagem",
+            limpeza="Inicial Limpeza",
+            seguranca_trabalho="Inicial ST",
+            seguranca_patrimonial="Inicial SP",
+            meio_ambiente="Inicial MA",
+            engenharia="Inicial Engenharia",
+            estapar="Inicial Estapar",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.post(
+            reverse("siop:efetivo_export"),
+            data={"formato": "pdf"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+
+class LiberacaoAcessoFlowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = get_user_model().objects.create_user(
+            username="liberacao",
+            password="senha-forte-123",
+        )
+        self.group_siop = Group.objects.get_or_create(name="group_siop")[0]
+
+    def _payload(self):
+        return {
+            "pessoa_nome": ["Marcos da Silva", "Ana Souza"],
+            "pessoa_documento": ["12345678900", "98765432100"],
+            "motivo": "Acesso temporário para atividade técnica.",
+            "data_liberacao": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+            "empresa": "PrestServ",
+            "solicitante": "Coordenação Operacional",
+        }
+
+    def test_liberacao_acesso_create_persiste_registro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse("siop:liberacao_acesso_new"), data=self._payload())
+
+        self.assertEqual(response.status_code, 302)
+        created = LiberacaoAcesso.objects.latest("id")
+        self.assertEqual(created.pessoas.count(), 2)
+        self.assertEqual(created.pessoas.first().nome, "Marcos da Silva")
+        self.assertEqual(created.pessoas.first().documento, "12345678900")
+        self.assertEqual(created.empresa, "PrestServ")
+        self.assertEqual(created.modificado_por, self.user)
+        notification = Notificacao.objects.get(titulo="Liberação de Acesso | Novo Registrado")
+        self.assertEqual(notification.grupo, self.group_siop)
+
+    def test_liberacao_acesso_create_salva_anexo(self):
+        self.client.force_login(self.user)
+        arquivo = SimpleUploadedFile("liberacao.txt", b"conteudo teste", content_type="text/plain")
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_new"),
+            data={**self._payload(), "anexos": [arquivo]},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = LiberacaoAcesso.objects.latest("id")
+        self.assertEqual(created.anexos.count(), 1)
+        self.assertEqual(created.anexos.first().nome_arquivo, "liberacao.txt")
+
+    def test_liberacao_acesso_edit_atualiza_registro(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Nome Inicial", documento="00011122233")
+        registro = LiberacaoAcesso.objects.create(
+            motivo="Motivo inicial",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Inicial",
+            solicitante="Solicitante Inicial",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        registro.pessoas.add(pessoa)
+
+        payload = self._payload()
+        payload["empresa"] = "Empresa Atualizada"
+        payload["solicitante"] = "Solicitante Atualizado"
+
+        response = self.client.post(reverse("siop:liberacao_acesso_edit", args=[registro.pk]), data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        registro.refresh_from_db()
+        self.assertEqual(registro.empresa, "Empresa Atualizada")
+        self.assertEqual(registro.solicitante, "Solicitante Atualizado")
+        self.assertEqual(registro.pessoas.count(), 2)
+        self.assertIn("Ana Souza", list(registro.pessoas.values_list("nome", flat=True)))
+        self.assertIn("98765432100", list(registro.pessoas.values_list("documento", flat=True)))
+        notification = Notificacao.objects.get(titulo="Liberação de Acesso | Atualizado")
+        self.assertEqual(notification.grupo, self.group_siop)
+
+    def test_liberacao_acesso_edit_nao_muta_pessoa_global_existente(self):
+        self.client.force_login(self.user)
+        pessoa_global = Pessoa.objects.create(nome="Pessoa Compartilhada", documento="00011122233")
+        registro = LiberacaoAcesso.objects.create(
+            motivo="Motivo inicial",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Inicial",
+            solicitante="Solicitante Inicial",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        registro.pessoas.add(pessoa_global)
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_edit", args=[registro.pk]),
+            data={
+                "pessoa_nome": ["Nome Alterado"],
+                "pessoa_documento": ["99988877766"],
+                "motivo": "Motivo alterado",
+                "data_liberacao": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+                "empresa": "Empresa Atualizada",
+                "solicitante": "Solicitante Atualizado",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        pessoa_global.refresh_from_db()
+        self.assertEqual(pessoa_global.nome, "Pessoa Compartilhada")
+        self.assertEqual(pessoa_global.documento, "00011122233")
+        registro.refresh_from_db()
+        pessoa_vinculada = registro.pessoas.get()
+        self.assertNotEqual(pessoa_vinculada.id, pessoa_global.id)
+        self.assertEqual(pessoa_vinculada.nome, "Nome Alterado")
+        self.assertEqual(pessoa_vinculada.documento, "99988877766")
+
+    def test_liberacao_acesso_list_renderiza_registros(self):
+        self.client.force_login(self.user)
+        pessoa_1 = Pessoa.objects.create(nome="Pessoa Teste", documento="99999999999")
+        pessoa_2 = Pessoa.objects.create(nome="Pessoa Extra", documento="88888888888")
+        registro = LiberacaoAcesso.objects.create(
+            motivo="Visita técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Teste",
+            solicitante="Solicitante Teste",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        registro.pessoas.set([pessoa_1, pessoa_2])
+
+        response = self.client.get(reverse("siop:liberacao_acesso_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Pessoa Teste")
+        self.assertContains(response, "Pessoa Extra")
+        self.assertContains(response, "Empresa Teste")
+
+    def test_liberacao_acesso_registra_chegada_para_uma_pessoa(self):
+        self.client.force_login(self.user)
+        pessoa_1 = Pessoa.objects.create(nome="Pessoa Um", documento="11111111111")
+        pessoa_2 = Pessoa.objects.create(nome="Pessoa Dois", documento="22222222222")
+        liberacao = LiberacaoAcesso.objects.create(
+            motivo="Visita técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Teste",
+            solicitante="Solicitante Teste",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        liberacao.pessoas.set([pessoa_1, pessoa_2])
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            data={
+                "chegada_acao": "single",
+                "pessoa_id": pessoa_1.id,
+                "p1": "lucas_cunha",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(AcessoTerceiros.objects.count(), 1)
+        acesso = AcessoTerceiros.objects.latest("id")
+        self.assertEqual(acesso.pessoa, pessoa_1)
+        self.assertEqual(acesso.empresa, "Empresa Teste")
+        self.assertEqual(acesso.p1, "lucas_cunha")
+        self.assertEqual(acesso.descricao_acesso, "Visita técnica.")
+        liberacao.refresh_from_db()
+        self.assertEqual(liberacao.chegadas_registradas, [pessoa_1.id])
+        notification = Notificacao.objects.get(titulo="Liberação de Acesso | Chegada Registrada")
+        self.assertEqual(notification.grupo, self.group_siop)
+
+    def test_liberacao_acesso_registra_chegada_para_todos(self):
+        self.client.force_login(self.user)
+        pessoa_1 = Pessoa.objects.create(nome="Pessoa Um", documento="11111111111")
+        pessoa_2 = Pessoa.objects.create(nome="Pessoa Dois", documento="22222222222")
+        liberacao = LiberacaoAcesso.objects.create(
+            motivo="Visita técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Teste",
+            solicitante="Solicitante Teste",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        liberacao.pessoas.set([pessoa_1, pessoa_2])
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            data={
+                "chegada_acao": "all",
+                "p1": "lucas_cunha",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(AcessoTerceiros.objects.count(), 2)
+        self.assertEqual(
+            set(AcessoTerceiros.objects.values_list("pessoa__nome", flat=True)),
+            {"Pessoa Um", "Pessoa Dois"},
+        )
+        liberacao.refresh_from_db()
+        self.assertEqual(set(liberacao.chegadas_registradas), {pessoa_1.id, pessoa_2.id})
+
+    def test_liberacao_acesso_chegada_de_todos_ja_registrada_nao_duplica(self):
+        self.client.force_login(self.user)
+        pessoa_1 = Pessoa.objects.create(nome="Pessoa Um", documento="11111111111")
+        pessoa_2 = Pessoa.objects.create(nome="Pessoa Dois", documento="22222222222")
+        liberacao = LiberacaoAcesso.objects.create(
+            motivo="Visita técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Teste",
+            solicitante="Solicitante Teste",
+            criado_por=self.user,
+            modificado_por=self.user,
+            chegadas_registradas=[pessoa_1.id, pessoa_2.id],
+        )
+        liberacao.pessoas.set([pessoa_1, pessoa_2])
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            data={"chegada_acao": "all", "p1": "lucas_cunha"},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(AcessoTerceiros.objects.count(), 0)
+        self.assertContains(response, "Nenhuma chegada foi registrada.")
+
+    def test_liberacao_acesso_export_xlsx_returns_file(self):
+        self.client.force_login(self.user)
+        liberacao = LiberacaoAcesso.objects.create(
+            motivo="Visita técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Teste",
+            solicitante="Solicitante Teste",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        liberacao.pessoas.set(
+            [
+                Pessoa.objects.create(nome="Pessoa Um", documento="11111111111"),
+                Pessoa.objects.create(nome="Pessoa Dois", documento="22222222222"),
+            ]
+        )
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_export"),
+            data={"formato": "xlsx"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            response["Content-Type"],
+        )
+
+    def test_liberacao_acesso_rejeita_documento_duplicado_no_mesmo_registro(self):
+        self.client.force_login(self.user)
+        payload = self._payload()
+        payload["pessoa_documento"] = ["12345678900", "12345678900"]
+
+        response = self.client.post(reverse("siop:liberacao_acesso_new"), data=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Não repita o mesmo documento na mesma liberação.")
+        self.assertEqual(LiberacaoAcesso.objects.count(), 0)
+
+    def test_liberacao_acesso_chegada_sem_p1_nao_cria_acesso(self):
+        self.client.force_login(self.user)
+        pessoa = Pessoa.objects.create(nome="Pessoa Um", documento="11111111111")
+        liberacao = LiberacaoAcesso.objects.create(
+            motivo="Visita técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Teste",
+            solicitante="Solicitante Teste",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        liberacao.pessoas.set([pessoa])
+
+        response = self.client.post(
+            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            data={"chegada_acao": "single", "pessoa_id": pessoa.id, "p1": ""},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione o P1 para registrar a chegada.")
+        self.assertEqual(AcessoTerceiros.objects.count(), 0)
 
 
 class UnidadeAutoAssignmentTests(TestCase):
