@@ -73,7 +73,7 @@ def draw_pdf_page_chrome(
         "assets",
         "img",
         "institucional",
-        "caracol_W.png",
+        "parque_caracol_white.png",
     )
 
     if os.path.exists(logo_path):

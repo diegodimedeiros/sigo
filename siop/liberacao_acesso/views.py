@@ -15,7 +15,7 @@ def liberacao_acesso_index(request):
     recentes = list(queryset[:5])
     inicio_hoje = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     chegadas_registradas = sum(len(registro.chegadas_registradas or []) for registro in queryset)
-    return render(request, "siop/liberacao_acesso/index.html", {"area_title": "Liberação de Acesso", "area_description": "Gestão operacional de permissões temporárias, autorizações e rastreio de entrada.", "dashboard": {"total": queryset.count(), "hoje": queryset.filter(criado_em__gte=inicio_hoje).count(), "chegadas_registradas": chegadas_registradas}, "registros_recentes": recentes})
+    return render(request, "siop/liberacao_acesso/index.html", {"area_title": "Central de Liberação de Acesso", "area_description": "Área para autorização operacional de acessos, pessoas vinculadas e registro de chegadas.", "dashboard": {"total": queryset.count(), "hoje": queryset.filter(criado_em__gte=inicio_hoje).count(), "chegadas_registradas": chegadas_registradas}, "registros_recentes": recentes})
 
 
 @login_required

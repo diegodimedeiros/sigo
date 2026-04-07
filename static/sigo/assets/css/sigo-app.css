@@ -57,7 +57,7 @@
   --color-border: #d8e2ed;
   --color-sidebar-border: rgba(255, 255, 255, 0.08);
   --color-sidebar-link: rgba(255, 255, 255, 0.72);
-  --institution-logo-url: url("../img/institucional/caracol_W.png");
+  --institution-logo-url: url("../img/institucional/parque_caracol_white.png");
   --gradient-primary: linear-gradient(135deg, rgba(21, 114, 232, 0.12), rgba(72, 171, 247, 0.08));
   --gradient-login: linear-gradient(135deg, #eef3f8 0%, #e6edf5 50%, #f5f8fc 100%);
   --shadow-primary: 0 1rem 2rem rgba(21, 114, 232, 0.18);
@@ -121,7 +121,7 @@ html[data-sigo-theme="dark"] {
   --color-border: var(--color-dark-border);
   --gradient-primary: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0.35));
   --gradient-login: linear-gradient(135deg, var(--color-dark-bg) 0%, var(--color-dark-content) 50%, var(--color-dark-elevated) 100%);
-  --institution-logo-url: url("../img/institucional/caracol_W.png");
+  --institution-logo-url: url("../img/institucional/parque_caracol_white.png");
 }
 
 body {

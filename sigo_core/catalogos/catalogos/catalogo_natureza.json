@@ -175,6 +175,10 @@
         {
           "chave": "organizacao_de_fluxo",
           "valor": "Organização de fluxo"
+        },
+        {
+          "chave": "ronda",
+          "valor": "Ronda"
         }
       ]
     },

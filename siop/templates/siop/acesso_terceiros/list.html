@@ -72,7 +72,7 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
             <th><a href="{{ sort_links.p1.url }}" class="table-sort-link{% if sort_links.p1.active %} is-active{% endif %}">P1 <span>{{ sort_links.p1.icon }}</span></a></th>
             <th><a href="{{ sort_links.saida.url }}" class="table-sort-link{% if sort_links.saida.active %} is-active{% endif %}">Saída <span>{{ sort_links.saida.icon }}</span></a></th>
             <th><a href="{{ sort_links.status.url }}" class="table-sort-link{% if sort_links.status.active %} is-active{% endif %}">Status <span>{{ sort_links.status.icon }}</span></a></th>
-            <th class="text-end">Detalhe</th>
+            <th class="text-end">Ação</th>
           </tr>
         </thead>
         <tbody>
@@ -92,7 +92,7 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
               <span class="badge badge-warning">Em aberto</span>
               {% endif %}
             </td>
-            <td class="text-end"><a href="{% url 'siop:acesso_terceiros_view' acesso.pk %}" class="btn btn-sm btn-primary">Abrir</a></td>
+            <td class="text-end"><a href="{% url 'siop:acesso_terceiros_view' acesso.pk %}" class="btn btn-sm btn-label-info">Ver</a></td>
           </tr>
           {% empty %}
           <tr>

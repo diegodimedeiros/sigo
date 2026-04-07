@@ -496,23 +496,6 @@
       }
     },
     {
-      "chave": "lara_cruz",
-      "valor": "Lara Cruz",
-      "nome_completo": "Lara Manuela Guimarães Taha Da Cruz",
-      "funcao": {
-        "chave": "atendente_i",
-        "valor": "Atendente I"
-      },
-      "setor": {
-        "chave": "coordenacao_de_experiencia_do_visitante",
-        "valor": "Coordenação de Experiência do Visitante"
-      },
-      "area": {
-        "chave": "operacional",
-        "valor": "Operacional"
-      }
-    },
-    {
       "chave": "larissa_lima",
       "valor": "Larissa Lima",
       "nome_completo": "Larissa De Souza Carvalho De Lima",

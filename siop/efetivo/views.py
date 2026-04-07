@@ -19,7 +19,7 @@ def efetivo_index(request):
     postos_pendentes = 0
     if registro_hoje is not None:
         postos_pendentes = sum(1 for field_name in campos_monitorados if not (getattr(registro_hoje, field_name, "") or "").strip())
-    return render(request, "siop/efetivo/index.html", {"area_title": "Efetivo", "area_description": "Visão operacional da composição de responsáveis por setor e postos de trabalho.", "dashboard": {"total": queryset.count(), "atualizados_hoje": queryset.filter(modificado_em__date=hoje).count(), "registro_hoje": registro_hoje is not None, "postos_pendentes": postos_pendentes, "observacao_hoje": ((registro_hoje.observacao or "").strip() if registro_hoje else "")}, "recentes": recentes})
+    return render(request, "siop/efetivo/index.html", {"area_title": "Central de Efetivo", "area_description": "Área para registro operacional da composição de postos e responsáveis do plantão.", "dashboard": {"total": queryset.count(), "atualizados_hoje": queryset.filter(modificado_em__date=hoje).count(), "registro_hoje": registro_hoje is not None, "postos_pendentes": postos_pendentes, "observacao_hoje": ((registro_hoje.observacao or "").strip() if registro_hoje else "")}, "recentes": recentes})
 
 
 @login_required

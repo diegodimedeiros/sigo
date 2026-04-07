@@ -13,38 +13,31 @@
 
 {% block content %}
 <div class="row g-4">
-  <div class="col-md-6 col-xl-4">
-    <div class="card">
-      <div class="card-body">
+  <div class="col-md-6">
+    <a href="{% url 'siop:home' %}" class="text-decoration-none d-block h-100">
+      <div class="card h-100">
+        <div class="card-body">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <h4 class="mb-0">SIOP</h4>
           <i class="fas fa-shield-alt text-primary"></i>
         </div>
-        <p class="text-muted mb-0">Modulo pronto para concentrar fluxos operacionais e acessos internos.</p>
+        <p class="text-muted mb-0">Centraliza as rotinas operacionais e permite gerenciar ocorrências, acessos, ativos, chaves e demais controles do dia a dia em um único módulo.</p>
+        </div>
       </div>
-    </div>
+    </a>
   </div>
-  <div class="col-md-6 col-xl-4">
-    <div class="card">
-      <div class="card-body">
+  <div class="col-md-6">
+    <a href="{% url 'sesmt:home' %}" class="text-decoration-none d-block h-100">
+      <div class="card h-100">
+        <div class="card-body">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <h4 class="mb-0">SESMT</h4>
           <i class="fas fa-user-shield text-primary"></i>
         </div>
-        <p class="text-muted mb-0">Modulo reservado para saude, seguranca e rotinas especializadas.</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6 col-xl-4">
-    <div class="card">
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <h4 class="mb-0">SIGO</h4>
-          <i class="fas fa-cubes text-primary"></i>
+        <p class="text-muted mb-0">Concentra as rotinas de meio ambiente, segurança do trabalho e atendimentos especializados em um único módulo.</p>
         </div>
-        <p class="text-muted mb-0">Painel concentrador para navegação, indicadores e entrada do sistema.</p>
       </div>
-    </div>
+    </a>
   </div>
 </div>
 {% endblock %}

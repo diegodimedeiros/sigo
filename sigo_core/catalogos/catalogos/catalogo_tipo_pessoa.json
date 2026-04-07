@@ -27,6 +27,10 @@
       "valor": "Agente Público"
     },
     {
+      "chave": "ronda",
+      "valor": "Ronda"
+    },
+    {
       "chave": "outro",
       "valor": "Outro"
     }

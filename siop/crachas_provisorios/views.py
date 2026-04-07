@@ -19,7 +19,7 @@ def crachas_provisorios_index(request):
     for cracha in recentes:
         cracha.status_label = cracha_status_label(cracha)
     hoje = timezone.localdate()
-    return render(request, "siop/crachas_provisorios/index.html", {"area_title": "Crachás Provisórios", "area_description": "Controle de emissão, entrega e devolução de credenciais temporárias.", "dashboard": {"total": queryset.count(), "em_uso": queryset.filter(devolucao__isnull=True).count(), "devolvidos": queryset.filter(devolucao__isnull=False).count(), "entregues_hoje": queryset.filter(entrega__date=hoje).count()}, "recentes": recentes})
+    return render(request, "siop/crachas_provisorios/index.html", {"area_title": "Central de Crachás Provisórios", "area_description": "Área para controle operacional de entrega, devolução e rastreio de crachás temporários.", "dashboard": {"total": queryset.count(), "em_uso": queryset.filter(devolucao__isnull=True).count(), "devolvidos": queryset.filter(devolucao__isnull=False).count(), "entregues_hoje": queryset.filter(entrega__date=hoje).count()}, "recentes": recentes})
 
 
 @login_required

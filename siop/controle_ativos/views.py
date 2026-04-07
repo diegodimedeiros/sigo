@@ -19,7 +19,7 @@ def controle_ativos_index(request):
     for ativo in recentes:
         ativo.status_label = ativo_status_label(ativo)
     hoje = timezone.localdate()
-    context = {"area_title": "Controle de Ativos", "area_description": "Gestão de ativos operacionais, distribuição por destino e rastreio de responsabilidade.", "dashboard": {"total": queryset.count(), "em_uso": queryset.filter(devolucao__isnull=True).count(), "devolvidos": queryset.filter(devolucao__isnull=False).count(), "retirados_hoje": queryset.filter(retirada__date=hoje).count()}, "recentes": recentes}
+    context = {"area_title": "Central de Ativos", "area_description": "Área para controle operacional de retirada, devolução e responsabilidade de ativos.", "dashboard": {"total": queryset.count(), "em_uso": queryset.filter(devolucao__isnull=True).count(), "devolvidos": queryset.filter(devolucao__isnull=False).count(), "retirados_hoje": queryset.filter(retirada__date=hoje).count()}, "recentes": recentes}
     return render(request, "siop/controle_ativos/index.html", context)
 
 

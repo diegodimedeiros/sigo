@@ -20,8 +20,8 @@ def controle_chaves_index(request):
         chave.status_label = chave_status_label(chave)
     hoje = timezone.localdate()
     context = {
-        "area_title": "Controle de Chaves",
-        "area_description": "Gestão operacional de chaves por área, retirada, devolução e auditoria de uso.",
+        "area_title": "Central de Chaves",
+        "area_description": "Área para controle operacional de retirada, devolução e responsabilidade de chaves.",
         "dashboard": {"total": queryset.count(), "em_uso": queryset.filter(devolucao__isnull=True).count(), "devolvidas": queryset.filter(devolucao__isnull=False).count(), "retiradas_hoje": queryset.filter(retirada__date=hoje).count()},
         "recentes": recentes,
     }

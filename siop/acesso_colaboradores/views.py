@@ -22,8 +22,8 @@ def acesso_colaboradores_index(request):
         request,
         "siop/acesso_colaboradores/index.html",
         {
-            "area_title": "Acesso de Colaboradores",
-            "area_description": "Gestão operacional de entrada, saída e vínculo de colaboradores por registro coletivo.",
+            "area_title": "Central de Acesso de Colaboradores",
+            "area_description": "Área para controle operacional de entrada, saída e permanência de colaboradores.",
             "dashboard": {
                 "total": queryset.count(),
                 "hoje": queryset.filter(entrada__date=hoje).count(),

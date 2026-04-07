@@ -180,7 +180,10 @@ class AcessoColaboradores(BaseModel):
 
     @property
     def p1_label(self):
-        return catalogo_p1_label(self.p1)
+        label = catalogo_p1_label(self.p1)
+        if label and label != self.p1:
+            return label
+        return str(self.p1 or "").replace("_", " ").strip().title()
 
 class AcessoTerceiros(BaseModel):
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="acessos_terceiros", verbose_name="Unidade")
