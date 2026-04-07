@@ -1,0 +1,65 @@
+{% extends 'siop/acesso_colaboradores/base.html' %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Resumo do registro</div></div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-12">
+            <label class="form-label text-muted">Colaborador vinculado</label>
+            <div class="detail-note-box">
+              <div class="fw-semibold">{{ acesso.pessoa.nome|default:"-" }}</div>
+            </div>
+          </div>
+          <div class="col-md-6"><label class="form-label text-muted">Entrada</label><div class="fw-semibold">{{ acesso.entrada|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Saída</label><div class="fw-semibold">{% if acesso.saida %}{{ acesso.saida|date:"d/m/Y H:i" }}{% else %}-{% endif %}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">P1</label><div class="fw-semibold">{{ acesso.p1_label|default:acesso.p1|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Placa do veículo</label><div class="fw-semibold">{{ acesso.placa_veiculo|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Unidade</label><div class="fw-semibold">{{ acesso.unidade_sigla|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Status</label><div class="fw-semibold">{{ acesso.status_label }}</div></div>
+          <div class="col-12"><label class="form-label text-muted">Descrição do acesso</label><div class="detail-note-box">{{ acesso.descricao_acesso|default:"-" }}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Auditoria</div></div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6"><label class="form-label text-muted">Criado em</label><div class="fw-semibold">{{ acesso.criado_em|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Criado por</label><div class="fw-semibold">{{ acesso.criado_por|default:"-" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Última atualização</label><div class="fw-semibold">{{ acesso.modificado_em|date:"d/m/Y H:i" }}</div></div>
+          <div class="col-md-6"><label class="form-label text-muted">Atualizado por</label><div class="fw-semibold">{{ acesso.modificado_por|default:"-" }}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Anexos</div></div>
+      <div class="card-body">
+        <div class="detail-file-list">
+          {% for anexo in acesso.anexos.all %}
+          <a href="{% url 'siop:anexo_download' anexo.id %}" class="detail-file-item">
+            <span class="detail-file-name">{{ anexo.nome_arquivo }}</span>
+            <span class="detail-file-meta">{{ anexo.tamanho|filesizeformat }}</span>
+          </a>
+          {% empty %}
+          <div class="detail-empty-state">Nenhum anexo registrado.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Ações rápidas</div></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'siop:acesso_colaboradores_edit' acesso.id %}" class="btn btn-primary">Editar registro</a>
+        <a href="{% url 'siop:acesso_colaboradores_export_view_pdf' acesso.id %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'siop:acesso_colaboradores_index' %}" class="btn btn-label-secondary">Página inicial da área</a>
+        <a href="{% url 'siop:acesso_colaboradores_list' %}" class="btn btn-label-info">Voltar para listagem</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

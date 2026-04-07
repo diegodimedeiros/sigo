@@ -1,17 +1,18 @@
 {% extends 'siop/efetivo/base.html' %}
+{% load static %}
 
 {% block area_heading %}Listagem de Efetivo{% endblock %}
 {% block content %}
 <div class="card listing-filter-card mb-4">
   <div class="card-body">
-    <form method="get" class="filter-panel-grid">
+    <form method="get" class="filter-panel-grid" id="efetivo-list-form" data-api-url="{% url 'siop:api_efetivo' %}" data-page-size="20">
       <div class="filter-span-6"><label class="form-label" for="filtro-q">Busca rápida</label><input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, atendimento, CIOP, engenharia..." value="{{ filters.q }}"></div>
-      <div class="filter-span-6 filter-actions"><button class="btn btn-label-info">Aplicar filtros</button><a href="{% url 'siop:efetivo_list' %}" class="btn btn-label-secondary">Limpar</a></div>
+      <div class="filter-span-6 filter-actions"><button class="btn btn-label-info">Aplicar filtros</button><a href="{% url 'siop:efetivo_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a></div>
     </form>
   </div>
 </div>
 <div class="card listing-table-card">
-  <div class="card-header"><div class="listing-table-header"><div><div class="card-title mb-1">Resultado da listagem</div><div class="listing-table-meta">{{ total_registros }} registro{{ total_registros|pluralize:"s" }} encontrado{{ total_registros|pluralize:"s" }}.</div></div></div></div>
+  <div class="card-header"><div class="listing-table-header"><div><div class="card-title mb-1">Resultado da listagem</div><div class="listing-table-meta" id="efetivo-list-meta">{{ total_registros }} registro{{ total_registros|pluralize:"s" }} encontrado{{ total_registros|pluralize:"s" }}.</div></div></div></div>
   <div class="card-body p-0">
     <div class="table-responsive listing-table-wrapper">
       <table class="table table-striped table-hover listing-table align-middle mb-0">
@@ -25,7 +26,7 @@
             <th class="text-end">Detalhe</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="efetivo-list-body">
           {% for registro in registros %}
           <tr>
             <td>#{{ registro.id }}</td>
@@ -42,6 +43,14 @@
       </table>
     </div>
   </div>
-  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_registros %}
+  <div id="efetivo-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_registros %}
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/siop/efetivo-form.js' %}"></script>
 {% endblock %}

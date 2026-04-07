@@ -8,7 +8,7 @@
   </div>
   <div class="card-body">
     <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
-    <form method="post" data-async-form="true">
+    <form method="post" data-async-form="true" data-api-url="{% url 'siop:api_controle_chaves' %}">
       {% csrf_token %}
       {% if non_field_errors %}
       <div class="alert alert-danger" role="alert">
@@ -75,34 +75,5 @@
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
-<script>
-  (function () {
-    const areaSelect = document.getElementById("id_area_chave");
-    const chaveSelect = document.getElementById("id_chave");
-    if (!areaSelect || !chaveSelect) return;
-
-    const options = Array.from(chaveSelect.querySelectorAll("option[data-area]"));
-
-    function aplicarFiltro() {
-      const area = areaSelect.value;
-      let atualVisivel = false;
-
-      options.forEach((option) => {
-        const visivel = !area || option.dataset.area === area;
-        option.hidden = !visivel;
-        option.disabled = !visivel;
-        if (visivel && option.value === chaveSelect.value) {
-          atualVisivel = true;
-        }
-      });
-
-      if (chaveSelect.value && !atualVisivel) {
-        chaveSelect.value = "";
-      }
-    }
-
-    areaSelect.addEventListener("change", aplicarFiltro);
-    aplicarFiltro();
-  })();
-</script>
+<script src="{% static 'sigo/assets/js/siop/controle-chaves-form.js' %}"></script>
 {% endblock %}

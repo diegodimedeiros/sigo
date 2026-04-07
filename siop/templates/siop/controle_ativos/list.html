@@ -1,10 +1,11 @@
 {% extends 'siop/controle_ativos/base.html' %}
+{% load static %}
 
 {% block area_heading %}Listagem de Controle de Ativos{% endblock %}
 {% block content %}
 <div class="card listing-filter-card mb-4">
   <div class="card-body">
-    <form method="get" class="filter-panel-grid">
+    <form method="get" class="filter-panel-grid" id="controle-ativos-list-form" data-api-url="{% url 'siop:api_controle_ativos' %}" data-page-size="20">
       <div class="filter-span-6">
         <label class="form-label" for="filtro-q">Busca rápida</label>
         <input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, ativo, responsável, documento, destino..." value="{{ filters.q }}">
@@ -27,7 +28,7 @@
       </div>
       <div class="filter-span-6 filter-actions">
         <button class="btn btn-label-info">Aplicar filtros</button>
-        <a href="{% url 'siop:controle_ativos_list' %}" class="btn btn-label-secondary">Limpar</a>
+        <a href="{% url 'siop:controle_ativos_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a>
       </div>
     </form>
   </div>
@@ -38,7 +39,7 @@
     <div class="listing-table-header">
       <div>
         <div class="card-title mb-1">Resultado da listagem</div>
-        <div class="listing-table-meta">{{ total_ativos }} ativo{{ total_ativos|pluralize:"s" }} encontrado{{ total_ativos|pluralize:"s" }}.</div>
+        <div class="listing-table-meta" id="controle-ativos-list-meta">{{ total_ativos }} ativo{{ total_ativos|pluralize:"s" }} encontrado{{ total_ativos|pluralize:"s" }}.</div>
       </div>
     </div>
   </div>
@@ -58,7 +59,7 @@
             <th class="text-end">Detalhe</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="controle-ativos-list-body">
           {% for ativo in ativos %}
           <tr>
             <td>#{{ ativo.id }}</td>
@@ -84,6 +85,14 @@
       </table>
     </div>
   </div>
-  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_ativos %}
+  <div id="controle-ativos-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_ativos %}
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/siop/controle-ativos-form.js' %}"></script>
 {% endblock %}

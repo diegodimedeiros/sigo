@@ -6,7 +6,7 @@
   <div class="card-header"><div class="card-title">Formulário de registro</div></div>
   <div class="card-body">
     <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
-    <form method="post" data-async-form="true">
+    <form method="post" data-async-form="true" data-api-url="{% url 'siop:api_efetivo' %}">
       {% csrf_token %}
       {% if non_field_errors %}
       <div class="alert alert-danger" role="alert">
@@ -51,45 +51,5 @@
 
 {% block extra_js %}
 <script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
-<script>
-  (function () {
-    const bc1 = document.getElementById("id_bombeiro_civil");
-    const bc2 = document.getElementById("id_bombeiro_civil_2");
-    if (!bc1 || !bc2) return;
-
-    const snapshot = (select) =>
-      Array.from(select.options).map((option) => ({
-        value: option.value,
-        label: option.textContent,
-        selected: option.selected,
-      }));
-
-    const bc1Options = snapshot(bc1);
-    const bc2Options = snapshot(bc2);
-
-    function rebuild(select, options, blockedValue, preferredValue) {
-      select.innerHTML = "";
-      options.forEach((option) => {
-        if (option.value && option.value === blockedValue) return;
-        const node = document.createElement("option");
-        node.value = option.value;
-        node.textContent = option.label;
-        node.selected = option.value === preferredValue;
-        select.appendChild(node);
-      });
-      if (!Array.from(select.options).some((option) => option.value === preferredValue)) {
-        select.value = "";
-      }
-    }
-
-    function syncBcSelects() {
-      rebuild(bc1, bc1Options, bc2.value, bc1.value);
-      rebuild(bc2, bc2Options, bc1.value, bc2.value);
-    }
-
-    bc1.addEventListener("change", syncBcSelects);
-    bc2.addEventListener("change", syncBcSelects);
-    syncBcSelects();
-  })();
-</script>
+<script src="{% static 'sigo/assets/js/siop/efetivo-form.js' %}"></script>
 {% endblock %}

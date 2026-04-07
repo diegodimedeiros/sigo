@@ -8,7 +8,7 @@
   </div>
   <div class="card-body">
     <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
-    <form method="post" data-async-form="true">
+    <form method="post" data-async-form="true" data-api-url="{% url 'siop:api_controle_ativos' %}">
       {% csrf_token %}
       {% if non_field_errors %}
       <div class="alert alert-danger" role="alert">
@@ -91,39 +91,5 @@
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
-<script>
-  (function () {
-    const tipoSelect = document.getElementById("id_tipo_ativo");
-    const ativoSelect = document.getElementById("id_equipamento");
-    if (!tipoSelect || !ativoSelect) return;
-
-    const grupos = Array.from(ativoSelect.querySelectorAll("optgroup"));
-    const placeholder = ativoSelect.querySelector('option[value=""]');
-
-    function aplicarFiltro() {
-      const tipoSelecionado = tipoSelect.value;
-      let ativoAtualAindaVisivel = false;
-
-      grupos.forEach((grupo) => {
-        const visivel = !tipoSelecionado || grupo.dataset.grupo === tipoSelecionado;
-        grupo.disabled = !visivel;
-        grupo.hidden = !visivel;
-        if (visivel && grupo.querySelector(`option[value="${ativoSelect.value}"]`)) {
-          ativoAtualAindaVisivel = true;
-        }
-      });
-
-      if (placeholder) {
-        placeholder.hidden = false;
-      }
-
-      if (ativoSelect.value && !ativoAtualAindaVisivel) {
-        ativoSelect.value = "";
-      }
-    }
-
-    tipoSelect.addEventListener("change", aplicarFiltro);
-    aplicarFiltro();
-  })();
-</script>
+<script src="{% static 'sigo/assets/js/siop/controle-ativos-form.js' %}"></script>
 {% endblock %}

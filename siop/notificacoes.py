@@ -141,3 +141,33 @@ def publicar_notificacao_liberacao_chegada(liberacao, total_registrado):
         tipo=Notificacao.TIPO_SUCESSO,
         unidade=liberacao.unidade,
     )
+
+
+def publicar_notificacao_acesso_colaboradores_criado(acesso):
+    _publicar_notificacao(
+        titulo="Acesso de Colaboradores | Novo Registrado",
+        mensagem=f"Acesso de colaboradores #{acesso.id} registrado{f' na unidade {acesso.unidade_sigla}' if acesso.unidade_sigla else ''}.",
+        link=acesso.get_absolute_url(),
+        tipo=Notificacao.TIPO_INFO,
+        unidade=acesso.unidade,
+    )
+
+
+def publicar_notificacao_acesso_colaboradores_atualizado(acesso):
+    _publicar_notificacao(
+        titulo="Acesso de Colaboradores | Atualizado",
+        mensagem=f"Acesso de colaboradores #{acesso.id} atualizado{f' na unidade {acesso.unidade_sigla}' if acesso.unidade_sigla else ''}.",
+        link=acesso.get_absolute_url(),
+        tipo=Notificacao.TIPO_ALERTA,
+        unidade=acesso.unidade,
+    )
+
+
+def publicar_notificacao_acesso_colaboradores_concluido(acesso):
+    _publicar_notificacao(
+        titulo="Acesso de Colaboradores | Concluído",
+        mensagem=f"Acesso de colaboradores #{acesso.id} concluído{f' na unidade {acesso.unidade_sigla}' if acesso.unidade_sigla else ''}.",
+        link=acesso.get_absolute_url(),
+        tipo=Notificacao.TIPO_SUCESSO,
+        unidade=acesso.unidade,
+    )

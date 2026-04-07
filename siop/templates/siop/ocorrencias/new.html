@@ -7,6 +7,7 @@ Cadastro operacional com persistência, campos obrigatórios e vínculo opcional
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
 <script src="{% static 'sigo/assets/js/siop/ocorrencias-form.js' %}"></script>
 {% endblock %}
 
@@ -21,7 +22,7 @@ Cadastro operacional com persistência, campos obrigatórios e vínculo opcional
   </div>
   <div class="card-body">
     <div id="ocorrencia-form-feedback" class="alert alert-danger d-none" role="alert"></div>
-    <form id="ocorrencia-form" method="post" enctype="multipart/form-data">
+    <form id="ocorrencia-form" method="post" enctype="multipart/form-data" data-api-url="{% url 'siop:api_ocorrencias' %}">
       {% csrf_token %}
       <div class="row g-4">
         <div class="col-md-6">

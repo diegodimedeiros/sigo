@@ -1,4 +1,5 @@
 {% extends 'siop/liberacao_acesso/base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="row g-4">
@@ -48,12 +49,13 @@
                 {% if tem_chegada_pendente %}Registrar chegada de todos{% else %}Todas as chegadas já registradas{% endif %}
               </button>
             </div>
-            <form method="post" id="registrar-chegada-form" class="card mt-3 d-none">
+            <form method="post" id="registrar-chegada-form" class="card mt-3 d-none" data-api-url="{% url 'siop:api_liberacao_acesso_chegada' liberacao.id %}">
               {% csrf_token %}
               <input type="hidden" name="chegada_acao" id="id_chegada_acao" value="single">
               <input type="hidden" name="pessoa_id" id="id_pessoa_id" value="">
               <div class="card-body">
                 <div class="fw-semibold mb-3" id="registrar-chegada-label">Registrar chegada</div>
+                <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
                 <div class="row g-3 align-items-end">
                   <div class="col-md-6">
                     <label for="id_p1_chegada" class="form-label">P1 no momento</label>
@@ -128,29 +130,9 @@
     </div>
   </div>
 </div>
-<script>
-  (function () {
-    const form = document.getElementById("registrar-chegada-form");
-    if (!form) return;
+{% endblock %}
 
-    const actionInput = document.getElementById("id_chegada_acao");
-    const pessoaInput = document.getElementById("id_pessoa_id");
-    const label = document.getElementById("registrar-chegada-label");
-    const cancelButton = document.getElementById("cancelar-chegada-btn");
-
-    document.querySelectorAll(".registrar-chegada-btn").forEach((button) => {
-      button.addEventListener("click", function () {
-        actionInput.value = button.dataset.chegadaAcao;
-        pessoaInput.value = button.dataset.pessoaId || "";
-        label.textContent = "Registrar chegada para " + button.dataset.pessoaNome;
-        form.classList.remove("d-none");
-        form.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-    });
-
-    cancelButton.addEventListener("click", function () {
-      form.classList.add("d-none");
-    });
-  })();
-</script>
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/liberacao-acesso-form.js' %}"></script>
 {% endblock %}

@@ -29,8 +29,10 @@ from sigo_core.catalogos import (
     colaboradores_ciop_items,
     colaboradores_options,
 )
+from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import bool_ptbr, fmt_dt, user_display
 from sigo_core.shared.pdf_export import build_numbered_canvas_class, draw_pdf_label_value, draw_pdf_page_chrome, wrap_pdf_text_lines
+from sigo_core.shared.xlsx_export import export_generic_excel
 
 from siop.models import AchadosPerdidos
 
@@ -141,9 +143,26 @@ def achados_perdidos_list(request):
     return render(request, "siop/achados_perdidos/list.html", context)
 
 
-@require_GET
 @login_required
 def api_achados_perdidos(request):
+    if request.method == "POST":
+        try:
+            data, files, payload_error = extract_request_payload(request)
+            if payload_error:
+                return payload_error
+            item = create_achado_perdido(data=data, files=files, user=request.user)
+            return api_success(
+                data={"id": item.id, "redirect_url": item.get_absolute_url()},
+                message="Item cadastrado com sucesso.",
+                status=ApiStatus.CREATED,
+            )
+        except Exception as exc:
+            if hasattr(exc, "code") and hasattr(exc, "message"):
+                return service_error_response(exc)
+            return unexpected_error_response("Erro inesperado ao criar item de achados e perdidos")
+    if request.method != "GET":
+        return api_method_not_allowed()
+
     itens, _, _, _ = build_achado_filtered_qs(request)
 
     limit, offset, pagination_error = parse_limit_offset(
@@ -178,13 +197,35 @@ def api_achados_perdidos(request):
     )
 
 
-@require_GET
 @login_required
 def api_achado_perdido_detail(request, pk):
     item = get_object_or_404(
         AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos", "assinaturas"),
         pk=pk,
     )
+    if request.method in {"POST", "PATCH"}:
+        try:
+            data, files, payload_error = extract_request_payload(request)
+            if payload_error:
+                return payload_error
+
+            edit_achado_perdido(
+                achado=item,
+                data=data,
+                files=files,
+                user=request.user,
+            )
+            return api_success(
+                data={"id": item.id, "redirect_url": item.get_absolute_url()},
+                message="Item atualizado com sucesso.",
+            )
+        except Exception as exc:
+            if hasattr(exc, "code") and hasattr(exc, "message"):
+                return service_error_response(exc)
+            return unexpected_error_response("Erro inesperado ao editar item de achados e perdidos")
+    if request.method != "GET":
+        return api_method_not_allowed()
+
     return api_success(
         data=serialize_achado_detail(item),
         message="Item carregado com sucesso.",
@@ -308,12 +349,60 @@ def achados_perdidos_edit(request, pk):
 
 @login_required
 def achados_perdidos_export(request):
+    queryset = AchadosPerdidos.objects.select_related("pessoa").order_by("-criado_em", "-id")
+    data_inicio = (request.POST.get("data_inicio") or request.GET.get("data_inicio") or "").strip()
+    data_fim = (request.POST.get("data_fim") or request.GET.get("data_fim") or "").strip()
+    if data_inicio:
+        queryset = queryset.filter(criado_em__date__gte=data_inicio)
+    if data_fim:
+        queryset = queryset.filter(criado_em__date__lte=data_fim)
+    if request.method == "POST":
+        formato = (request.POST.get("formato") or "").strip().lower()
+        formato = formato if formato in {"xlsx", "csv"} else "xlsx"
+        headers = ["ID", "Criado em", "Tipo", "Situação", "Status", "Área", "Local", "Orgânico", "Colaborador", "Setor", "Descrição", "Criado por", "Modificado em", "Modificado por"]
+        row_getters = [
+            lambda item: item.id,
+            lambda item: fmt_dt(item.criado_em),
+            lambda item: item.tipo_label,
+            lambda item: item.situacao_label,
+            lambda item: item.status_label,
+            lambda item: item.area_label,
+            lambda item: item.local_label,
+            lambda item: bool_ptbr(item.organico),
+            lambda item: item.colaborador,
+            lambda item: item.setor,
+            lambda item: item.descricao,
+            lambda item: user_display(getattr(item, "criado_por", None)),
+            lambda item: fmt_dt(item.modificado_em),
+            lambda item: user_display(getattr(item, "modificado_por", None)),
+        ]
+        if formato == "csv":
+            return export_generic_csv(
+                request,
+                queryset,
+                filename_prefix="achados_perdidos",
+                headers=headers,
+                row_getters=row_getters,
+            )
+        return export_generic_excel(
+            request,
+            queryset,
+            filename_prefix="achados_perdidos",
+            sheet_title="Achados Perdidos",
+            document_title="Relatório de Achados e Perdidos",
+            document_subject="Exportação geral de Achados e Perdidos",
+            headers=headers,
+            row_getters=row_getters,
+        )
+
     context = {
         "catalogo_achados_tipo": catalogo_achado_classificacao_items(),
         "catalogo_achados_situacao": catalogo_achado_situacao_items(),
         "catalogo_achados_status": catalogo_achado_status_items(),
         "areas": catalogo_areas_data(),
         "locais": catalogo_locais_por_area_data(request.GET.get("area")),
+        "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+        "total_itens": queryset.count(),
     }
     return render(request, "siop/achados_perdidos/export.html", context)
 

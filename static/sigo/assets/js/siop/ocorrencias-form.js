@@ -97,7 +97,7 @@
         submitButton.textContent = "Salvando...";
       }
 
-      window.SigoCsrf.fetch(form.action || window.location.pathname, {
+      window.SigoCsrf.fetch(form.dataset.apiUrl || form.action || window.location.pathname, {
         method: "POST",
         body: new FormData(form)
       })

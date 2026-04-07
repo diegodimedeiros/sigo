@@ -1,4 +1,21 @@
 (function () {
+  function resolveRequestTarget(form, options) {
+    var method =
+      (options && options.method) ||
+      form.dataset.apiMethod ||
+      form.getAttribute("method") ||
+      "POST";
+    var url =
+      (options && options.url) ||
+      form.dataset.apiUrl ||
+      form.getAttribute("action") ||
+      window.location.pathname;
+    return {
+      method: String(method || "POST").toUpperCase(),
+      url: url,
+    };
+  }
+
   function getFeedbackBox(form) {
     return form.querySelector(".js-form-feedback");
   }
@@ -70,15 +87,22 @@
     });
   }
 
-  function submitAsyncForm(form) {
+  function submitAsyncForm(form, options) {
     if (!form || typeof window.SigoCsrf === "undefined") {
       return;
     }
+
+    if (form.dataset.asyncFormBound === "true") {
+      return;
+    }
+    form.dataset.asyncFormBound = "true";
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       hideFormFeedback(form);
       clearFieldErrors(form);
+
+      var requestTarget = resolveRequestTarget(form, options);
 
       var submitButton = form.querySelector('[type="submit"]');
       var originalLabel = submitButton ? submitButton.textContent : "";
@@ -87,8 +111,8 @@
         submitButton.textContent = "Salvando...";
       }
 
-      window.SigoCsrf.fetch(form.action || window.location.pathname, {
-        method: "POST",
+      window.SigoCsrf.fetch(requestTarget.url, {
+        method: requestTarget.method,
         body: new FormData(form),
       })
         .then(function (response) {
@@ -129,4 +153,8 @@
       submitAsyncForm(form);
     });
   });
+
+  window.SiopAsyncForm = {
+    submitAsyncForm: submitAsyncForm,
+  };
 })();

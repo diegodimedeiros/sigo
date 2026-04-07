@@ -1,5 +1,8 @@
 {% extends 'siop/controle_ativos/base.html' %}
 
+{% block area_heading %}Exportação de Controle de Ativos{% endblock %}
+{% block area_description %}Painel visual para definição de filtros, formato de saída e composição do relatório exportado.{% endblock %}
+
 {% block content %}
 <div class="row g-4">
   <div class="col-lg-8">
@@ -13,8 +16,7 @@
           <div class="col-md-4">
             <label class="form-label">Formato</label>
             <select name="formato" class="form-select">
-              <option value="pdf" {% if request_data.formato == "pdf" %}selected{% endif %}>PDF</option>
-              <option value="xlsx" {% if request_data.formato == "xlsx" %}selected{% endif %}>XLSX</option>
+              <option value="xlsx" {% if request_data.formato == "xlsx" or not request_data.formato %}selected{% endif %}>XLSX</option>
               <option value="csv" {% if request_data.formato == "csv" %}selected{% endif %}>CSV</option>
             </select>
           </div>
@@ -45,15 +47,9 @@
               <li>Observação operacional</li>
             </ul>
           </div>
-          <div class="col-12">
-            <div class="alert alert-info mb-0" role="alert">
-              Há {{ total_ativos }} registro{{ total_ativos|pluralize:"s" }} disponível{% if total_ativos != 1 %}eis{% endif %} para exportação.
-            </div>
-          </div>
           <div class="d-flex flex-wrap gap-2 mt-4">
             <button type="submit" class="btn btn-success">Gerar exportação</button>
             <a href="{% url 'siop:controle_ativos_list' %}" class="btn btn-label-info">Voltar</a>
-            <a href="{% url 'siop:controle_ativos_new' %}" class="btn btn-primary">Novo ativo</a>
           </div>
         </form>
       </div>
@@ -62,10 +58,13 @@
   <div class="col-lg-4">
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Escopo da saída</div>
+        <div class="card-title">Prévia do relatório</div>
       </div>
       <div class="card-body">
-        <p class="text-muted mb-0">A exportação inclui identificação do ativo, destino, responsável, unidade, horários e observação operacional.</p>
+        <div class="alert alert-info mb-3" role="alert">
+          Há {{ total_ativos }} registro{{ total_ativos|pluralize:"s" }} disponível{% if total_ativos != 1 %}eis{% endif %} para exportação.
+        </div>
+        <p class="text-muted mb-0">A exportação inclui identificação do ativo, destino, responsável, unidade, movimentação e dados básicos de auditoria.</p>
       </div>
     </div>
   </div>

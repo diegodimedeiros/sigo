@@ -137,24 +137,7 @@
         "chave": "administrativo",
         "valor": "Administrativo"
       }
-    },
-    {
-      "chave": "carolyne_hahn",
-      "valor": "Carolyne Hahn",
-      "nome_completo": "Carolyne Rafael Hahn",
-      "funcao": {
-        "chave": "operador_de_bilheteria_i",
-        "valor": "Operador de Bilheteria I"
-      },
-      "setor": {
-        "chave": "coordenacao_operacoes_financeiras",
-        "valor": "Coordenação Operações Financeiras"
-      },
-      "area": {
-        "chave": "operacional",
-        "valor": "Operacional"
-      }
-    },
+    },    
     {
       "chave": "daniel_aninha",
       "valor": "Daniel Aninha",

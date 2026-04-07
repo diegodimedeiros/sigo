@@ -6,8 +6,8 @@ from sigo_core.shared.parsers import parse_local_datetime
 
 from ..acesso_terceiros.services import create_acesso_terceiros
 from ..models import LiberacaoAcesso
-from .common import extract_error_details
-from .notificacoes import publicar_notificacao_liberacao_chegada
+from ..common import extract_error_details
+from ..notificacoes import publicar_notificacao_liberacao_chegada
 
 
 def _build_liberacao_documento_interno():
@@ -65,11 +65,7 @@ def sync_liberacao_pessoas(*, pessoas_payload, liberacao):
             pessoas_vinculadas.append(pessoa)
             continue
 
-        pessoa = (
-            Pessoa.objects.filter(nome=nome, documento=documento)
-            .order_by("id")
-            .first()
-        )
+        pessoa = Pessoa.objects.filter(nome=nome, documento=documento).order_by("id").first()
         if pessoa is None:
             pessoa = Pessoa.objects.create(
                 nome=nome,
@@ -88,7 +84,12 @@ def build_liberacao_acesso_form_context(payload=None, errors=None, liberacao=Non
         "request_data": {
             "pessoas": extract_liberacao_pessoas(payload=payload, liberacao=liberacao),
             "motivo": payload.get("motivo", liberacao.motivo if liberacao else "") or "",
-            "data_liberacao": payload.get("data_liberacao", timezone.localtime(liberacao.data_liberacao).strftime("%Y-%m-%dT%H:%M") if liberacao and liberacao.data_liberacao else timezone.localtime().strftime("%Y-%m-%dT%H:%M")),
+            "data_liberacao": payload.get(
+                "data_liberacao",
+                timezone.localtime(liberacao.data_liberacao).strftime("%Y-%m-%dT%H:%M")
+                if liberacao and liberacao.data_liberacao
+                else timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+            ),
             "empresa": payload.get("empresa", liberacao.empresa if liberacao else "") or "",
             "solicitante": payload.get("solicitante", liberacao.solicitante if liberacao else "") or "",
         },

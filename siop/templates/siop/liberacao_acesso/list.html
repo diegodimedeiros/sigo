@@ -1,16 +1,17 @@
 {% extends 'siop/liberacao_acesso/base.html' %}
+{% load static %}
 
 {% block area_heading %}Listagem de Liberação de Acesso{% endblock %}
 {% block content %}
 <div class="card listing-filter-card mb-4">
   <div class="card-body">
-    <form method="get" class="filter-panel-grid">
+    <form method="get" class="filter-panel-grid" id="liberacao-acesso-list-form" data-api-url="{% url 'siop:api_liberacao_acesso' %}" data-page-size="20">
       <div class="filter-span-6"><label class="form-label" for="filtro-q">Busca rápida</label><input id="filtro-q" type="text" name="q" class="form-control" placeholder="Nome, documento, empresa..." value="{{ filters.q }}"></div>
       <div class="filter-span-3"><label class="form-label" for="filtro-empresa">Empresa</label><input id="filtro-empresa" type="text" name="empresa" class="form-control" value="{{ filters.empresa }}"></div>
       <div class="filter-span-3"><label class="form-label" for="filtro-solicitante">Solicitante</label><input id="filtro-solicitante" type="text" name="solicitante" class="form-control" value="{{ filters.solicitante }}"></div>
       <div class="filter-span-3"><label class="form-label" for="filtro-data-inicio">Data inicial</label><input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}"></div>
       <div class="filter-span-3"><label class="form-label" for="filtro-data-fim">Data final</label><input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}"></div>
-      <div class="filter-span-6 filter-actions"><button class="btn btn-label-info">Aplicar filtros</button><a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-secondary">Limpar</a></div>
+      <div class="filter-span-6 filter-actions"><button class="btn btn-label-info">Aplicar filtros</button><a href="{% url 'siop:liberacao_acesso_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a></div>
     </form>
   </div>
 </div>
@@ -20,7 +21,7 @@
     <div class="listing-table-header">
       <div>
         <div class="card-title mb-1">Resultado da listagem</div>
-        <div class="listing-table-meta">{{ total_liberacoes }} liberação{{ total_liberacoes|pluralize:"ões" }} encontrada{{ total_liberacoes|pluralize:"s" }}.</div>
+        <div class="listing-table-meta" id="liberacao-acesso-list-meta">{{ total_liberacoes }} liberação{{ total_liberacoes|pluralize:"ões" }} encontrada{{ total_liberacoes|pluralize:"s" }}.</div>
       </div>
     </div>
   </div>
@@ -39,7 +40,7 @@
             <th class="text-end">Detalhe</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="liberacao-acesso-list-body">
           {% for liberacao in liberacoes %}
           <tr>
             <td>#{{ liberacao.id }}</td>
@@ -70,6 +71,14 @@
       </table>
     </div>
   </div>
-  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_liberacoes %}
+  <div id="liberacao-acesso-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_liberacoes %}
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/siop/liberacao-acesso-form.js' %}"></script>
 {% endblock %}

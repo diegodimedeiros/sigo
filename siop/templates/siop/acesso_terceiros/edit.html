@@ -1,4 +1,5 @@
 {% extends 'siop/acesso_terceiros/base.html' %}
+{% load static %}
 
 {% block title %}Acesso #{{ acesso.id }} | SIOP{% endblock %}
 {% block acesso_heading %}Editar Acesso #{{ acesso.id }}{% endblock %}
@@ -11,8 +12,9 @@
     <div class="card-title">Formulário de edição</div>
   </div>
   <div class="card-body">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
     {% if non_field_errors %}<div class="alert alert-danger">{% for error in non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
-    <form method="post" enctype="multipart/form-data">
+    <form id="acesso-terceiros-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'siop:api_acesso_terceiros_detail' acesso.id %}">
       {% csrf_token %}
       <div class="row g-4">
         <div class="col-md-6"><label class="form-label" for="id_entrada">Entrada</label><input id="id_entrada" type="datetime-local" name="entrada" class="form-control" value="{{ request_data.entrada }}">{% if errors.entrada %}<div class="text-danger small mt-1">{{ errors.entrada }}</div>{% endif %}</div>
@@ -32,4 +34,10 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/siop/acesso-terceiros-form.js' %}"></script>
 {% endblock %}

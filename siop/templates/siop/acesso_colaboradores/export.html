@@ -1,0 +1,56 @@
+{% extends 'siop/acesso_colaboradores/base.html' %}
+
+{% block area_heading %}Exportação de Acesso de Colaboradores{% endblock %}
+{% block area_description %}Painel visual para definição de filtros, formato de saída e composição do relatório exportado.{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Configuração da exportação</div></div>
+      <div class="card-body">
+        <form method="post" class="row g-4">
+          {% csrf_token %}
+          <div class="col-md-4">
+            <label class="form-label">Formato</label>
+            <select name="formato" class="form-select">
+              <option value="xlsx" {% if request_data.formato == "xlsx" or not request_data.formato %}selected{% endif %}>XLSX</option>
+              <option value="csv" {% if request_data.formato == "csv" %}selected{% endif %}>CSV</option>
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label">Data inicial</label><input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}"></div>
+          <div class="col-md-4"><label class="form-label">Data final</label><input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}"></div>
+          <div class="col-md-6">
+            <div class="fw-semibold mb-2">Identificação</div>
+            <ul class="mb-0 ps-3">
+              <li>ID do registro</li>
+              <li>Pessoas vinculadas</li>
+              <li>P1 e placa do veículo</li>
+              <li>Unidade ativa</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-semibold mb-2">Movimentação</div>
+            <ul class="mb-0 ps-3">
+              <li>Data e hora da entrada</li>
+              <li>Data e hora da saída</li>
+              <li>Status derivado do uso</li>
+              <li>Descrição e auditoria do registro</li>
+            </ul>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-4"><button type="submit" class="btn btn-success">Gerar exportação</button><a href="{% url 'siop:acesso_colaboradores_list' %}" class="btn btn-label-info">Voltar</a></div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Prévia do relatório</div></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" role="alert">{{ total_acessos }} acesso{{ total_acessos|pluralize:"s" }} disponível{{ total_acessos|pluralize:"is" }} para exportação.</div>
+        <p class="text-muted mb-0">A exportação inclui pessoas vinculadas, horários, P1, unidade e dados básicos de auditoria.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

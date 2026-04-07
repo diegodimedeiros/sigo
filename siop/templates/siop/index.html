@@ -87,6 +87,46 @@
 
 <div class="col-xl-6">
 <div class="card h-100">
+  <div class="card-header"><div class="card-title">Acesso de Colaboradores</div></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Total de acessos de colaboradores registrados no dia atual.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-info">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Acesso colaborador do dia</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.acessos_colaboradores_dia }}">{{ dashboard.acessos_colaboradores_dia }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card card-stats card-round h-100" title="Quantidade de acessos de colaboradores ainda sem saída registrada.">
+          <div class="card-body">
+            <div class="dashboard-stat-layout">
+              <div class="dashboard-stat-icon dashboard-stat-icon-secondary">
+                <i class="fas fa-users-cog"></i>
+              </div>
+              <div class="numbers dashboard-stat-copy">
+                <p class="card-category">Acesso colaborador em aberto</p>
+                <h4 class="card-title" data-counter-value="{{ dashboard.acessos_colaboradores_abertos }}">{{ dashboard.acessos_colaboradores_abertos }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="col-xl-6">
+<div class="card h-100">
   <div class="card-header"><div class="card-title">Liberação de Acesso</div></div>
   <div class="card-body">
     <div class="row g-4">

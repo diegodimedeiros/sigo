@@ -18,6 +18,7 @@ from sigo_core.catalogos import (
     catalogo_funcao_ativo_label,
     catalogo_local_label,
     catalogo_natureza_label,
+    catalogo_p1_label,
     catalogo_tipo_label,
     catalogo_tipo_pessoa_label,
 )
@@ -99,6 +100,87 @@ class Ocorrencia(BaseModel):
     @property
     def local_label(self):
         return catalogo_local_label(self.area, self.local)
+
+class AcessoColaboradores(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="acessos_colaboradores", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
+    entrada = models.DateTimeField(verbose_name="Data e Hora da Entrada", db_index=True, null=False, blank=False)
+    saida = models.DateTimeField(verbose_name="Data e Hora da Saída", db_index=True, null=True, blank=True)
+    pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE, related_name="acessos_colaboradores")
+    placa_veiculo = models.CharField(max_length=20, verbose_name="Placa do Veículo", null=True, blank=True)
+    p1 = models.CharField(max_length=50, verbose_name="P1", db_index=True)
+    anexos = GenericRelation(Anexo)
+    descricao_acesso = models.TextField(verbose_name="Descrição de Acesso Colaboradores", blank=True)
+
+    class Meta:
+        verbose_name = "Acesso de Colaboradores"
+        verbose_name_plural = "Acessos de Colaboradores"
+        ordering = ["-entrada", "-criado_em"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(saida__isnull=True) | Q(saida__gte=F("entrada")),
+                name="acesso_colaboradores_saida_maior_ou_igual_entrada",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["p1", "-entrada"]),
+        ]
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        self.p1 = (self.p1 or "").strip()
+        self.placa_veiculo = (self.placa_veiculo or "").strip().upper() or None
+        self.descricao_acesso = (self.descricao_acesso or "").strip()
+
+        if not self.entrada:
+            errors["entrada"] = "A data e hora da entrada são obrigatórias."
+        if not self.p1:
+            errors["p1"] = "P1 é obrigatório."
+        if self.saida and self.entrada and self.saida < self.entrada:
+            errors["saida"] = "A saída não pode ser anterior à entrada."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if not self.unidade_sigla and self.unidade_id:
+            self.unidade_sigla = self.unidade.sigla
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        pessoas_label = self.pessoa.nome if self.pessoa_id and self.pessoa.nome else "sem pessoa"
+        return f"Acesso de Colaboradores - {pessoas_label} ({self.entrada.strftime('%d/%m/%Y %H:%M')})"
+
+    def get_absolute_url(self):
+        return reverse("siop:acesso_colaboradores_view", kwargs={"pk": self.pk})
+
+    @property
+    def pessoas_nomes_display(self):
+        return self.pessoa.nome if self.pessoa_id and self.pessoa.nome else ""
+
+    @property
+    def pessoas_documentos_display(self):
+        return self.pessoa.documento if self.pessoa_id and self.pessoa.documento else ""
+
+    @property
+    def pessoas_resumo_display(self):
+        return self.pessoas_nomes_display
+
+    @property
+    def pessoas_documentos_resumo_display(self):
+        return self.pessoas_documentos_display
+
+    @property
+    def status_label(self):
+        return "Concluído" if self.saida else "Em aberto"
+
+    @property
+    def p1_label(self):
+        return catalogo_p1_label(self.p1)
 
 class AcessoTerceiros(BaseModel):
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="acessos_terceiros", verbose_name="Unidade")

@@ -1,4 +1,5 @@
 {% extends 'siop/acesso_terceiros/base.html' %}
+{% load static %}
 
 {% block acesso_heading %}Novo Acesso de Terceiros{% endblock %}
 {% block acesso_description %}
@@ -15,7 +16,8 @@ Tela de cadastro visual para entrada, validação inicial e observações do flu
     <div class="card-title">Formulário de registro</div>
   </div>
   <div class="card-body">
-    <form id="acesso-terceiros-form" method="post" enctype="multipart/form-data">
+    <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
+    <form id="acesso-terceiros-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'siop:api_acesso_terceiros' %}">
       {% csrf_token %}
       {% if non_field_errors %}
       <div class="alert alert-danger" role="alert">
@@ -135,4 +137,10 @@ Tela de cadastro visual para entrada, validação inicial e observações do flu
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/siop/acesso-terceiros-form.js' %}"></script>
 {% endblock %}

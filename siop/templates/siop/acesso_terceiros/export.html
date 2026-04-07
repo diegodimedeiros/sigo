@@ -2,7 +2,7 @@
 
 {% block acesso_heading %}Exportação de Acessos{% endblock %}
 {% block acesso_description %}
-Painel visual para definição de filtros, formato de saída e composição do relatório da área.
+Painel visual para definição de filtros, formato de saída e composição do relatório exportado.
 {% endblock %}
 
 {% block acesso_hero_actions %}
@@ -17,56 +17,44 @@ Painel visual para definição de filtros, formato de saída e composição do r
         <div class="card-title">Configuração da exportação</div>
       </div>
       <div class="card-body">
-        <div class="row g-4">
+        <form id="acesso-terceiros-export-form" method="post" class="row g-4">
+          {% csrf_token %}
           <div class="col-md-4">
             <label class="form-label">Formato</label>
-            <select class="form-select">
-              <option>PDF</option>
-              <option>XLSX</option>
-              <option>CSV</option>
+            <select name="formato" class="form-select">
+              <option value="xlsx" {% if request_data.formato == "xlsx" or not request_data.formato %}selected{% endif %}>XLSX</option>
+              <option value="csv" {% if request_data.formato == "csv" %}selected{% endif %}>CSV</option>
             </select>
           </div>
           <div class="col-md-4">
             <label class="form-label">Período inicial</label>
-            <input type="date" class="form-control" />
+            <input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}" />
           </div>
           <div class="col-md-4">
             <label class="form-label">Período final</label>
-            <input type="date" class="form-control" />
+            <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}" />
           </div>
           <div class="col-md-6">
-            <label class="form-label">Status</label>
-            <select class="form-select">
-              <option>Todos</option>
-              <option>Em permanência</option>
-              <option>Finalizado</option>
-              <option>Pendente</option>
-            </select>
+            <div class="fw-semibold mb-2">Identificação</div>
+            <ul class="mb-0 ps-3">
+              <li>ID do registro</li>
+              <li>Nome e documento da pessoa</li>
+              <li>Empresa e placa do veículo</li>
+              <li>Unidade ativa</li>
+            </ul>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Tipo de acesso</label>
-            <select class="form-select">
-              <option>Todos</option>
-              <option>Visitante</option>
-              <option>Prestador</option>
-              <option>Fornecedor</option>
-            </select>
+            <div class="fw-semibold mb-2">Movimentação</div>
+            <ul class="mb-0 ps-3">
+              <li>Data e hora da entrada</li>
+              <li>Data e hora da saída</li>
+              <li>P1 responsável</li>
+              <li>Descrição operacional</li>
+            </ul>
           </div>
-          <div class="col-12">
-            <label class="form-label">Campos incluídos</label>
-            <div class="row g-3">
-              <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">Dados principais</label></div></div>
-              <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">Documentação</label></div></div>
-              <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox"><label class="form-check-label">Histórico</label></div></div>
-              <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">Destino</label></div></div>
-              <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox"><label class="form-check-label">Anexos</label></div></div>
-              <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">Status</label></div></div>
-            </div>
-          </div>
-        </div>
+        </form>
         <div class="d-flex flex-wrap gap-2 mt-4">
-          <button type="button" class="btn btn-success">Gerar exportação</button>
-          <button type="button" class="btn btn-label-secondary">Salvar preset</button>
+          <button type="submit" form="acesso-terceiros-export-form" class="btn btn-success">Gerar exportação</button>
         </div>
       </div>
     </div>
@@ -78,12 +66,8 @@ Painel visual para definição de filtros, formato de saída e composição do r
       </div>
       <div class="card-body">
         <p class="text-muted">Resumo visual do que será exportado:</p>
-        <ul class="mb-0">
-          <li>Formato: PDF</li>
-          <li>Período: dia atual</li>
-          <li>Filtros: todos os status</li>
-          <li>Campos: dados e documentação</li>
-        </ul>
+        <div class="alert alert-info mb-3" role="alert">{{ total_acessos }} acesso{{ total_acessos|pluralize:"s" }} disponível{% if total_acessos != 1 %}eis{% endif %} para exportação.</div>
+        <p class="text-muted mb-0">A exportação inclui dados da pessoa, empresa, permanência, unidade e campos básicos de auditoria.</p>
       </div>
     </div>
   </div>

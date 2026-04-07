@@ -6,7 +6,7 @@
   <div class="card-header"><div class="card-title">Edição do registro</div></div>
   <div class="card-body">
     <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
-    <form method="post" enctype="multipart/form-data" data-async-form="true">
+    <form method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'siop:api_liberacao_acesso_detail' liberacao.id %}">
       {% csrf_token %}
       {% if non_field_errors %}
       <div class="alert alert-danger" role="alert">
@@ -87,34 +87,5 @@
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
-<script>
-  (function () {
-    const container = document.getElementById("pessoas-container");
-    const addButton = document.getElementById("add-pessoa-btn");
-    const template = document.getElementById("pessoa-nome-template");
-
-    function syncRemoveButtons() {
-      const rows = container.querySelectorAll(".pessoa-nome-row");
-      rows.forEach((row, index) => {
-        const button = row.querySelector(".pessoa-remove-btn");
-        button.style.display = rows.length === 1 && index === 0 ? "none" : "";
-      });
-    }
-
-    addButton.addEventListener("click", function () {
-      container.appendChild(template.content.firstElementChild.cloneNode(true));
-      syncRemoveButtons();
-    });
-
-    container.addEventListener("click", function (event) {
-      if (!event.target.classList.contains("pessoa-remove-btn")) {
-        return;
-      }
-      event.target.closest(".pessoa-nome-row").remove();
-      syncRemoveButtons();
-    });
-
-    syncRemoveButtons();
-  })();
-</script>
+<script src="{% static 'sigo/assets/js/siop/liberacao-acesso-form.js' %}"></script>
 {% endblock %}

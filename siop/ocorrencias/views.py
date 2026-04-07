@@ -20,7 +20,9 @@ from sigo_core.catalogos import (
     catalogo_tipos_pessoa_data,
     catalogo_tipos_por_natureza_data,
 )
+from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import bool_ptbr, fmt_dt, status_ptbr, user_display
+from sigo_core.shared.xlsx_export import export_generic_excel
 from sigo_core.shared.pdf_export import build_numbered_canvas_class, draw_pdf_label_value, draw_pdf_page_chrome, wrap_pdf_text_lines
 
 from ..models import Ocorrencia
@@ -167,7 +169,62 @@ def ocorrencias_new(request):
 
 @login_required
 def ocorrencias_export(request):
-    return render(request, "siop/ocorrencias/export.html")
+    queryset = Ocorrencia.objects.order_by("-data_ocorrencia", "-id")
+    data_inicio = (request.POST.get("data_inicio") or request.GET.get("data_inicio") or "").strip()
+    data_fim = (request.POST.get("data_fim") or request.GET.get("data_fim") or "").strip()
+    if data_inicio:
+        queryset = queryset.filter(data_ocorrencia__date__gte=data_inicio)
+    if data_fim:
+        queryset = queryset.filter(data_ocorrencia__date__lte=data_fim)
+
+    if request.method == "POST":
+        formato = (request.POST.get("formato") or "").strip().lower()
+        formato = formato if formato in {"xlsx", "csv"} else "xlsx"
+        headers = ["ID", "Data/Hora", "Tipo Pessoa", "Natureza", "Tipo", "Área", "Local", "CFTV", "Bombeiro Civil", "Status", "Descrição", "Criado em", "Criado por", "Modificado em", "Modificado por"]
+        row_getters = [
+            lambda item: item.id,
+            lambda item: fmt_dt(item.data_ocorrencia),
+            lambda item: item.tipo_pessoa_label,
+            lambda item: item.natureza_label,
+            lambda item: item.tipo_label,
+            lambda item: item.area_label,
+            lambda item: item.local_label,
+            lambda item: bool_ptbr(item.cftv),
+            lambda item: bool_ptbr(item.bombeiro_civil),
+            lambda item: status_ptbr(item.status),
+            lambda item: item.descricao,
+            lambda item: fmt_dt(item.criado_em),
+            lambda item: user_display(getattr(item, "criado_por", None)),
+            lambda item: fmt_dt(item.modificado_em),
+            lambda item: user_display(getattr(item, "modificado_por", None)),
+        ]
+        if formato == "csv":
+            return export_generic_csv(
+                request,
+                queryset,
+                filename_prefix="ocorrencias",
+                headers=headers,
+                row_getters=row_getters,
+            )
+        return export_generic_excel(
+            request,
+            queryset,
+            filename_prefix="ocorrencias",
+            sheet_title="Ocorrencias",
+            document_title="Relatório de Ocorrências",
+            document_subject="Exportação geral de Ocorrências",
+            headers=headers,
+            row_getters=row_getters,
+        )
+
+    return render(
+        request,
+        "siop/ocorrencias/export.html",
+        {
+            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+            "total_ocorrencias": queryset.count(),
+        },
+    )
 
 
 @login_required
@@ -306,9 +363,29 @@ def ocorrencias_export_view_pdf(request, pk):
     return FileResponse(buffer, as_attachment=True, filename=filename)
 
 
-@require_GET
 @login_required
 def api_ocorrencias(request):
+    if request.method == "POST":
+        try:
+            data, files, payload_error = extract_request_payload(request)
+            if payload_error:
+                return payload_error
+            ocorrencia = registrar_ocorrencia(data=data, files=files, user=request.user)
+            return api_success(
+                data={"id": ocorrencia.id, "redirect_url": ocorrencia.get_absolute_url()},
+                message="Ocorrência cadastrada com sucesso.",
+                status=ApiStatus.CREATED,
+            )
+        except Exception as exc:
+            if hasattr(exc, "code") and hasattr(exc, "message"):
+                return service_error_response(exc)
+            return unexpected_error_response(
+                "Erro inesperado ao criar ocorrência",
+                user_id=getattr(request.user, "id", None),
+            )
+    if request.method != "GET":
+        return api_method_not_allowed()
+
     ocorrencias, _, _, _, _ = build_ocorrencia_filtered_qs(request)
     limit, offset, pagination_error = parse_limit_offset(request.GET, default_limit=None, max_limit=500)
     if pagination_error:
@@ -326,10 +403,32 @@ def api_ocorrencias(request):
     return api_success(data={"ocorrencias": data}, message="Ocorrências carregadas com sucesso.", meta=meta)
 
 
-@require_GET
 @login_required
 def api_ocorrencia_detail(request, pk):
     ocorrencia_obj = get_object_or_404(Ocorrencia.objects.prefetch_related("anexos"), pk=pk)
+    if request.method in {"POST", "PATCH"}:
+        try:
+            data, files, payload_error = extract_request_payload(request)
+            if payload_error:
+                return payload_error
+            editar_ocorrencia(
+                ocorrencia=ocorrencia_obj,
+                data=data,
+                files=files,
+                user=request.user,
+                strict_required=False,
+            )
+            return api_success(
+                data={"id": ocorrencia_obj.id, "redirect_url": ocorrencia_obj.get_absolute_url()},
+                message="Ocorrência alterada com sucesso.",
+            )
+        except Exception as exc:
+            if hasattr(exc, "code") and hasattr(exc, "message"):
+                return service_error_response(exc)
+            return unexpected_error_response("Erro inesperado ao editar ocorrência", ocorrencia_id=pk)
+    if request.method != "GET":
+        return api_method_not_allowed()
+
     return api_success(data=serialize_ocorrencia_detail(ocorrencia_obj), message="Ocorrência carregada com sucesso.")
 
 

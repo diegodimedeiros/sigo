@@ -68,6 +68,12 @@
                   <p>Acesso de Terceiros</p>
                 </a>
               </li>
+              <li class="nav-item {% block nav_siop_acesso_colaboradores_active %}{% if request.resolver_match.namespace == 'siop' and request.resolver_match.url_name|default:''|slice:':20' == 'acesso_colaboradores' %}active{% endif %}{% endblock %}">
+                <a href="{% url 'siop:acesso_colaboradores_index' %}">
+                  <i class="fas fa-user-check"></i>
+                  <p>Acesso de Colaboradores</p>
+                </a>
+              </li>
               <li class="nav-item {% block nav_siop_achados_perdidos_active %}{% if request.resolver_match.namespace == 'siop' and request.resolver_match.url_name|default:''|slice:':17' == 'achados_perdidos' %}active{% endif %}{% endblock %}">
                 <a href="{% url 'siop:achados_perdidos_index' %}">
                   <i class="fas fa-box-open"></i>

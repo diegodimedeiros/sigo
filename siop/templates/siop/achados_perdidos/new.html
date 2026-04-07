@@ -7,8 +7,9 @@
 
 {% block content %}
 <div class="card"><div class="card-header"><div class="card-title">Formulário de registro</div></div><div class="card-body">
+  <div class="alert alert-danger d-none js-form-feedback" role="alert"></div>
   {% if non_field_errors %}<div class="alert alert-danger">{% for error in non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
-  <form method="post" enctype="multipart/form-data" id="achadosPerdidosForm">{% csrf_token %}
+  <form method="post" enctype="multipart/form-data" id="achadosPerdidosForm" data-async-form="true" data-api-url="{% url 'siop:api_achados_perdidos' %}">{% csrf_token %}
     <div class="row g-4">
       <div class="col-md-4"><label class="form-label" for="id_tipo">Tipo do Item</label><select id="id_tipo" name="tipo" class="form-select"><option value="">Selecione</option>{% for item in catalogo_achados_tipo %}<option value="{{ item.chave }}" {% if request_data.tipo == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.tipo %}<div class="text-danger small mt-1">{{ errors.tipo }}</div>{% endif %}</div>
       <div class="col-md-4"><label class="form-label" for="id_situacao">Situação</label><select id="id_situacao" name="situacao" class="form-select"><option value="">Selecione</option>{% for item in catalogo_achados_situacao %}<option value="{{ item.chave }}" {% if request_data.situacao == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select>{% if errors.situacao %}<div class="text-danger small mt-1">{{ errors.situacao }}</div>{% endif %}</div>
@@ -75,4 +76,4 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}{{ block.super }}<script src="{% static 'sigo/assets/js/siop/achados-perdidos-form.js' %}"></script>{% endblock %}
+{% block extra_js %}{{ block.super }}<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script><script src="{% static 'sigo/assets/js/siop/achados-perdidos-form.js' %}"></script>{% endblock %}

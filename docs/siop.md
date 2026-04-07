@@ -6,6 +6,7 @@ Visão geral do módulo operacional.
 
 - `Ocorrências`
 - `Acesso de Terceiros`
+- `Acesso de Colaboradores`
 - `Achados e Perdidos`
 - `Controle de Ativos`
 - `Controle de Chaves`
@@ -26,29 +27,26 @@ Visão geral do módulo operacional.
 - organização de views por responsabilidade:
   - `dashboard_views.py` para dashboard e notificações
   - `download_views.py` para downloads compartilhados
+  - `common.py`, `notificacoes.py` e `view_shared.py` para infraestrutura compartilhada do módulo
   - `ocorrencias/views.py` para o domínio de ocorrências
-  - `operacoes_views.py` para as telas operacionais
-  - `operacoes/` para helpers compartilhados por tema
-  - `views.py` e `operacoes_support.py` mantidos como compatibilidade fina
+  - pacotes próprios para `acesso_colaboradores`, `controle_ativos`, `controle_chaves`, `crachas_provisorios`, `efetivo` e `liberacao_acesso`
+  - `views.py` mantido como compatibilidade fina
 
 ## Integração front-back
 
-Hoje o `SIOP` usa modelo misto, mas com direção clara para submit assíncrono:
+Hoje o `SIOP` já opera com `API + fetch` nas áreas implementadas do módulo.
+
+As áreas com API própria e contrato JSON explícito incluem:
 
 - `Ocorrências`
+- `Acesso de Terceiros`
+- `Acesso de Colaboradores`
+- `Achados e Perdidos`
 - `Controle de Ativos`
 - `Controle de Chaves`
 - `Crachás Provisórios`
 - `Efetivo`
 - `Liberação de Acesso`
-
-Essas áreas já seguem o padrão de formulário assíncrono com resposta JSON e redirecionamento para o resumo.
-
-Áreas com API própria e contrato JSON explícito:
-
-- `Ocorrências`
-- `Acesso de Terceiros`
-- `Achados e Perdidos`
 
 ## APIs disponíveis
 
@@ -66,6 +64,13 @@ Essas áreas já seguem o padrão de formulário assíncrono com resposta JSON e
 
 - `GET /siop/api/achados-perdidos/`
 - `GET /siop/api/achados-perdidos/<pk>/`
+
+### Acesso de Colaboradores
+
+- `GET /siop/api/acesso-colaboradores/`
+- `POST /siop/api/acesso-colaboradores/`
+- `GET /siop/api/acesso-colaboradores/<pk>/`
+- `POST /siop/api/acesso-colaboradores/<pk>/`
 
 ## Catálogos auxiliares expostos por API
 
@@ -108,6 +113,14 @@ Essas áreas já seguem o padrão de formulário assíncrono com resposta JSON e
 - o acompanhamento de chegada fica salvo no próprio registro por `chegadas_registradas`
 - o cadastro e a edição já respondem em JSON quando submetidos via `fetch`
 
+### Acesso de Colaboradores
+
+- o formulário pode receber um ou mais colaboradores no cadastro
+- ao salvar, o backend cria `1 registro por colaborador`
+- a edição opera sempre sobre um único colaborador por item
+- a criação aceita seleção por catálogo e digitação manual no cadastro
+- a exibição de `P1` usa o rótulo do catálogo no front, exportação e PDF
+
 ## Exportação PDF por item
 
 Áreas com PDF por registro:
@@ -115,6 +128,7 @@ Essas áreas já seguem o padrão de formulário assíncrono com resposta JSON e
 - `Ocorrências`
 - `Acesso de Terceiros`
 - `Achados e Perdidos`
+- `Acesso de Colaboradores`
 - `Controle de Ativos`
 - `Controle de Chaves`
 - `Crachás Provisórios`
@@ -137,6 +151,7 @@ Atualmente há uso de anexos em áreas com necessidade documental, como:
 
 - `Ocorrências`
 - `Acesso de Terceiros`
+- `Acesso de Colaboradores`
 - `Achados e Perdidos`
 - `Liberação de Acesso`
 

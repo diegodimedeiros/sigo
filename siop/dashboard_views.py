@@ -11,7 +11,7 @@ from sigo.models import Notificacao, get_unidade_ativa
 from sigo.notifications import notificacoes_anotadas_para_usuario_modulo
 from sigo_core.catalogos import catalogo_achado_status_label, catalogo_naturezas_data
 
-from .models import AcessoTerceiros, AchadosPerdidos, ControleAtivos, ControleChaves, CrachaProvisorio, LiberacaoAcesso, Ocorrencia
+from .models import AcessoColaboradores, AcessoTerceiros, AchadosPerdidos, ControleAtivos, ControleChaves, CrachaProvisorio, LiberacaoAcesso, Ocorrencia
 
 
 @login_required
@@ -27,6 +27,7 @@ def home(request):
 
     ocorrencias_qs = Ocorrencia.objects.all()
     acessos_qs = AcessoTerceiros.objects.all()
+    acessos_colaboradores_qs = AcessoColaboradores.objects.all()
     liberacoes_qs = LiberacaoAcesso.objects.all()
     achados_qs = AchadosPerdidos.objects.all()
     ativos_qs = ControleAtivos.objects.all()
@@ -36,6 +37,7 @@ def home(request):
     if unidade_ativa:
         ocorrencias_qs = ocorrencias_qs.filter(unidade=unidade_ativa)
         acessos_qs = acessos_qs.filter(unidade=unidade_ativa)
+        acessos_colaboradores_qs = acessos_colaboradores_qs.filter(unidade=unidade_ativa)
         liberacoes_qs = liberacoes_qs.filter(unidade=unidade_ativa)
         achados_qs = achados_qs.filter(unidade=unidade_ativa)
         ativos_qs = ativos_qs.filter(unidade=unidade_ativa)
@@ -65,6 +67,8 @@ def home(request):
         "ocorrencias_pendencia": ocorrencias_qs.filter(status=False).count(),
         "acessos_dia": acessos_qs.filter(criado_em__gte=inicio_hoje).count(),
         "acessos_abertos": acessos_qs.filter(saida__isnull=True).count(),
+        "acessos_colaboradores_dia": acessos_colaboradores_qs.filter(entrada__gte=inicio_hoje).count(),
+        "acessos_colaboradores_abertos": acessos_colaboradores_qs.filter(saida__isnull=True).count(),
         "pessoas_previstas_dia": pessoas_previstas_pendentes_dia,
         "achados_dia": achados_qs.filter(criado_em__gte=inicio_hoje, situacao="achado").count(),
         "perdidos_dia": achados_qs.filter(criado_em__gte=inicio_hoje, situacao="perdido").count(),

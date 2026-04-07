@@ -19,7 +19,7 @@
   <div class="col-lg-4">
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Painel rápido</div>
+        <div class="card-title">Notificações da área</div>
       </div>
       <div class="card-body">
         <div class="alert alert-info mb-3" role="alert">{{ dashboard.total }} ativo{{ dashboard.total|pluralize:"s" }} registrado{{ dashboard.total|pluralize:"s" }}.</div>
@@ -47,7 +47,7 @@
                 <th>Destino</th>
                 <th>Retirada</th>
                 <th>Status</th>
-                <th class="text-end">Abrir</th>
+                <th class="text-end">Ação</th>
               </tr>
             </thead>
             <tbody>
@@ -65,7 +65,7 @@
                   <span class="badge badge-warning">{{ ativo.status_label }}</span>
                   {% endif %}
                 </td>
-                <td class="text-end"><a href="{% url 'siop:controle_ativos_view' ativo.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+                <td class="text-end"><a href="{% url 'siop:controle_ativos_view' ativo.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
               <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum controle de ativo cadastrado ainda.</td></tr>
