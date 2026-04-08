@@ -210,6 +210,39 @@
     }
 
     initOcorrenciasSubmit();
+
+    if (window.SiopAsyncList) {
+      window.SiopAsyncList.initAsyncList({
+        formSelector: "#ocorrencias-list-form",
+        tableBodySelector: "#ocorrencias-list-body",
+        metaSelector: "#ocorrencias-list-meta",
+        paginationSelector: "#ocorrencias-list-pagination",
+        dataKey: "ocorrencias",
+        columnCount: 8,
+        emptyMessage: "Nenhuma ocorrência encontrada para os filtros informados.",
+        metaText: function (total) {
+          return total + " registro" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
+        },
+        renderRow: function (item) {
+          var escapeHtml = window.SiopAsyncList.escapeHtml;
+          var statusHtml = item.status
+            ? '<span class="badge badge-success">Finalizada</span>'
+            : '<span class="badge badge-warning">Em aberto</span>';
+          return (
+            "<tr>" +
+            "<td>#" + item.id + "</td>" +
+            "<td>" + escapeHtml(item.data || "-") + "</td>" +
+            "<td>" + escapeHtml(item.pessoa || "-") + "</td>" +
+            "<td>" + escapeHtml(item.natureza || "-") + "</td>" +
+            "<td>" + escapeHtml(item.tipo || "-") + "</td>" +
+            "<td>" + escapeHtml(item.area || "-") + "</td>" +
+            "<td>" + statusHtml + "</td>" +
+            '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-label-info">Ver</a></td>' +
+            "</tr>"
+          );
+        }
+      });
+    }
   }
 
   document.addEventListener("DOMContentLoaded", initOcorrenciasForm);

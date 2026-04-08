@@ -37,7 +37,7 @@
             <th>Solicitante</th>
             <th>Unidade</th>
             <th>Liberação</th>
-            <th class="text-end">Detalhe</th>
+            <th class="text-end">Ação</th>
           </tr>
         </thead>
         <tbody id="liberacao-acesso-list-body">
@@ -62,7 +62,7 @@
             <td>{{ liberacao.solicitante|default:"-" }}</td>
             <td>{{ liberacao.unidade_sigla|default:"-" }}</td>
             <td>{{ liberacao.data_liberacao|date:"d/m/Y H:i" }}</td>
-            <td class="text-end"><a href="{% url 'siop:liberacao_acesso_view' liberacao.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+            <td class="text-end"><a href="{% url 'siop:liberacao_acesso_view' liberacao.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
           </tr>
           {% empty %}
           <tr><td colspan="8" class="text-center py-4 text-muted">Nenhuma liberação de acesso encontrada para os filtros informados.</td></tr>

@@ -134,7 +134,7 @@ def save_liberacao_acesso_from_payload(*, payload, user, liberacao=None):
     if liberacao.pk:
         liberacao.modificado_por = user
     liberacao.unidade = unidade
-    liberacao.unidade_sigla = getattr(unidade, "sigla", None)
+    liberacao.preencher_unidade_sigla()
     liberacao.motivo = motivo
     liberacao.data_liberacao = data_liberacao
     liberacao.empresa = empresa or None

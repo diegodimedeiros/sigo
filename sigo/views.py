@@ -33,9 +33,9 @@ def current_user_avatar(request):
         content_type = operador.foto_mime_type or "application/octet-stream"
         return HttpResponse(bytes(operador.foto), content_type=content_type)
 
-    default_avatar_path = Path(settings.BASE_DIR) / "static" / "sigo" / "assets" / "img" / "profile.jpg"
+    default_avatar_path = Path(settings.BASE_DIR) / "static" / "sigo" / "assets" / "img" / "sigo" / "avatar_default.png"
     with default_avatar_path.open("rb") as avatar_file:
-        return HttpResponse(avatar_file.read(), content_type="image/jpeg")
+        return HttpResponse(avatar_file.read(), content_type="image/png")
 
 
 @login_required

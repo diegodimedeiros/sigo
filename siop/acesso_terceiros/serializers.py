@@ -28,6 +28,7 @@ def serialize_acesso_list_item(acesso):
         "p1": catalogo_p1_label(acesso.p1),
         "p1_key": acesso.p1,
         "total_anexos": getattr(acesso, "total_anexos", acesso.anexos.count()),
+        "view_url": acesso.get_absolute_url(),
     }
 
 

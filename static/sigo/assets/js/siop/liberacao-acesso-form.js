@@ -161,7 +161,7 @@
           "<td>" + escapeHtml(item.solicitante || "-") + "</td>" +
           "<td>" + escapeHtml(item.unidade_sigla || "-") + "</td>" +
           "<td>" + escapeHtml(item.data_liberacao || "-") + "</td>" +
-          '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-primary">Abrir</a></td>' +
+          '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-label-info">Ver</a></td>' +
           "</tr>"
         );
       },

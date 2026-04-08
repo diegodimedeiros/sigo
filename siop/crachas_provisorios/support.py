@@ -101,7 +101,7 @@ def save_cracha_from_payload(*, payload, user, cracha=None):
     if not is_new:
         cracha.modificado_por = user
     cracha.unidade = unidade
-    cracha.unidade_sigla = getattr(unidade, "sigla", None)
+    cracha.preencher_unidade_sigla()
     cracha.cracha = cracha_value
     cracha.entrega = entrega
     cracha.devolucao = devolucao

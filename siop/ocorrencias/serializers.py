@@ -44,6 +44,7 @@ def serialize_ocorrencia_list_item(ocorrencia):
         **_serialize_ocorrencia_base_fields(ocorrencia),
         "tem_anexo": total_anexos > 0,
         "total_anexos": total_anexos,
+        "view_url": ocorrencia.get_absolute_url(),
     }
 
 

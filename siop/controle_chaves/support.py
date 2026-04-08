@@ -133,7 +133,7 @@ def save_chave_from_payload(*, payload, user, chave=None):
     if not is_new:
         chave.modificado_por = user
     chave.unidade = unidade
-    chave.unidade_sigla = getattr(unidade, "sigla", None)
+    chave.preencher_unidade_sigla()
     chave.chave = chave_value
     chave.retirada = retirada
     chave.devolucao = devolucao

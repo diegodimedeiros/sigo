@@ -43,15 +43,15 @@ class Ocorrencia(BaseModel):
         verbose_name_plural = "Ocorrências"
         ordering = ["-data_ocorrencia"]
 
+    def normalizar_campos(self):
+        self.normalize_string_fields(
+            required_fields=("tipo_pessoa", "natureza", "tipo", "area", "local"),
+            nullable_fields=("descricao",),
+        )
+
     def clean(self):
         super().clean()
         errors = {}
-        self.tipo_pessoa = (self.tipo_pessoa or "").strip()
-        self.natureza = (self.natureza or "").strip()
-        self.tipo = (self.tipo or "").strip()
-        self.area = (self.area or "").strip()
-        self.local = (self.local or "").strip()
-        self.descricao = (self.descricao or "").strip() or None
 
         if not self.tipo_pessoa:
             errors["tipo_pessoa"] = "O tipo de pessoa é obrigatório."
@@ -70,13 +70,14 @@ class Ocorrencia(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalizar_campos()
+        self.preencher_unidade_sigla()
         self.full_clean()
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.natureza} - {self.tipo} - {self.local} ({self.data_ocorrencia.strftime('%d/%m/%Y %H:%M')})"
+        when = self.data_ocorrencia.strftime("%d/%m/%Y %H:%M") if self.data_ocorrencia else "sem data"
+        return f"{self.natureza} - {self.tipo} - {self.local} ({when})"
 
     def get_absolute_url(self):
         return reverse("siop:ocorrencias_view", kwargs={"pk": self.pk})
@@ -131,10 +132,6 @@ class AcessoColaboradores(BaseModel):
 
         errors = {}
 
-        self.p1 = (self.p1 or "").strip()
-        self.placa_veiculo = (self.placa_veiculo or "").strip().upper() or None
-        self.descricao_acesso = (self.descricao_acesso or "").strip()
-
         if not self.entrada:
             errors["entrada"] = "A data e hora da entrada são obrigatórias."
         if not self.p1:
@@ -146,14 +143,19 @@ class AcessoColaboradores(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalize_string_fields(
+            required_fields=("p1", "descricao_acesso"),
+            nullable_fields=("placa_veiculo",),
+            upper_fields=("placa_veiculo",),
+        )
+        self.preencher_unidade_sigla()
         self.full_clean()
         return super().save(*args, **kwargs)
 
     def __str__(self):
         pessoas_label = self.pessoa.nome if self.pessoa_id and self.pessoa.nome else "sem pessoa"
-        return f"Acesso de Colaboradores - {pessoas_label} ({self.entrada.strftime('%d/%m/%Y %H:%M')})"
+        when = self.entrada.strftime("%d/%m/%Y %H:%M") if self.entrada else "sem entrada"
+        return f"Acesso de Colaboradores - {pessoas_label} ({when})"
 
     def get_absolute_url(self):
         return reverse("siop:acesso_colaboradores_view", kwargs={"pk": self.pk})
@@ -217,11 +219,6 @@ class AcessoTerceiros(BaseModel):
 
         errors = {}
 
-        self.p1 = (self.p1 or "").strip()
-        self.empresa = (self.empresa or "").strip() or None
-        self.placa_veiculo = (self.placa_veiculo or "").strip().upper() or None
-        self.descricao_acesso = (self.descricao_acesso or "").strip()
-
         if not self.pessoa_id:
             errors["pessoa"] = "A pessoa é obrigatória."
 
@@ -238,8 +235,12 @@ class AcessoTerceiros(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalize_string_fields(
+            required_fields=("p1", "descricao_acesso"),
+            nullable_fields=("empresa", "placa_veiculo"),
+            upper_fields=("placa_veiculo",),
+        )
+        self.preencher_unidade_sigla()
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -295,20 +296,16 @@ class AchadosPerdidos(BaseModel):
             models.Index(fields=["area", "local"]),
         ]
 
+    def normalizar_campos(self):
+        self.normalize_string_fields(
+            required_fields=("tipo", "situacao", "descricao", "local", "area", "status"),
+            nullable_fields=("colaborador", "setor", "ciop"),
+        )
+
     def clean(self):
         super().clean()
 
         errors = {}
-
-        self.tipo = (self.tipo or "").strip()
-        self.situacao = (self.situacao or "").strip()
-        self.descricao = (self.descricao or "").strip()
-        self.local = (self.local or "").strip()
-        self.area = (self.area or "").strip()
-        self.colaborador = (self.colaborador or "").strip() or None
-        self.setor = (self.setor or "").strip() or None
-        self.ciop = (self.ciop or "").strip() or None
-        self.status = (self.status or "").strip()
 
         if not self.tipo:
             errors["tipo"] = "A classificação do item é obrigatória."
@@ -341,8 +338,8 @@ class AchadosPerdidos(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalizar_campos()
+        self.preencher_unidade_sigla()
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -386,7 +383,8 @@ class ControleAtivos(BaseModel):
     observacao = models.TextField(verbose_name="Observação", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.equipamento} - {self.destino} ({self.retirada.strftime('%d/%m/%Y %H:%M')})"
+        when = self.retirada.strftime("%d/%m/%Y %H:%M") if self.retirada else "sem retirada"
+        return f"{self.equipamento} - {self.destino} ({when})"
 
     def get_absolute_url(self):
         return reverse("siop:controle_ativos_view", kwargs={"pk": self.pk})
@@ -410,7 +408,8 @@ class ControleChaves(BaseModel):
     observacao = models.TextField(verbose_name="Observação", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.chave} ({self.retirada.strftime('%d/%m/%Y %H:%M')})"
+        when = self.retirada.strftime("%d/%m/%Y %H:%M") if self.retirada else "sem retirada"
+        return f"{self.chave} ({when})"
 
     def get_absolute_url(self):
         return reverse("siop:controle_chaves_view", kwargs={"pk": self.pk})
@@ -495,7 +494,8 @@ class LiberacaoAcesso(BaseModel):
                 pessoas_label = pessoas[0].nome
             else:
                 pessoas_label = f"{pessoas[0].nome} e mais {total - 1}"
-        return f"Liberação de Acesso - {pessoas_label} ({self.data_liberacao.strftime('%d/%m/%Y %H:%M')})"
+        when = self.data_liberacao.strftime("%d/%m/%Y %H:%M") if self.data_liberacao else "sem data"
+        return f"Liberação de Acesso - {pessoas_label} ({when})"
 
     def get_absolute_url(self):
         return reverse("siop:liberacao_acesso_view", kwargs={"pk": self.pk})

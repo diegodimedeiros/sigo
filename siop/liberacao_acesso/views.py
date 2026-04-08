@@ -1,3 +1,5 @@
+from django.http import HttpResponseNotAllowed
+
 from ..view_shared import *
 from ..view_shared import (
     _build_liberacao_export_rows,
@@ -96,18 +98,9 @@ def liberacao_acesso_new(request):
 @login_required
 def liberacao_acesso_view(request, pk):
     liberacao = get_object_or_404(LiberacaoAcesso.objects.prefetch_related("pessoas", "anexos"), pk=pk)
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
     pessoas_status = liberacao_pessoas_status(liberacao)
-    if request.method == "POST":
-        sucesso, mensagem = registrar_chegada_liberacao(liberacao=liberacao, payload=request.POST, user=request.user)
-        if sucesso:
-            messages.success(request, mensagem)
-        else:
-            messages.error(request, mensagem)
-        if expects_form_api_response(request):
-            if sucesso:
-                return form_success_response(request=request, instance=liberacao, message=mensagem)
-            return form_error_response(errors={"__all__": [mensagem]}, message=mensagem)
-        return redirect("siop:liberacao_acesso_view", pk=liberacao.pk)
     return render(request, "siop/liberacao_acesso/view.html", {"area_title": f"Liberação de Acesso #{liberacao.id}", "area_description": "Painel de leitura da autorização, solicitante, empresa e trilha de auditoria.", "liberacao": liberacao, "p1_responsaveis": catalogo_p1_data(), "pessoas_status": pessoas_status, "tem_chegada_pendente": liberacao_tem_pendente(pessoas_status)})
 
 

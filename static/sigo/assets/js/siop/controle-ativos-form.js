@@ -68,7 +68,7 @@
           "<td>" + escapeHtml(item.retirada || "-") + "</td>" +
           "<td>" + escapeHtml(item.devolucao || "-") + "</td>" +
           '<td><span class="' + badgeClass(item.status) + '">' + escapeHtml(item.status_label || "-") + "</span></td>" +
-          '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-primary">Abrir</a></td>' +
+          '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-label-info">Ver</a></td>' +
           "</tr>"
         );
       },

@@ -17,6 +17,14 @@ db.sqlite3-journal
 media/
 staticfiles/
 
+# Django migrations
+**/migrations/*.py
+!**/migrations/__init__.py
+**/migrations/*.pyc
+
+# Catalogos
+sigo_core/catalogos/catalogos/*
+
 # Test and tooling caches
 .pytest_cache/
 .mypy_cache/

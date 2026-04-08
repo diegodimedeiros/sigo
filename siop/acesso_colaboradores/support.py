@@ -173,7 +173,7 @@ def validate_acesso_colaboradores_payload(*, payload, editing=False):
 def _apply_acesso_colaboradores_data(*, acesso, pessoa, user, data):
     unidade = get_unidade_ativa()
     acesso.unidade = unidade
-    acesso.unidade_sigla = getattr(unidade, "sigla", None)
+    acesso.preencher_unidade_sigla()
     acesso.entrada = data["entrada"]
     acesso.saida = data["saida"]
     acesso.pessoa = pessoa

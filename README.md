@@ -91,6 +91,8 @@ sesmt/
   - `Liberação de Acesso`
 - formulários assíncronos com `fetch` no padrão do `SIOP` nas áreas implementadas do módulo
 - APIs JSON padronizadas nas áreas implementadas do `SIOP`
+- normalização de campos string concentrada em `save()`/helpers nos models mais recentes, com `clean()` focado em validação
+- helper compartilhado no `BaseModel` para preenchimento de `unidade_sigla`
 
 ## Fluxos já consolidados no SIOP
 
@@ -194,7 +196,14 @@ Rodar apenas o `SIOP`:
 - o `SIOP` hoje concentra a lógica por área, com utilitários compartilhados em módulos top-level do app
 - a modelagem e os fluxos estão sendo organizados por área para evitar regras espalhadas
 - as áreas novas do `SIOP` já estão separadas em pacotes próprios, no mesmo espírito das áreas mais antigas
+- a base de models está sendo alinhada para separar normalização de dados e validação de domínio
 - a pasta `docs/` foi iniciada para consolidar decisões e facilitar manutenção
+
+## ToDo atual
+
+- continuar a limpeza conservadora dos assets legados do tema que não têm uso real no projeto
+- ampliar a profundidade dos testes, especialmente em cenários de borda e contratos de API/listagem
+- seguir com o pente fino de padronização visual e textual entre as áreas do `SIOP`
 
 ## Licença
 

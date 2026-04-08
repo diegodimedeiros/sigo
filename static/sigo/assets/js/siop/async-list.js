@@ -97,6 +97,7 @@
     }
 
     var apiUrl = form.dataset.apiUrl || config.apiUrl;
+    var dataKey = config.dataKey || "registros";
     var pageSize = Number(form.dataset.pageSize || config.pageSize || 20);
     var currentPage = Number(new URLSearchParams(window.location.search).get("page") || "1");
     var loadingText = config.loadingText || "Carregando registros...";
@@ -155,7 +156,7 @@
           if (!result.response.ok || !result.payload.ok) {
             throw new Error("Falha ao carregar listagem.");
           }
-          var data = (result.payload.data || {}).registros || [];
+          var data = (result.payload.data || {})[dataKey] || [];
           var paginationMeta = ((result.payload.meta || {}).pagination) || {};
           var total = Number(paginationMeta.total || data.length || 0);
           renderRows(data);
@@ -204,6 +205,23 @@
       }
       event.preventDefault();
       currentPage = Number(pageLink.dataset.page || "1");
+      fetchPage(true);
+    });
+
+    form.addEventListener("click", function (event) {
+      var sortLink = event.target.closest("[data-sort-field]");
+      if (!sortLink) {
+        return;
+      }
+      event.preventDefault();
+      var sortFieldInput = form.querySelector('[name="sort"]');
+      var sortDirInput = form.querySelector('[name="dir"]');
+      if (!sortFieldInput || !sortDirInput) {
+        return;
+      }
+      sortFieldInput.value = sortLink.dataset.sortField || "";
+      sortDirInput.value = sortLink.dataset.sortDir || "asc";
+      currentPage = 1;
       fetchPage(true);
     });
 

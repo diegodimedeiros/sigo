@@ -66,7 +66,7 @@
             <th>Retirada</th>
             <th>Devolução</th>
             <th>Status</th>
-            <th class="text-end">Detalhe</th>
+            <th class="text-end">Ação</th>
           </tr>
         </thead>
         <tbody id="controle-chaves-list-body">
@@ -87,7 +87,7 @@
               <span class="badge badge-warning">{{ chave.status_label }}</span>
               {% endif %}
             </td>
-            <td class="text-end"><a href="{% url 'siop:controle_chaves_view' chave.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+            <td class="text-end"><a href="{% url 'siop:controle_chaves_view' chave.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
           </tr>
           {% empty %}
           <tr><td colspan="10" class="text-center py-4 text-muted">Nenhum controle de chave encontrado para os filtros informados.</td></tr>

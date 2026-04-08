@@ -126,7 +126,7 @@
           "<td>" + escapeHtml(item.unidade_sigla || "-") + "</td>" +
           "<td>" + escapeHtml(item.entrada || "-") + "</td>" +
           '<td><span class="' + badgeClass + '">' + escapeHtml(item.status_label || "-") + "</span></td>" +
-          '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-primary">Abrir</a></td>' +
+          '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-label-info">Ver</a></td>' +
           "</tr>"
         );
       },

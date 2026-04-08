@@ -28,8 +28,9 @@ class CurrentUserAvatarViewTests(TestCase):
         response = self.client.get(reverse("sigo:current_user_avatar"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertEqual(response["Content-Type"], "image/png")
         self.assertGreater(len(response.content), 0)
+        self.assertTrue(response.content.startswith(b"\x89PNG\r\n\x1a\n"))
 
     def test_returns_operator_photo_when_available(self):
         Operador.objects.create(

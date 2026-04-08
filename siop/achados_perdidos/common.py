@@ -101,6 +101,7 @@ def serialize_achado_list_item(item):
             "total_anexos": getattr(item, "total_anexos", item.anexos.count()),
             "criado_em": format_datetime(item.criado_em),
             "data_devolucao": format_datetime(item.data_devolucao),
+            "view_url": item.get_absolute_url(),
         }
     )
     return payload

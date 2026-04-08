@@ -572,6 +572,42 @@ class AcessoColaboradoresFlowTests(TestCase):
         self.assertEqual(payload["meta"]["pagination"]["total"], 1)
         self.assertEqual(len(payload["data"]["registros"][0]["pessoas"]), 1)
         self.assertEqual(payload["data"]["registros"][0]["pessoas"][0]["nome"], "Pessoa Um")
+        self.assertEqual(payload["data"]["registros"][0]["p1_label"], "Lucas Cunha")
+
+    def test_api_acesso_colaboradores_aplica_filtros_de_status_e_p1(self):
+        self.client.force_login(self.user)
+        AcessoColaboradores.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            entrada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Pessoa Em Aberto", documento="11111111112"),
+            p1="lucas_cunha",
+            descricao_acesso="Registro em aberto",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        AcessoColaboradores.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            entrada=timezone.now() - timedelta(hours=2),
+            saida=timezone.now() - timedelta(hours=1),
+            pessoa=Pessoa.objects.create(nome="Pessoa Concluida", documento="11111111113"),
+            p1="antonio_garcia",
+            descricao_acesso="Registro concluído",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(
+            reverse("siop:api_acesso_colaboradores"),
+            {"status": "em_aberto", "p1": "lucas_cunha"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["meta"]["pagination"]["total"], 1)
+        self.assertEqual(payload["data"]["registros"][0]["pessoas"][0]["nome"], "Pessoa Em Aberto")
+        self.assertEqual(payload["data"]["registros"][0]["p1"], "lucas_cunha")
 
     def test_acesso_colaboradores_edit_atualiza_registro(self):
         self.client.force_login(self.user)
@@ -617,7 +653,7 @@ class AcessoColaboradoresFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Pessoa Teste")
-        self.assertContains(response, "lucas_cunha")
+        self.assertContains(response, "Lucas Cunha")
 
     def test_acesso_colaboradores_export_xlsx_returns_file(self):
         self.client.force_login(self.user)
@@ -1348,6 +1384,51 @@ class ControleAtivosFlowTests(TestCase):
         self.assertEqual(payload["meta"]["pagination"]["total"], 1)
         self.assertEqual(payload["data"]["registros"][0]["pessoa"], "Carlos Souza")
 
+    def test_api_controle_ativos_filtra_por_status_e_respeita_offset(self):
+        self.client.force_login(self.user)
+        ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="radio_01",
+            destino="bombeiro_civil",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Primeiro Ativo", documento="12345678901"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="lanterna_01",
+            destino="jardinagem",
+            retirada=timezone.now() - timedelta(hours=3),
+            devolucao=timezone.now() - timedelta(hours=1),
+            pessoa=Pessoa.objects.create(nome="Segundo Ativo", documento="12345678902"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        ControleAtivos.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            equipamento="radio_02",
+            destino="limpeza",
+            retirada=timezone.now() - timedelta(hours=4),
+            pessoa=Pessoa.objects.create(nome="Terceiro Ativo", documento="12345678903"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(
+            reverse("siop:api_controle_ativos"),
+            {"status": "em_uso", "limit": 1, "offset": 1},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["meta"]["pagination"]["total"], 2)
+        self.assertEqual(payload["meta"]["pagination"]["count"], 1)
+        self.assertEqual(payload["data"]["registros"][0]["pessoa"], "Terceiro Ativo")
+
     def test_api_controle_ativos_invalid_pagination_returns_standard_error(self):
         self.client.force_login(self.user)
 
@@ -1598,6 +1679,34 @@ class ControleChavesFlowTests(TestCase):
         self.assertEqual(payload["meta"]["pagination"]["total"], 1)
         self.assertEqual(payload["data"]["registros"][0]["pessoa"], "Carlos Souza")
 
+    def test_api_controle_chaves_filtra_por_area(self):
+        self.client.force_login(self.user)
+        ControleChaves.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            chave="adm_001",
+            retirada=timezone.now(),
+            pessoa=Pessoa.objects.create(nome="Pessoa ADM", documento="12345678911"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        ControleChaves.objects.create(
+            unidade=self.unidade,
+            unidade_sigla=self.unidade.sigla,
+            chave="ciop_004",
+            retirada=timezone.now() - timedelta(hours=1),
+            pessoa=Pessoa.objects.create(nome="Pessoa CIOP", documento="12345678912"),
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:api_controle_chaves"), {"area": "CIOP"})
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["meta"]["pagination"]["total"], 1)
+        self.assertEqual(payload["data"]["registros"][0]["pessoa"], "Pessoa CIOP")
+
     def test_api_controle_chaves_invalid_pagination_returns_standard_error(self):
         self.client.force_login(self.user)
 
@@ -1833,6 +1942,32 @@ class ControleEfetivoFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertTrue(payload["ok"])
+        self.assertEqual(payload["meta"]["pagination"]["total"], 1)
+        self.assertEqual(payload["data"]["registros"][0]["plantao"], "Diurno")
+
+    def test_api_efetivo_filtra_por_busca_textual(self):
+        self.client.force_login(self.user)
+        ControleEfetivo.objects.create(
+            plantao="Diurno",
+            atendimento="Equipe A",
+            bilheteria="Bilheteria A",
+            ciop="Fernanda CIOP",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        ControleEfetivo.objects.create(
+            plantao="Noturno",
+            atendimento="Equipe B",
+            bilheteria="Bilheteria B",
+            ciop="Carlos Monitoramento",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("siop:api_efetivo"), {"q": "Fernanda"})
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
         self.assertEqual(payload["meta"]["pagination"]["total"], 1)
         self.assertEqual(payload["data"]["registros"][0]["plantao"], "Diurno")
 
@@ -2122,6 +2257,37 @@ class LiberacaoAcessoFlowTests(TestCase):
         self.assertEqual(payload["meta"]["pagination"]["total"], 1)
         self.assertEqual(len(payload["data"]["registros"][0]["pessoas"]), 2)
 
+    def test_api_liberacao_acesso_filtra_por_empresa_e_solicitante(self):
+        self.client.force_login(self.user)
+        primeira = LiberacaoAcesso.objects.create(
+            motivo="Atividade técnica.",
+            data_liberacao=timezone.now(),
+            empresa="Empresa Alfa",
+            solicitante="Coordenação Alfa",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        primeira.pessoas.add(Pessoa.objects.create(nome="Pessoa Alfa", documento="33333333333"))
+        segunda = LiberacaoAcesso.objects.create(
+            motivo="Visita institucional.",
+            data_liberacao=timezone.now() - timedelta(days=1),
+            empresa="Empresa Beta",
+            solicitante="Coordenação Beta",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        segunda.pessoas.add(Pessoa.objects.create(nome="Pessoa Beta", documento="44444444444"))
+
+        response = self.client.get(
+            reverse("siop:api_liberacao_acesso"),
+            {"empresa": "Beta", "solicitante": "Coordenação Beta"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["meta"]["pagination"]["total"], 1)
+        self.assertEqual(payload["data"]["registros"][0]["empresa"], "Empresa Beta")
+
     def test_api_liberacao_acesso_invalid_pagination_returns_standard_error(self):
         self.client.force_login(self.user)
 
@@ -2246,7 +2412,7 @@ class LiberacaoAcessoFlowTests(TestCase):
         liberacao.pessoas.set([pessoa_1, pessoa_2])
 
         response = self.client.post(
-            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            reverse("siop:api_liberacao_acesso_chegada", args=[liberacao.pk]),
             data={
                 "chegada_acao": "single",
                 "pessoa_id": pessoa_1.id,
@@ -2254,7 +2420,8 @@ class LiberacaoAcessoFlowTests(TestCase):
             },
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
         self.assertEqual(AcessoTerceiros.objects.count(), 1)
         acesso = AcessoTerceiros.objects.latest("id")
         self.assertEqual(acesso.pessoa, pessoa_1)
@@ -2281,14 +2448,15 @@ class LiberacaoAcessoFlowTests(TestCase):
         liberacao.pessoas.set([pessoa_1, pessoa_2])
 
         response = self.client.post(
-            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            reverse("siop:api_liberacao_acesso_chegada", args=[liberacao.pk]),
             data={
                 "chegada_acao": "all",
                 "p1": "lucas_cunha",
             },
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
         self.assertEqual(AcessoTerceiros.objects.count(), 2)
         self.assertEqual(
             set(AcessoTerceiros.objects.values_list("pessoa__nome", flat=True)),
@@ -2313,14 +2481,14 @@ class LiberacaoAcessoFlowTests(TestCase):
         liberacao.pessoas.set([pessoa_1, pessoa_2])
 
         response = self.client.post(
-            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            reverse("siop:api_liberacao_acesso_chegada", args=[liberacao.pk]),
             data={"chegada_acao": "all", "p1": "lucas_cunha"},
-            follow=True,
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 422)
+        self.assertFalse(response.json()["ok"])
         self.assertEqual(AcessoTerceiros.objects.count(), 0)
-        self.assertContains(response, "Nenhuma chegada foi registrada.")
+        self.assertIn("Nenhuma chegada foi registrada.", response.json()["error"]["message"])
 
     def test_liberacao_acesso_export_xlsx_returns_file(self):
         self.client.force_login(self.user)
@@ -2375,13 +2543,13 @@ class LiberacaoAcessoFlowTests(TestCase):
         liberacao.pessoas.set([pessoa])
 
         response = self.client.post(
-            reverse("siop:liberacao_acesso_view", args=[liberacao.pk]),
+            reverse("siop:api_liberacao_acesso_chegada", args=[liberacao.pk]),
             data={"chegada_acao": "single", "pessoa_id": pessoa.id, "p1": ""},
-            follow=True,
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Selecione o P1 para registrar a chegada.")
+        self.assertEqual(response.status_code, 422)
+        self.assertFalse(response.json()["ok"])
+        self.assertEqual(response.json()["error"]["message"], "Selecione o P1 para registrar a chegada.")
         self.assertEqual(AcessoTerceiros.objects.count(), 0)
 
 

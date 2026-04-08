@@ -23,7 +23,7 @@
             <th>Criado em</th>
             <th>Criado por</th>
             <th>Atualizado em</th>
-            <th class="text-end">Detalhe</th>
+            <th class="text-end">Ação</th>
           </tr>
         </thead>
         <tbody id="efetivo-list-body">
@@ -34,7 +34,7 @@
             <td>{{ registro.criado_em|date:"d/m/Y H:i" }}</td>
             <td>{{ registro.criado_por|default:"-" }}</td>
             <td>{{ registro.modificado_em|date:"d/m/Y H:i" }}</td>
-            <td class="text-end"><a href="{% url 'siop:efetivo_view' registro.id %}" class="btn btn-sm btn-primary">Abrir</a></td>
+            <td class="text-end"><a href="{% url 'siop:efetivo_view' registro.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
           </tr>
           {% empty %}
           <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>

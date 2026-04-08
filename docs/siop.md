@@ -31,6 +31,10 @@ Visão geral do módulo operacional.
   - `ocorrencias/views.py` para o domínio de ocorrências
   - pacotes próprios para `acesso_colaboradores`, `controle_ativos`, `controle_chaves`, `crachas_provisorios`, `efetivo` e `liberacao_acesso`
   - `views.py` mantido como compatibilidade fina
+- models mais recentes alinhados ao padrão:
+  - `clean()` para validação
+  - normalização de strings em `save()`/helpers
+  - preenchimento de `unidade_sigla` via helper comum do `BaseModel`
 
 ## Integração front-back
 
@@ -137,8 +141,9 @@ As áreas com API própria e contrato JSON explícito incluem:
 
 ## Exportação geral
 
-As áreas abaixo já possuem exportação consolidada em `PDF`, `XLSX` e `CSV` a partir da tela `export`:
+As áreas abaixo já possuem exportação consolidada em `XLSX` e `CSV` a partir da tela `export`:
 
+- `Acesso de Colaboradores`
 - `Controle de Ativos`
 - `Controle de Chaves`
 - `Crachás Provisórios`
@@ -167,3 +172,10 @@ O módulo possui cobertura automatizada para:
 - formulários assíncronos sem regressão nos fluxos principais
 - exportações gerais das áreas operacionais novas
 - cenários adicionais de validação nas áreas novas, como destino inválido, chave incompatível com área e chegada sem `P1`
+- filtros reais de API em áreas novas, incluindo status, área, empresa, solicitante e paginação com `limit/offset`
+
+## ToDo atual
+
+- continuar a limpeza conservadora de assets legados do tema que não participam do projeto
+- ampliar a profundidade dos testes em APIs, listagens assíncronas e cenários de borda
+- manter o pente fino de padronização visual e textual entre as áreas do `SIOP`

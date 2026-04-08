@@ -95,26 +95,28 @@ class ControleAtendimento(BaseModel):
             models.Index(fields=["area_atendimento", "-data_atendimento"]),
         ]
 
+    def normalizar_campos(self):
+        self.normalize_string_fields(
+            required_fields=("tipo_pessoa", "area_atendimento", "local", "tipo_ocorrencia", "descricao"),
+            nullable_fields=(
+                "grau_parentesco",
+                "descricao_doenca",
+                "descricao_alergia",
+                "nome_plano_saude",
+                "numero_carteirinha",
+                "primeiros_socorros",
+                "responsavel_atendimento",
+                "transporte",
+                "encaminhamento",
+                "hospital",
+                "medico_responsavel",
+                "crm",
+            ),
+        )
+
     def clean(self):
         super().clean()
         errors = {}
-        self.tipo_pessoa = (self.tipo_pessoa or "").strip()
-        self.area_atendimento = (self.area_atendimento or "").strip()
-        self.local = (self.local or "").strip()
-        self.tipo_ocorrencia = (self.tipo_ocorrencia or "").strip()
-        self.grau_parentesco = (self.grau_parentesco or "").strip() or None
-        self.descricao_doenca = (self.descricao_doenca or "").strip() or None
-        self.descricao_alergia = (self.descricao_alergia or "").strip() or None
-        self.nome_plano_saude = (self.nome_plano_saude or "").strip() or None
-        self.numero_carteirinha = (self.numero_carteirinha or "").strip() or None
-        self.primeiros_socorros = (self.primeiros_socorros or "").strip() or None
-        self.responsavel_atendimento = (self.responsavel_atendimento or "").strip() or None
-        self.transporte = (self.transporte or "").strip() or None
-        self.encaminhamento = (self.encaminhamento or "").strip() or None
-        self.hospital = (self.hospital or "").strip() or None
-        self.medico_responsavel = (self.medico_responsavel or "").strip() or None
-        self.crm = (self.crm or "").strip() or None
-        self.descricao = (self.descricao or "").strip()
         if not self.tipo_pessoa: errors["tipo_pessoa"] = "O tipo de pessoa é obrigatório."
         if not self.pessoa_id: errors["pessoa"] = "A pessoa é obrigatória."
         if not self.area_atendimento: errors["area_atendimento"] = "A área de atendimento é obrigatória."
@@ -140,8 +142,8 @@ class ControleAtendimento(BaseModel):
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalizar_campos()
+        self.preencher_unidade_sigla()
         self.full_clean()
         super().save(*args, **kwargs)
         novo_hash = self._build_hash_atendimento()
@@ -227,22 +229,6 @@ class Manejo(BaseModel):
 
         errors = {}
 
-        self.classe = (self.classe or "").strip()
-        self.nome_cientifico = (self.nome_cientifico or "").strip() or None
-        self.nome_popular = (self.nome_popular or "").strip() or None
-        self.estagio_desenvolvimento = (self.estagio_desenvolvimento or "").strip() or None
-        self.area_captura = (self.area_captura or "").strip()
-        self.local_captura = (self.local_captura or "").strip()
-        self.descricao_local = (self.descricao_local or "").strip()
-        self.responsavel_manejo = (self.responsavel_manejo or "").strip() or None
-        self.area_soltura = (self.area_soltura or "").strip() or None
-        self.local_soltura = (self.local_soltura or "").strip() or None
-        self.descricao_local_soltura = (self.descricao_local_soltura or "").strip()
-        self.orgao_publico = (self.orgao_publico or "").strip() or None
-        self.numero_boletim_ocorrencia = (self.numero_boletim_ocorrencia or "").strip() or None
-        self.motivo_acionamento = (self.motivo_acionamento or "").strip()
-        self.observacoes = (self.observacoes or "").strip()
-
         if not self.data_hora:
             errors["data_hora"] = "A data e hora do manejo são obrigatórias."
         if not self.classe:
@@ -273,9 +259,15 @@ class Manejo(BaseModel):
         if errors:
             raise ValidationError(errors)
 
+    def normalizar_campos(self):
+        self.normalize_string_fields(
+            required_fields=("classe", "area_captura", "local_captura", "descricao_local", "descricao_local_soltura", "motivo_acionamento", "observacoes"),
+            nullable_fields=("nome_cientifico", "nome_popular", "estagio_desenvolvimento", "responsavel_manejo", "area_soltura", "local_soltura", "orgao_publico", "numero_boletim_ocorrencia"),
+        )
+
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalizar_campos()
+        self.preencher_unidade_sigla()
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -344,19 +336,6 @@ class Flora(BaseModel):
 
         errors = {}
 
-        self.responsavel_registro = (self.responsavel_registro or "").strip()
-        self.local = (self.local or "").strip()
-        self.area = (self.area or "").strip()
-        self.especie = (self.especie or "").strip() or None
-        self.popular = (self.popular or "").strip() or None
-        self.estado_fitossanitario = (self.estado_fitossanitario or "").strip() or None
-        self.descricao = (self.descricao or "").strip()
-        self.justificativa = (self.justificativa or "").strip()
-        self.acao_inicial = (self.acao_inicial or "").strip() or None
-        self.acao_final = (self.acao_final or "").strip() or None
-        self.zona = (self.zona or "").strip() or None
-        self.responsavel = (self.responsavel or "").strip() or None
-
         if not self.responsavel_registro:
             errors["responsavel_registro"] = "O responsável pelo registro é obrigatório."
 
@@ -387,9 +366,15 @@ class Flora(BaseModel):
         if errors:
             raise ValidationError(errors)
 
+    def normalizar_campos(self):
+        self.normalize_string_fields(
+            required_fields=("responsavel_registro", "local", "area", "descricao", "justificativa"),
+            nullable_fields=("especie", "popular", "estado_fitossanitario", "acao_inicial", "acao_final", "zona", "responsavel"),
+        )
+
     def save(self, *args, **kwargs):
-        if not self.unidade_sigla and self.unidade_id:
-            self.unidade_sigla = self.unidade.sigla
+        self.normalizar_campos()
+        self.preencher_unidade_sigla()
         self.full_clean()
         return super().save(*args, **kwargs)
 

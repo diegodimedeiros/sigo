@@ -278,6 +278,46 @@
     statusSelect.addEventListener('change', syncSignatureVisibility);
   }
 
+  function initAsyncAchadosList() {
+    if (!window.SiopAsyncList) {
+      return;
+    }
+
+    window.SiopAsyncList.initAsyncList({
+      formSelector: '#achados-perdidos-list-form',
+      tableBodySelector: '#achados-perdidos-list-body',
+      metaSelector: '#achados-perdidos-list-meta',
+      paginationSelector: '#achados-perdidos-list-pagination',
+      dataKey: 'itens',
+      columnCount: 8,
+      emptyMessage: 'Nenhum item encontrado.',
+      metaText: function (total) {
+        return total + (total === 1 ? ' item encontrado.' : ' itens encontrados.');
+      },
+      renderRow: function (item) {
+        var escapeHtml = window.SiopAsyncList.escapeHtml;
+        var statusHtml =
+          '<span class="badge ' +
+          (item.status === 'recebido' ? 'badge-warning' : 'badge-success') +
+          '">' +
+          escapeHtml(item.status_label || '-') +
+          '</span>';
+        return (
+          '<tr>' +
+          '<td>#' + item.id + '</td>' +
+          '<td>' + escapeHtml(item.situacao_label || '-') + '</td>' +
+          '<td>' + escapeHtml(item.tipo_label || '-') + '</td>' +
+          '<td>' + escapeHtml(item.area_label || '-') + '</td>' +
+          '<td>' + escapeHtml(item.local_label || '-') + '</td>' +
+          '<td>' + statusHtml + '</td>' +
+          '<td>' + escapeHtml(item.criado_em || '-') + '</td>' +
+          '<td class="text-end"><a href="' + escapeHtml(item.view_url || '#') + '" class="btn btn-sm btn-label-info">Ver</a></td>' +
+          '</tr>'
+        );
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     const areaSelect = document.getElementById('id_area');
     const localSelect = document.getElementById('id_local');
@@ -321,5 +361,6 @@
     if (statusSelect) {
       initSignatureCapture(statusSelect);
     }
+    initAsyncAchadosList();
   });
 })();

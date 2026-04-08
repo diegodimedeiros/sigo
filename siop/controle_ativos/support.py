@@ -141,7 +141,7 @@ def save_ativo_from_payload(*, payload, user, ativo=None):
     if not is_new:
         ativo.modificado_por = user
     ativo.unidade = unidade
-    ativo.unidade_sigla = getattr(unidade, "sigla", None)
+    ativo.preencher_unidade_sigla()
     ativo.equipamento = equipamento
     ativo.destino = destino
     ativo.retirada = retirada

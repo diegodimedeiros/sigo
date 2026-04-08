@@ -1,4 +1,5 @@
 {% extends 'siop/acesso_terceiros/base.html' %}
+{% load static %}
 
 {% block acesso_heading %}Listagem de Acessos{% endblock %}
 {% block acesso_description %}
@@ -12,7 +13,9 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
 {% block content %}
 <div class="card listing-filter-card mb-4">
   <div class="card-body">
-    <form method="get" class="filter-panel-grid">
+    <form method="get" class="filter-panel-grid" id="acesso-terceiros-list-form" data-api-url="{% url 'siop:api_acesso_terceiros' %}" data-page-size="20">
+      <input type="hidden" name="sort" value="{{ filters.sort }}">
+      <input type="hidden" name="dir" value="{{ filters.dir }}">
       <div class="filter-span-6">
         <label class="form-label" for="filtro-q">Busca rápida</label>
         <input id="filtro-q" type="text" name="q" class="form-control" placeholder="ID, nome, empresa, documento..." value="{{ filters.q }}">
@@ -44,7 +47,7 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
       </div>
       <div class="filter-span-6 filter-actions">
         <button class="btn btn-label-info">Aplicar filtros</button>
-        <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-secondary">Limpar</a>
+        <a href="{% url 'siop:acesso_terceiros_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a>
       </div>
     </form>
   </div>
@@ -55,7 +58,7 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
     <div class="listing-table-header">
       <div>
         <div class="card-title mb-1">Resultado da listagem</div>
-        <div class="listing-table-meta">{{ total_acessos }} acesso{{ total_acessos|pluralize:"s" }} encontrado{{ total_acessos|pluralize:"s" }}.</div>
+        <div class="listing-table-meta" id="acesso-terceiros-list-meta">{{ total_acessos }} acesso{{ total_acessos|pluralize:"s" }} encontrado{{ total_acessos|pluralize:"s" }}.</div>
       </div>
     </div>
   </div>
@@ -64,18 +67,18 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
       <table class="table table-striped table-hover listing-table align-middle mb-0">
         <thead>
           <tr>
-            <th><a href="{{ sort_links.id.url }}" class="table-sort-link{% if sort_links.id.active %} is-active{% endif %}">ID <span>{{ sort_links.id.icon }}</span></a></th>
-            <th><a href="{{ sort_links.entrada.url }}" class="table-sort-link{% if sort_links.entrada.active %} is-active{% endif %}">Entrada <span>{{ sort_links.entrada.icon }}</span></a></th>
-            <th><a href="{{ sort_links.empresa.url }}" class="table-sort-link{% if sort_links.empresa.active %} is-active{% endif %}">Empresa <span>{{ sort_links.empresa.icon }}</span></a></th>
-            <th><a href="{{ sort_links.nome.url }}" class="table-sort-link{% if sort_links.nome.active %} is-active{% endif %}">Nome <span>{{ sort_links.nome.icon }}</span></a></th>
-            <th><a href="{{ sort_links.documento.url }}" class="table-sort-link{% if sort_links.documento.active %} is-active{% endif %}">Documento <span>{{ sort_links.documento.icon }}</span></a></th>
-            <th><a href="{{ sort_links.p1.url }}" class="table-sort-link{% if sort_links.p1.active %} is-active{% endif %}">P1 <span>{{ sort_links.p1.icon }}</span></a></th>
-            <th><a href="{{ sort_links.saida.url }}" class="table-sort-link{% if sort_links.saida.active %} is-active{% endif %}">Saída <span>{{ sort_links.saida.icon }}</span></a></th>
-            <th><a href="{{ sort_links.status.url }}" class="table-sort-link{% if sort_links.status.active %} is-active{% endif %}">Status <span>{{ sort_links.status.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="id" data-sort-dir="{% if sort_links.id.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.id.active %} is-active{% endif %}">ID <span>{{ sort_links.id.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="entrada" data-sort-dir="{% if sort_links.entrada.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.entrada.active %} is-active{% endif %}">Entrada <span>{{ sort_links.entrada.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="empresa" data-sort-dir="{% if sort_links.empresa.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.empresa.active %} is-active{% endif %}">Empresa <span>{{ sort_links.empresa.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="nome" data-sort-dir="{% if sort_links.nome.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.nome.active %} is-active{% endif %}">Nome <span>{{ sort_links.nome.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="documento" data-sort-dir="{% if sort_links.documento.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.documento.active %} is-active{% endif %}">Documento <span>{{ sort_links.documento.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="p1" data-sort-dir="{% if sort_links.p1.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.p1.active %} is-active{% endif %}">P1 <span>{{ sort_links.p1.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="saida" data-sort-dir="{% if sort_links.saida.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.saida.active %} is-active{% endif %}">Saída <span>{{ sort_links.saida.icon }}</span></a></th>
+            <th><a href="#" data-sort-field="status" data-sort-dir="{% if sort_links.status.active and filters.dir == 'asc' %}desc{% else %}asc{% endif %}" class="table-sort-link{% if sort_links.status.active %} is-active{% endif %}">Status <span>{{ sort_links.status.icon }}</span></a></th>
             <th class="text-end">Ação</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="acesso-terceiros-list-body">
           {% for acesso in page_obj %}
           <tr>
             <td>#{{ acesso.pk }}</td>
@@ -103,6 +106,14 @@ Consulta operacional com filtros, ordenação e acesso ao detalhamento de cada e
       </table>
     </div>
   </div>
-  {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_acessos %}
+  <div id="acesso-terceiros-list-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_acessos %}
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/siop/acesso-terceiros-form.js' %}"></script>
 {% endblock %}

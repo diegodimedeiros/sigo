@@ -135,6 +135,59 @@
 - Mantidos todos os estados/UFs informados.
 
 
+## Exemplo de montagem de catálogo
+
+Exemplo de catálogo estruturado por grupos:
+
+```json
+{
+	"catalogo": "nome_do_catalogo",
+	"descricao": "Descrição opcional do catálogo",
+	"tipo": "grupos",
+	"grupos": [
+		{
+			"chave": "grupo_1",
+			"valor": "Nome do Grupo 1",
+			"descricao": "Descrição opcional do grupo",
+			"itens": [
+				{
+					"chave": "item_1",
+					"valor": "Item 1",
+					"ativo": true,
+					"ordem": 1
+				},
+				{
+					"chave": "item_2",
+					"valor": "Item 2",
+					"ativo": true,
+					"ordem": 2
+				}
+			]
+		},
+		{
+			"chave": "grupo_2",
+			"valor": "Nome do Grupo 2",
+			"itens": [
+				{
+					"chave": "item_a",
+					"valor": "Item A"
+				},
+				{
+					"chave": "item_b",
+					"valor": "Item B"
+				}
+			]
+		}
+	],
+	"metadados": {
+		"versao": 1,
+		"data_criacao": "2026-04-08",
+		"ativo": true
+	}
+}
+```
+
+
 ## Observações importantes
 
 - Nem toda repetição foi removida. Em `catalogo_area`, por exemplo, itens como `Banheiro Feminino` aparecem em áreas diferentes e fazem sentido por contexto.

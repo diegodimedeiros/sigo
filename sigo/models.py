@@ -37,6 +37,43 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+    @staticmethod
+    def normalize_string_value(value, *, blank_to_none=False, upper=False):
+        if value is None:
+            return None if blank_to_none else ""
+        normalized = str(value).strip()
+        if upper:
+            normalized = normalized.upper()
+        if blank_to_none and not normalized:
+            return None
+        return normalized
+
+    def normalize_string_fields(self, *, required_fields=(), nullable_fields=(), upper_fields=()):
+        for field_name in required_fields:
+            setattr(
+                self,
+                field_name,
+                self.normalize_string_value(
+                    getattr(self, field_name, None),
+                    blank_to_none=False,
+                    upper=field_name in upper_fields,
+                ),
+            )
+        for field_name in nullable_fields:
+            setattr(
+                self,
+                field_name,
+                self.normalize_string_value(
+                    getattr(self, field_name, None),
+                    blank_to_none=True,
+                    upper=field_name in upper_fields,
+                ),
+            )
+
+    def preencher_unidade_sigla(self):
+        if hasattr(self, "unidade") and getattr(self, "unidade_id", None) and not getattr(self, "unidade_sigla", None):
+            self.unidade_sigla = self.unidade.sigla
+
 class GenericRelationModel(models.Model):
     content_type = models.ForeignKey(
         ContentType,
@@ -67,6 +104,7 @@ class BaseArquivo(BaseModel, GenericRelationModel):
         return hashlib.sha256(conteudo).hexdigest()
 
     def save(self, *args, **kwargs):
+        self.full_clean()
         if self.arquivo:
             conteudo = bytes(self.arquivo)
             self.tamanho = len(conteudo)
@@ -283,15 +321,18 @@ class Unidade(models.Model):
         verbose_name_plural = "Unidades"
         ordering = ["nome"]
 
-    def clean(self):
-        super().clean()
+    def normalizar_campos(self):
         self.nome = normalize_text(self.nome)
         self.sigla = normalize_upper(self.sigla) or None
         self.cnpj = normalize_digits(self.cnpj) or None
         self.cidade = normalize_text(self.cidade) or None
         self.uf = normalize_upper(self.uf) or None
 
+    def clean(self):
+        super().clean()
+
     def save(self, *args, **kwargs):
+        self.normalizar_campos()
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -424,11 +465,13 @@ class Notificacao(models.Model):
         verbose_name_plural = "Notificações"
         ordering = ["-criado_em"]
 
-    def clean(self):
-        super().clean()
+    def normalizar_campos(self):
         self.titulo = normalize_text(self.titulo)
         self.mensagem = normalize_text(self.mensagem)
         self.link = normalize_text(self.link)
+
+    def clean(self):
+        super().clean()
 
         if not self.titulo:
             raise ValidationError({"titulo": "Informe o título da notificação."})
@@ -441,6 +484,11 @@ class Notificacao(models.Model):
 
     def __str__(self):
         return self.titulo
+
+    def save(self, *args, **kwargs):
+        self.normalizar_campos()
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     def get_tipo_css(self):
         if self.tipo == self.TIPO_SUCESSO:
