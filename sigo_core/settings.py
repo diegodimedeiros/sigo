@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'sigo',
     'siop',
     'sesmt',
+    'reportos',
     
 ]
 

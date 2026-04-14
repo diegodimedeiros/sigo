@@ -1,19 +1,50 @@
 {% extends 'sesmt/atendimento/base.html' %}
+{% load static %}
 
-{% block title %}Atendimento #{{ atendimento_id }} | SESMT{% endblock %}
-{% block atendimento_heading %}Visualização do Atendimento #{{ atendimento_id }}{% endblock %}
-{% block atendimento_description %}Leitura completa do atendimento, conduta aplicada, anexos e histórico assistencial visual.{% endblock %}
-{% block atendimento_hero_actions %}<a href="{% url 'sesmt:atendimento_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
+{% block title %}Atendimento #{{ atendimento.id }} | SESMT{% endblock %}
+{% block atendimento_heading %}Atendimento #{{ atendimento.id }}{% endblock %}
+{% block atendimento_description %}Leitura completa do caso, pessoa atendida, conduta aplicada, destino e evidências vinculadas ao atendimento.{% endblock %}
+{% block atendimento_hero_actions %}
+<a href="{% url 'sesmt:atendimento_edit' atendimento.id %}" class="btn btn-primary btn-round">Editar atendimento</a>
+{% endblock %}
 
 {% block content %}
 <div class="row g-4">
   <div class="col-lg-8">
-    <div class="card"><div class="card-header"><div class="card-title">Resumo do atendimento</div></div><div class="card-body"><div class="row g-4"><div class="col-md-6"><label class="form-label text-muted">Paciente</label><div class="fw-semibold">João Silva</div></div><div class="col-md-6"><label class="form-label text-muted">Tipo</label><div class="fw-semibold">Primeiros socorros</div></div><div class="col-md-6"><label class="form-label text-muted">Data</label><div class="fw-semibold">29/03/2026 09:10</div></div><div class="col-md-6"><label class="form-label text-muted">Status</label><div><span class="badge badge-warning">Em andamento</span></div></div><div class="col-md-6"><label class="form-label text-muted">Encaminhamento</label><div class="fw-semibold">Observação interna</div></div><div class="col-md-6"><label class="form-label text-muted">Responsável</label><div class="fw-semibold">Equipe SESMT</div></div><div class="col-12"><label class="form-label text-muted">Descrição</label><div id="descricao" class="border rounded-3 p-3 bg-light-subtle">Espaço visual reservado para detalhes clínicos e observações do atendimento.</div></div></div></div></div>
-    <div class="card mt-4"><div class="card-header"><div class="card-title">Linha do tempo</div></div><div class="card-body"><div class="timeline"><div class="timeline-item"><div class="timeline-badge info"><i class="fas fa-plus"></i></div><div class="timeline-panel"><div class="timeline-heading"><span class="fw-semibold">Atendimento aberto</span></div><div class="timeline-body"><p class="mb-0">Registro inicial concluído.</p></div></div></div><div class="timeline-item"><div class="timeline-badge warning"><i class="fas fa-stethoscope"></i></div><div class="timeline-panel"><div class="timeline-heading"><span class="fw-semibold">Avaliação realizada</span></div><div class="timeline-body"><p class="mb-0">Conduta inicial aplicada.</p></div></div></div><div class="timeline-item"><div class="timeline-badge success"><i class="fas fa-check"></i></div><div class="timeline-panel"><div class="timeline-heading"><span class="fw-semibold">Acompanhamento ativo</span></div><div class="timeline-body"><p class="mb-0">Fluxo visual pronto para continuidade.</p></div></div></div></div></div></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Resumo do atendimento</div></div>
+      <div class="card-body" id="atendimento-view-content" data-api-url="{% url 'sesmt:api_atendimento_detail' atendimento.id %}">
+        <div class="text-muted">Carregando resumo do atendimento...</div>
+      </div>
+    </div>
   </div>
+
   <div class="col-lg-4">
-    <div class="card"><div class="card-header"><div class="card-title">Anexos</div></div><div class="card-body"><div class="list-group list-group-flush"><div class="list-group-item px-0">Ficha_inicial.pdf</div><div class="list-group-item px-0">Imagem_registro.jpg</div></div></div></div>
-    <div class="card mt-4"><div class="card-header"><div class="card-title">Ações rápidas</div></div><div class="card-body d-grid gap-2"><a href="#" class="btn btn-primary">Editar atendimento</a><a href="{% url 'sesmt:atendimento_export' %}" class="btn btn-label-success">Exportar atendimento</a><a href="{% url 'sesmt:atendimento_list' %}" class="btn btn-label-info">Voltar para listagem</a></div></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Anexos e Evidências</div></div>
+      <div class="card-body" id="atendimento-evidence-content">
+        <div class="text-muted">Carregando evidências...</div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Auditoria</div></div>
+      <div class="card-body" id="atendimento-audit-content">
+        <div class="text-muted">Carregando auditoria...</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Ações rápidas</div></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'sesmt:atendimento_edit' atendimento.id %}" class="btn btn-primary">Editar</a>
+        <a href="{% url 'sesmt:atendimento_export_view_pdf' atendimento.id %}" class="btn btn-label-success">Exportar PDF</a>
+        <a href="{% url 'sesmt:atendimento_list' %}" class="btn btn-label-info">Voltar para listagem</a>
+      </div>
+    </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/atendimento-view.js' %}"></script>
 {% endblock %}

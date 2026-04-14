@@ -1,0 +1,100 @@
+{% extends 'sesmt/himenopteros/base.html' %}
+{% load static %}
+
+{% block himenopteros_heading %}Listagem de Registros{% endblock %}
+{% block himenopteros_description %}Consulta operacional com filtros e acesso ao detalhamento de cada ocorrência com himenópteros.{% endblock %}
+{% block himenopteros_hero_actions %}{% endblock %}
+
+{% block content %}
+<div class="card listing-filter-card mb-4">
+  <div class="card-body">
+    <form method="get" class="filter-panel-grid" id="himenopteros-list-form" data-api-url="{% url 'sesmt:api_himenopteros' %}" data-page-size="20">
+      <div class="filter-span-6">
+        <label class="form-label" for="filtro-q">Busca rápida</label>
+        <input id="filtro-q" type="text" name="q" class="form-control" placeholder="Tipo, espécie, descrição..." value="{{ filters.q }}">
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-area">Área</label>
+        <select id="filtro-area" name="area" class="form-select">
+          <option value="">Todas</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if filters.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-status">Status</label>
+        <select id="filtro-status" name="status" class="form-select">
+          <option value="">Todos</option>
+          <option value="andamento" {% if filters.status == 'andamento' %}selected{% endif %}>Em andamento</option>
+          <option value="finalizado" {% if filters.status == 'finalizado' %}selected{% endif %}>Finalizado</option>
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-data-inicio">Início</label>
+        <input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}">
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-data-fim">Fim</label>
+        <input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}">
+      </div>
+      <div class="filter-span-6 filter-actions">
+        <button class="btn btn-label-info">Aplicar filtros</button>
+        <a href="{% url 'sesmt:himenopteros_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card listing-table-card">
+  <div class="card-header">
+    <div class="listing-table-header">
+      <div>
+        <div class="card-title mb-1">Resultado da listagem</div>
+        <div class="listing-table-meta" id="himenopteros-list-meta">{{ total_count }} registro{{ total_count|pluralize:'s' }} encontrado{{ total_count|pluralize:'s' }}.</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive listing-table-wrapper">
+      <table class="table table-striped table-hover listing-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Área</th>
+            <th>Risco</th>
+            <th>Status</th>
+            <th class="text-end">Ação</th>
+          </tr>
+        </thead>
+        <tbody id="himenopteros-list-body">
+          {% for item in registros %}
+          <tr>
+            <td>#{{ item.id }}</td>
+            <td>{{ item.data_hora_inicio|date:"d/m/Y H:i" }}</td>
+            <td>{{ item.tipo_himenoptero_label }}</td>
+            <td>{{ item.area_label }}</td>
+            <td>{{ item.classificacao_risco_label }}</td>
+            <td><span class="badge badge-{{ item.status_badge }}">{{ item.status_label }}</span></td>
+            <td class="text-end"><a href="{% url 'sesmt:himenopteros_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum registro de himenóptero encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="himenopteros-list-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_count %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/himenopteros-form.js' %}"></script>
+{% endblock %}

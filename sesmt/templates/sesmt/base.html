@@ -74,6 +74,12 @@
                   <p>Flora</p>
                 </a>
               </li>
+              <li class="nav-item {% block nav_sesmt_himenopteros_active %}{% if request.resolver_match.namespace == 'sesmt' and request.resolver_match.url_name|default:''|slice:':12' == 'himenopteros' %}active{% endif %}{% endblock %}">
+                <a href="{% url 'sesmt:himenopteros_index' %}">
+                  <i class="fas fa-bug"></i>
+                  <p>Monitor Himenóptero</p>
+                </a>
+              </li>
               {% endblock %}
             </ul>
             <div class="sidebar-copyright">
@@ -244,9 +250,9 @@
             {% block hero %}
             <div class="card module-hero mb-4">
               <div class="card-body py-4">
-                <h1 class="h3 mb-2">Base do módulo SESMT</h1>
+                <h1 class="h3 mb-2">SESMT centraliza as rotinas da área</h1>
                 <p class="mb-0 text-muted">
-                  Esta estrutura já está pronta para receber atendimento, manejo e flora dentro do padrão visual do sistema.
+                  Acesse atendimento, manejo e flora em um único módulo, com o mesmo padrão operacional e visual do sistema.
                 </p>
               </div>
             </div>

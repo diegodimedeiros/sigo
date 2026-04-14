@@ -1,0 +1,74 @@
+{% extends 'sesmt/himenopteros/base.html' %}
+{% load static %}
+
+{% block himenopteros_heading %}Exportação de Registros{% endblock %}
+{% block himenopteros_description %}Painel visual para definição de filtros, formato de saída e composição do relatório exportado.{% endblock %}
+{% block himenopteros_hero_actions %}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Configuração da exportação</div></div>
+      <div class="card-body">
+        <form id="himenopteros-export-form" method="post" data-api-url="{% url 'sesmt:api_himenopteros_export' %}">
+          {% csrf_token %}
+          <div class="row g-4">
+            <div class="col-md-4">
+              <label class="form-label">Formato</label>
+              <select name="formato" class="form-select">
+                <option value="xlsx" {% if request_data.formato == 'xlsx' %}selected{% endif %}>XLSX</option>
+                <option value="csv" {% if request_data.formato == 'csv' %}selected{% endif %}>CSV</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Período inicial</label>
+              <input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Período final</label>
+              <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}">
+            </div>
+            <div class="col-md-6">
+              <div class="fw-semibold mb-2">Identificação</div>
+              <ul class="mb-0 ps-3">
+                <li>ID do registro</li>
+                <li>Responsável pelo registro</li>
+                <li>Área, local e descrição do local</li>
+                <li>Tipo de himenóptero</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <div class="fw-semibold mb-2">Avaliação e ação</div>
+              <ul class="mb-0 ps-3">
+                <li>Proximidade e classificação do risco</li>
+                <li>Condição e ação realizada</li>
+                <li>Observações e justificativa técnica</li>
+                <li>Auditoria do registro</li>
+              </ul>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button type="submit" class="btn btn-success">Gerar exportação</button>
+            <a href="{% url 'sesmt:himenopteros_list' %}" class="btn btn-label-info">Voltar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Prévia do relatório</div></div>
+      <div class="card-body">
+        <p class="text-muted">Resumo visual do que será exportado:</p>
+        <p class="text-muted mb-0">{{ total_registros }} registro{{ total_registros|pluralize:'s' }} disponível{{ total_registros|pluralize:'is' }} para exportação.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/himenopteros-export.js' %}"></script>
+{% endblock %}

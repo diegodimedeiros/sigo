@@ -192,6 +192,32 @@ textarea,
   flex-shrink: 0;
 }
 
+.atendimento-evidence-panel {
+  background-color: var(--color-bg-soft);
+  border-color: var(--color-border) !important;
+}
+
+.atendimento-evidence-surface {
+  background-color: var(--color-surface);
+  border-color: var(--color-border) !important;
+}
+
+.atendimento-evidence-trigger {
+  border-width: 1px;
+}
+
+.field-invalid-surface {
+  border-color: var(--bs-danger) !important;
+  background-color: rgba(220, 53, 69, 0.06) !important;
+  box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, 0.18);
+}
+
+html[data-sigo-theme="dark"] .field-invalid-surface {
+  background-color: rgba(220, 53, 69, 0.12) !important;
+  border-color: #ff6b81 !important;
+  box-shadow: 0 0 0 0.12rem rgba(255, 107, 129, 0.22);
+}
+
 .sidebar .sidebar-content {
   min-height: 100%;
   display: flex;

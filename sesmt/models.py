@@ -3,6 +3,7 @@ import hashlib
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 
 from sigo.models import Anexo, Assinatura, BaseModel, Contato, Foto, Geolocalizacao, Pessoa, Unidade
 
@@ -125,14 +126,15 @@ class ControleAtendimento(BaseModel):
         if not self.tipo_ocorrencia: errors["tipo_ocorrencia"] = "O tipo de ocorrência é obrigatório."
         if not self.descricao: errors["descricao"] = "A descrição do atendimento é obrigatória."
         if not self.responsavel_atendimento: errors["responsavel_atendimento"] = "O responsável pelo atendimento é obrigatório."
-        if self.possui_acompanhante and not self.acompanhante_pessoa_id: errors["acompanhante_pessoa"] = "Informe o acompanhante."
-        if self.possui_acompanhante and not self.grau_parentesco: errors["grau_parentesco"] = "Informe o grau de parentesco."
-        if self.houve_remocao and not self.transporte: errors["transporte"] = "Informe o transporte quando houver remoção."
-        if self.houve_remocao and not self.encaminhamento: errors["encaminhamento"] = "Informe o encaminhamento quando houver remoção."
-        if self.houve_remocao and not self.hospital: errors["hospital"] = "Informe o hospital quando houver remoção."
-        if self.doenca_preexistente and not self.descricao_doenca: errors["descricao_doenca"] = "Informe a descrição da doença preexistente."
-        if self.alergia and not self.descricao_alergia: errors["descricao_alergia"] = "Informe a descrição da alergia."
-        if self.plano_saude and not self.nome_plano_saude: errors["nome_plano_saude"] = "Informe o nome do plano de saúde."
+        if not self.recusa_atendimento:
+            if self.possui_acompanhante and not self.acompanhante_pessoa_id: errors["acompanhante_pessoa"] = "Informe o acompanhante."
+            if self.possui_acompanhante and not self.grau_parentesco: errors["grau_parentesco"] = "Informe o grau de parentesco."
+            if self.houve_remocao and not self.transporte: errors["transporte"] = "Informe o transporte quando houver remoção."
+            if self.houve_remocao and not self.encaminhamento: errors["encaminhamento"] = "Informe o encaminhamento quando houver remoção."
+            if self.houve_remocao and not self.hospital: errors["hospital"] = "Informe o hospital quando houver remoção."
+            if self.doenca_preexistente and not self.descricao_doenca: errors["descricao_doenca"] = "Informe a descrição da doença preexistente."
+            if self.alergia and not self.descricao_alergia: errors["descricao_alergia"] = "Informe a descrição da alergia."
+            if self.plano_saude and not self.nome_plano_saude: errors["nome_plano_saude"] = "Informe o nome do plano de saúde."
         if errors: raise ValidationError(errors)
 
     def _build_hash_atendimento(self):
@@ -164,6 +166,9 @@ class ControleAtendimento(BaseModel):
         pessoa_nome = self.pessoa.nome if self.pessoa_id else "sem pessoa"
         pessoa_documento = self.pessoa.documento if self.pessoa_id else "sem documento"
         return f"{pessoa_nome} ({pessoa_documento}) - {when}"
+
+    def get_absolute_url(self):
+        return reverse("sesmt:atendimento_view", args=[self.pk])
 
 class Manejo(BaseModel):
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="manejos", verbose_name="Unidade")
@@ -271,6 +276,9 @@ class Manejo(BaseModel):
         self.full_clean()
         return super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse("sesmt:manejo_view", args=[self.pk])
+
     def __str__(self):
         when = self.data_hora.strftime("%d/%m/%Y %H:%M") if self.data_hora else "sem data"
         especie = self.nome_popular or self.nome_cientifico or self.classe
@@ -285,11 +293,12 @@ class Flora(BaseModel):
     popular = models.CharField(max_length=255, verbose_name="Nome Popular", null=True, blank=True)
     especie = models.CharField(max_length=255, verbose_name="Espécie", null=True, blank=True)
     nativa = models.BooleanField(verbose_name="Nativa?", default=False)
+    isolamento_area = models.BooleanField(verbose_name="Isolamento de Área?", default=False)
     estado_fitossanitario = models.CharField(max_length=50, verbose_name="Estado Fitossanitário", null=True, blank=True)
     descricao = models.TextField(verbose_name="Descrição", blank=True)
     justificativa = models.TextField(verbose_name="Justificativa para Registro", blank=True)
-    acao_inicial = models.CharField(max_length=50, verbose_name="Ação Inicial", null=True, blank=True)
-    acao_final = models.CharField(max_length=50, verbose_name="Ação Final", null=True, blank=True)
+    condicao = models.CharField(max_length=50, verbose_name="Condição", null=True, blank=True)
+    acao_realizada = models.CharField(max_length=50, verbose_name="Ação Realizada", null=True, blank=True)
 
     fotos = GenericRelation(Foto)
     geolocalizacoes = GenericRelation(Geolocalizacao)
@@ -300,7 +309,7 @@ class Flora(BaseModel):
     diametro_peito = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Diâmetro à Altura do Peito (cm)", null=True, blank=True)
     altura_total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Altura Total (m)", null=True, blank=True)
     zona = models.CharField(max_length=50, verbose_name="Zona", null=True, blank=True)
-    responsavel = models.CharField(max_length=255, verbose_name="Responsável", null=True, blank=True)
+    responsavel_tecnico = models.CharField(max_length=255, verbose_name="Responsável Técnico", null=True, blank=True)
 
     class Meta:
         verbose_name = "Flora"
@@ -348,11 +357,14 @@ class Flora(BaseModel):
         if not self.area:
             errors["area"] = "A área é obrigatória."
 
-        if not self.acao_inicial:
-            errors["acao_inicial"] = "A ação inicial é obrigatória."
+        if not self.condicao:
+            errors["condicao"] = "A condição é obrigatória."
 
-        if not self.descricao:
-            errors["descricao"] = "A descrição é obrigatória."
+        if not self.justificativa:
+            errors["justificativa"] = "A justificativa para registro é obrigatória."
+
+        if self.acao_realizada and not self.descricao:
+            errors["descricao"] = "A descrição é obrigatória quando houver ação realizada."
 
         if self.data_hora_inicio and self.data_hora_fim and self.data_hora_fim < self.data_hora_inicio:
             errors["data_hora_fim"] = "A data e hora do término não pode ser anterior ao registro."
@@ -369,7 +381,7 @@ class Flora(BaseModel):
     def normalizar_campos(self):
         self.normalize_string_fields(
             required_fields=("responsavel_registro", "local", "area", "descricao", "justificativa"),
-            nullable_fields=("especie", "popular", "estado_fitossanitario", "acao_inicial", "acao_final", "zona", "responsavel"),
+            nullable_fields=("especie", "popular", "estado_fitossanitario", "condicao", "acao_realizada", "zona", "responsavel_tecnico"),
         )
 
     def save(self, *args, **kwargs):
@@ -381,3 +393,122 @@ class Flora(BaseModel):
     def __str__(self):
         identificacao = self.popular or self.especie or "Sem identificação informada"
         return f"{identificacao} - {self.local}"
+
+    def get_absolute_url(self):
+        return reverse("sesmt:flora_view", args=[self.pk])
+
+class hipomenoptero(BaseModel):
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="himenopteros", verbose_name="Unidade")
+    unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
+    responsavel_registro = models.CharField(max_length=255, verbose_name="Responsável pelo Registro", null=False, blank=False)
+    local = models.CharField(max_length=50, verbose_name="Localização", null=False, blank=False, db_index=True)
+    area = models.CharField(max_length=50, verbose_name="Área", null=False, blank=False, db_index=True)
+    descricao_local = models.TextField(verbose_name="Descrição do Local", blank=True)
+    hipomenoptero = models.CharField(max_length=50, verbose_name="Himenóptero", null=True, blank=True)
+    popular = models.CharField(max_length=255, verbose_name="Nome Popular", null=True, blank=True)
+    especie = models.CharField(max_length=255, verbose_name="Espécie", null=True, blank=True)
+    proximidade_pessoas = models.CharField(max_length=50, verbose_name="Proximidade de Pessoas", null=False, blank=False, db_index=True)
+    classificacao_risco = models.CharField(max_length=50, verbose_name="Classificação de Risco", null=False, blank=False, db_index=True)
+    isolamento_area = models.BooleanField(verbose_name="Isolamento de Área?", default=False, db_index=True)    
+    observacao = models.TextField(verbose_name="Observações", blank=True)
+    justificativa_tecnica = models.TextField(verbose_name="Justificativa Técnica", blank=True)
+    condicao = models.CharField(max_length=50, verbose_name="Condição", null=True, blank=True)
+    acao_realizada = models.CharField(max_length=50, verbose_name="Ação Realizada", null=True, blank=True)
+
+    fotos = GenericRelation(Foto)
+    geolocalizacoes = GenericRelation(Geolocalizacao)
+
+    data_hora_inicio = models.DateTimeField(verbose_name="Data e Hora do Registro", null=False, blank=False, db_index=True)
+    data_hora_fim = models.DateTimeField(verbose_name="Data e Hora do Término", null=True, blank=True, db_index=True)    
+    responsavel_tecnico = models.CharField(max_length=255, verbose_name="Responsável Técnico", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Himenóptero"
+        verbose_name_plural = "Himenópteros"
+        ordering = ["-criado_em"]
+        indexes = [
+            models.Index(fields=["area", "local"]),
+            models.Index(fields=["hipomenoptero", "-criado_em"]),
+            models.Index(fields=["classificacao_risco", "-criado_em"]),
+        ]
+
+    @property
+    def geolocalizacao(self):
+        return self.geolocalizacoes.first()
+
+    @property
+    def foto_principal(self):
+        return self.fotos.order_by("criado_em", "id").first()
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        if not self.responsavel_registro:
+            errors["responsavel_registro"] = "O responsável pelo registro é obrigatório."
+
+        if not self.data_hora_inicio:
+            errors["data_hora_inicio"] = "A data e hora do registro é obrigatória."
+
+        if not self.local:
+            errors["local"] = "A localização é obrigatória."
+
+        if not self.area:
+            errors["area"] = "A área é obrigatória."
+
+        if not self.hipomenoptero:
+            errors["hipomenoptero"] = "O tipo de himenóptero é obrigatório."
+
+        if not self.proximidade_pessoas:
+            errors["proximidade_pessoas"] = "A proximidade de pessoas é obrigatória."
+
+        if not self.classificacao_risco:
+            errors["classificacao_risco"] = "A classificação de risco é obrigatória."
+
+        if not self.descricao_local:
+            errors["descricao_local"] = "A descrição do local é obrigatória."
+
+        if self.data_hora_inicio and self.data_hora_fim and self.data_hora_fim < self.data_hora_inicio:
+            errors["data_hora_fim"] = "A data e hora do término não pode ser anterior ao registro."
+
+        if self.acao_realizada and not self.observacao:
+            errors["observacao"] = "As observações são obrigatórias quando houver ação realizada."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def normalizar_campos(self):
+        self.normalize_string_fields(
+            required_fields=(
+                "responsavel_registro",
+                "local",
+                "area",
+                "descricao_local",
+                "observacao",
+                "justificativa_tecnica",
+            ),
+            nullable_fields=(
+                "hipomenoptero",
+                "popular",
+                "especie",
+                "proximidade_pessoas",
+                "classificacao_risco",
+                "condicao",
+                "acao_realizada",
+                "responsavel_tecnico",
+            ),
+        )
+
+    def save(self, *args, **kwargs):
+        self.normalizar_campos()
+        self.preencher_unidade_sigla()
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        identificacao = self.popular or self.especie or self.hipomenoptero or "Sem identificação informada"
+        return f"{identificacao} - {self.local}"
+
+    def get_absolute_url(self):
+        return reverse("sesmt:himenopteros_view", args=[self.pk])

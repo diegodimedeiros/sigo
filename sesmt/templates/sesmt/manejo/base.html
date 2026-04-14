@@ -6,8 +6,15 @@
 {% block hero %}
 <div class="card module-hero mb-4">
   <div class="card-body py-4">
-    <h1 class="h3 mb-2">{% block manejo_heading %}Central de Manejo{% endblock %}</h1>
-    <p class="mb-0 text-muted">{% block manejo_description %}Área preparada para registro visual de fauna, resgate, transporte e soltura.{% endblock %}</p>
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">{% block manejo_heading %}Central de Manejo{% endblock %}</h1>
+        <p class="mb-0 text-muted">{% block manejo_description %}Área preparada para registro visual de fauna, resgate, transporte e soltura.{% endblock %}</p>
+      </div>
+      <div class="module-hero-actions">
+        {% block manejo_hero_actions %}{% endblock %}
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

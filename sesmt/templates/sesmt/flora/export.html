@@ -1,7 +1,74 @@
 {% extends 'sesmt/flora/base.html' %}
+{% load static %}
+
 {% block flora_heading %}Exportação de Flora{% endblock %}
 {% block flora_description %}Painel visual para definição de filtros, formato de saída e composição do relatório exportado.{% endblock %}
-{% block flora_hero_actions %}<a href="{% url 'sesmt:flora_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
+{% block flora_hero_actions %}{% endblock %}
+
 {% block content %}
-<div class="row g-4"><div class="col-lg-8"><div class="card"><div class="card-header"><div class="card-title">Configuração da exportação</div></div><div class="card-body"><div class="row g-4"><div class="col-md-4"><label class="form-label">Formato</label><select class="form-select"><option>XLSX</option><option>CSV</option></select></div><div class="col-md-4"><label class="form-label">Período inicial</label><input type="date" class="form-control" /></div><div class="col-md-4"><label class="form-label">Período final</label><input type="date" class="form-control" /></div><div class="col-md-6"><div class="fw-semibold mb-2">Identificação</div><ul class="mb-0 ps-3"><li>ID do registro</li><li>Dados principais da flora</li><li>Área e contexto</li><li>Unidade ativa</li></ul></div><div class="col-md-6"><div class="fw-semibold mb-2">Movimentação</div><ul class="mb-0 ps-3"><li>Data e hora do registro</li><li>Acompanhamento e observações</li><li>Status derivado do uso</li><li>Auditoria do registro</li></ul></div></div><div class="d-flex flex-wrap gap-2 mt-4"><button type="button" class="btn btn-success">Gerar exportação</button><a href="{% url 'sesmt:flora_list' %}" class="btn btn-label-info">Voltar</a></div></div></div></div><div class="col-lg-4"><div class="card"><div class="card-header"><div class="card-title">Prévia do relatório</div></div><div class="card-body"><p class="text-muted">Resumo visual do que será exportado:</p><p class="text-muted mb-0">A exportação inclui dados principais da flora, contexto operacional e dados básicos de auditoria.</p></div></div></div></div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Configuração da exportação</div></div>
+      <div class="card-body">
+        <form id="flora-export-form" method="post" data-api-url="{% url 'sesmt:api_flora_export' %}">
+          {% csrf_token %}
+          <div class="row g-4">
+            <div class="col-md-4">
+              <label class="form-label">Formato</label>
+              <select name="formato" class="form-select">
+                <option value="xlsx" {% if request_data.formato == 'xlsx' %}selected{% endif %}>XLSX</option>
+                <option value="csv" {% if request_data.formato == 'csv' %}selected{% endif %}>CSV</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Período inicial</label>
+              <input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Período final</label>
+              <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}">
+            </div>
+            <div class="col-md-6">
+              <div class="fw-semibold mb-2">Identificação</div>
+              <ul class="mb-0 ps-3">
+                <li>ID do registro</li>
+                <li>Responsável pelo registro</li>
+                <li>Área e local</li>
+                <li>Dados principais da flora</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <div class="fw-semibold mb-2">Movimentação</div>
+              <ul class="mb-0 ps-3">
+                <li>Data e hora do registro</li>
+                <li>Ações inicial e final</li>
+                <li>Descrição e justificativa</li>
+                <li>Auditoria do registro</li>
+              </ul>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button type="submit" class="btn btn-success">Gerar exportação</button>
+            <a href="{% url 'sesmt:flora_list' %}" class="btn btn-label-info">Voltar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Prévia do relatório</div></div>
+      <div class="card-body">
+        <p class="text-muted">Resumo visual do que será exportado:</p>
+        <p class="text-muted mb-0">{{ total_floras }} registro{{ total_floras|pluralize:'s' }} disponível{{ total_floras|pluralize:'is' }} para exportação.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/flora-export.js' %}"></script>
 {% endblock %}

@@ -1,10 +1,109 @@
 {% extends 'sesmt/atendimento/base.html' %}
+{% load static %}
 
 {% block atendimento_heading %}Listagem de Atendimentos{% endblock %}
-{% block atendimento_description %}Consulta visual com filtros, status e acesso ao detalhamento de cada atendimento registrado.{% endblock %}
-{% block atendimento_hero_actions %}<a href="{% url 'sesmt:atendimento_new' %}" class="btn btn-primary btn-round">Novo atendimento</a>{% endblock %}
+{% block atendimento_description %}Consulta operacional com filtros, período e acesso ao detalhamento de cada atendimento registrado.{% endblock %}
+{% block atendimento_hero_actions %}{% endblock %}
 
 {% block content %}
-<div class="card listing-filter-card mb-4"><div class="card-body"><div class="row g-3"><div class="col-md-4"><label class="form-label">Busca rápida</label><input type="text" class="form-control" placeholder="Nome, tipo, observação..." /></div><div class="col-md-2"><label class="form-label">Status</label><select class="form-select"><option>Todos</option><option>Em andamento</option><option>Concluído</option><option>Crítico</option></select></div><div class="col-md-2"><label class="form-label">Tipo</label><select class="form-select"><option>Todos</option><option>Primeiros socorros</option><option>Encaminhamento</option><option>Observação</option></select></div><div class="col-md-2"><label class="form-label">Data</label><input type="date" class="form-control" /></div><div class="col-md-2 d-flex align-items-end"><button class="btn btn-label-info w-100">Aplicar filtros</button></div></div></div></div>
-<div class="card listing-table-card"><div class="card-header"><div class="listing-table-header"><div><div class="card-title mb-1">Resultado da listagem</div><div class="listing-table-meta">{{ total_count }} atendimento{{ total_count|pluralize:'s' }} encontrado{{ total_count|pluralize:'s' }}.</div></div></div></div><div class="card-body p-0"><div class="table-responsive listing-table-wrapper"><table class="table table-striped table-hover listing-table align-middle mb-0"><thead><tr><th>ID</th><th>Data</th><th>Paciente</th><th>Tipo</th><th>Status</th><th class="text-end">Detalhe</th></tr></thead><tbody>{% for item in page_obj %}<tr><td>#{{ item.id }}</td><td>{{ item.data }}</td><td>{{ item.paciente }}</td><td>{{ item.tipo }}</td><td><span class="badge badge-{{ item.status_badge }}">{{ item.status }}</span></td><td class="text-end"><a href="{% url 'sesmt:atendimento_view' item.id %}" class="btn btn-sm btn-primary">Abrir</a></td></tr>{% empty %}<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum atendimento encontrado.</td></tr>{% endfor %}</tbody></table></div></div>{% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_count %}</div>
+<div class="card listing-filter-card mb-4">
+  <div class="card-body">
+    <form method="get" class="filter-panel-grid" id="atendimento-list-form" data-api-url="{% url 'sesmt:api_atendimento' %}" data-page-size="20">
+      <div class="filter-span-6">
+        <label class="form-label" for="filtro-q">Busca rápida</label>
+        <input id="filtro-q" type="text" name="q" class="form-control" placeholder="Nome, documento, descrição..." value="{{ filters.q }}">
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-tipo">Tipo de ocorrência</label>
+        <select id="filtro-tipo" name="tipo_ocorrencia" class="form-select">
+          <option value="">Todos</option>
+          {% for item in tipo_ocorrencia_options %}
+          <option value="{{ item.chave }}" {% if filters.tipo_ocorrencia == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-area">Área</label>
+        <select id="filtro-area" name="area_atendimento" class="form-select">
+          <option value="">Todas</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if filters.area_atendimento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-status">Atendimento</label>
+        <select id="filtro-status" name="status" class="form-select">
+          <option value="" {% if not filters.status %}selected{% endif %}>Todos</option>
+          <option value="atendimento" {% if filters.status == 'atendimento' %}selected{% endif %}>Atendimento</option>
+          <option value="recusa" {% if filters.status == 'recusa' %}selected{% endif %}>Recusa</option>
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-data-inicio">Início</label>
+        <input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}">
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-data-fim">Fim</label>
+        <input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}">
+      </div>
+      <div class="filter-span-6 filter-actions">
+        <button class="btn btn-label-info">Aplicar filtros</button>
+        <a href="{% url 'sesmt:atendimento_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card listing-table-card">
+  <div class="card-header">
+    <div class="listing-table-header">
+      <div>
+        <div class="card-title mb-1">Resultado da listagem</div>
+        <div class="listing-table-meta" id="atendimento-list-meta">{{ total_count }} atendimento{{ total_count|pluralize:'s' }} encontrado{{ total_count|pluralize:'s' }}.</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive listing-table-wrapper">
+      <table class="table table-striped table-hover listing-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <th>Pessoa</th>
+            <th>Tipo</th>
+            <th>Área</th>
+            <th>Atendimento</th>
+            <th class="text-end">Ação</th>
+          </tr>
+        </thead>
+        <tbody id="atendimento-list-body">
+          {% for item in registros %}
+          <tr>
+            <td>#{{ item.id }}</td>
+            <td>{{ item.data_atendimento|date:"d/m/Y H:i" }}</td>
+            <td>{{ item.pessoa.nome }}</td>
+            <td>{{ item.tipo_ocorrencia_label }}</td>
+            <td>{{ item.area_atendimento_label }}</td>
+            <td><span class="badge badge-{% if item.recusa_atendimento %}danger{% else %}success{% endif %}">{{ item.recusa_atendimento|yesno:"Não,Sim" }}</span></td>
+            <td class="text-end"><a href="{% url 'sesmt:atendimento_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum atendimento encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="atendimento-list-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_count %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/atendimento-form.js' %}"></script>
 {% endblock %}

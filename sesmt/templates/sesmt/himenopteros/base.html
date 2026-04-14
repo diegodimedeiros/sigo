@@ -1,0 +1,20 @@
+{% extends 'sesmt/base.html' %}
+
+{% block title %}Monitor Himenóptero | SESMT{% endblock %}
+{% block nav_sesmt_himenopteros_active %}active{% endblock %}
+
+{% block hero %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">{% block himenopteros_heading %}Central de Monitor Himenóptero{% endblock %}</h1>
+        <p class="mb-0 text-muted">{% block himenopteros_description %}Área voltada ao registro técnico, avaliação de risco e condução operacional de ocorrências com abelhas, vespas e marimbondos.{% endblock %}</p>
+      </div>
+      <div class="module-hero-actions">
+        {% block himenopteros_hero_actions %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

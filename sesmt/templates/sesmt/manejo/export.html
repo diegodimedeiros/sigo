@@ -1,7 +1,74 @@
 {% extends 'sesmt/manejo/base.html' %}
-{% block manejo_heading %}Exportação de Manejo{% endblock %}
+{% load static %}
+
+{% block manejo_heading %}Exportação de Manejos{% endblock %}
 {% block manejo_description %}Painel visual para definição de filtros, formato de saída e composição do relatório exportado.{% endblock %}
-{% block manejo_hero_actions %}<a href="{% url 'sesmt:manejo_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
+{% block manejo_hero_actions %}{% endblock %}
+
 {% block content %}
-<div class="row g-4"><div class="col-lg-8"><div class="card"><div class="card-header"><div class="card-title">Configuração da exportação</div></div><div class="card-body"><div class="row g-4"><div class="col-md-4"><label class="form-label">Formato</label><select class="form-select"><option>XLSX</option><option>CSV</option></select></div><div class="col-md-4"><label class="form-label">Período inicial</label><input type="date" class="form-control" /></div><div class="col-md-4"><label class="form-label">Período final</label><input type="date" class="form-control" /></div><div class="col-md-6"><div class="fw-semibold mb-2">Identificação</div><ul class="mb-0 ps-3"><li>ID do registro</li><li>Dados principais do manejo</li><li>Destino e contexto</li><li>Unidade ativa</li></ul></div><div class="col-md-6"><div class="fw-semibold mb-2">Movimentação</div><ul class="mb-0 ps-3"><li>Data e hora do registro</li><li>Movimentação e observações</li><li>Status derivado do uso</li><li>Auditoria do registro</li></ul></div></div><div class="d-flex flex-wrap gap-2 mt-4"><button type="button" class="btn btn-success">Gerar exportação</button><a href="{% url 'sesmt:manejo_list' %}" class="btn btn-label-info">Voltar</a></div></div></div></div><div class="col-lg-4"><div class="card"><div class="card-header"><div class="card-title">Prévia do relatório</div></div><div class="card-body"><p class="text-muted">Resumo visual do que será exportado:</p><p class="text-muted mb-0">A exportação inclui dados principais do manejo, contexto operacional e dados básicos de auditoria.</p></div></div></div></div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Configuração da exportação</div></div>
+      <div class="card-body">
+        <form id="manejo-export-form" method="post" class="row g-4" data-api-url="{% url 'sesmt:api_manejo_export' %}">
+          {% csrf_token %}
+          <div class="col-md-4">
+            <label class="form-label">Formato</label>
+            <select name="formato" class="form-select">
+              <option value="xlsx" {% if request_data.formato == "xlsx" or not request_data.formato %}selected{% endif %}>XLSX</option>
+              <option value="csv" {% if request_data.formato == "csv" %}selected{% endif %}>CSV</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Período inicial</label>
+            <input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Período final</label>
+            <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}" />
+          </div>
+          <div class="col-md-6">
+            <div class="fw-semibold mb-2">Identificação</div>
+            <ul class="mb-0 ps-3">
+              <li>ID do registro</li>
+              <li>Classe, nome popular e nome científico</li>
+              <li>Área e local de captura</li>
+              <li>Responsável e unidade ativa</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-semibold mb-2">Movimentação</div>
+            <ul class="mb-0 ps-3">
+              <li>Data e hora do manejo</li>
+              <li>Execução, soltura e acionamento institucional</li>
+              <li>Observações e contexto operacional</li>
+              <li>Auditoria do registro</li>
+            </ul>
+          </div>
+        </form>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button type="submit" form="manejo-export-form" class="btn btn-success">Gerar exportação</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Prévia do relatório</div></div>
+      <div class="card-body">
+        <p class="text-muted">Resumo visual do que será exportado:</p>
+        <div class="alert alert-info mb-3" role="alert">
+          {{ total_manejos }} {% if total_manejos == 1 %}manejo disponível para exportação.{% else %}manejos disponíveis para exportação.{% endif %}
+        </div>
+        <p class="text-muted mb-0">A exportação inclui dados principais do manejo, contexto operacional e dados básicos de auditoria.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/manejo-export.js' %}"></script>
 {% endblock %}

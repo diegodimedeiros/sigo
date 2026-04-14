@@ -6,8 +6,15 @@
 {% block hero %}
 <div class="card module-hero mb-4">
   <div class="card-body py-4">
-    <h1 class="h3 mb-2">{% block flora_heading %}Central de Flora{% endblock %}</h1>
-    <p class="mb-0 text-muted">{% block flora_description %}Área preparada para registros visuais, monitoramento vegetal e acompanhamento técnico da flora.{% endblock %}</p>
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">{% block flora_heading %}Central de Flora{% endblock %}</h1>
+        <p class="mb-0 text-muted">{% block flora_description %}Área preparada para registros visuais, monitoramento vegetal e acompanhamento técnico da flora.{% endblock %}</p>
+      </div>
+      <div class="module-hero-actions">
+        {% block flora_hero_actions %}{% endblock %}
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

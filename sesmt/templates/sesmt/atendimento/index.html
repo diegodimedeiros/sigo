@@ -1,9 +1,5 @@
 {% extends 'sesmt/atendimento/base.html' %}
 
-{% block atendimento_hero_actions %}
-<a href="{% url 'sesmt:atendimento_new' %}" class="btn btn-primary btn-round">Novo atendimento</a>
-{% endblock %}
-
 {% block content %}
 <div class="row g-4">
   <div class="col-lg-8">
@@ -37,11 +33,19 @@
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead><tr><th>ID</th><th>Paciente</th><th>Tipo</th><th>Status</th><th class="text-end">Ação</th></tr></thead>
+            <thead><tr><th>ID</th><th>Pessoa</th><th>Tipo</th><th>Atendimento</th><th class="text-end">Ação</th></tr></thead>
             <tbody>
-              <tr><td>#521</td><td>João Silva</td><td>Primeiros socorros</td><td><span class="badge badge-warning">Em andamento</span></td><td class="text-end"><a href="{% url 'sesmt:atendimento_view' 521 %}" class="btn btn-sm btn-label-info">Ver</a></td></tr>
-              <tr><td>#520</td><td>Maria Souza</td><td>Encaminhamento</td><td><span class="badge badge-success">Concluído</span></td><td class="text-end"><a href="{% url 'sesmt:atendimento_view' 520 %}" class="btn btn-sm btn-label-info">Ver</a></td></tr>
-              <tr><td>#519</td><td>Carlos Lima</td><td>Observação</td><td><span class="badge badge-danger">Crítico</span></td><td class="text-end"><a href="{% url 'sesmt:atendimento_view' 519 %}" class="btn btn-sm btn-label-info">Ver</a></td></tr>
+              {% for atendimento in registros_recentes %}
+              <tr>
+                <td>#{{ atendimento.id }}</td>
+                <td>{{ atendimento.pessoa.nome }}</td>
+                <td>{{ atendimento.tipo_ocorrencia_label }}</td>
+                <td><span class="badge badge-{% if atendimento.recusa_atendimento %}danger{% else %}success{% endif %}">{{ atendimento.recusa_atendimento|yesno:"Não,Sim" }}</span></td>
+                <td class="text-end"><a href="{% url 'sesmt:atendimento_view' atendimento.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center py-4 text-muted">Nenhum atendimento registrado ainda.</td></tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>

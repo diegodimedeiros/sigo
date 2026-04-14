@@ -6,12 +6,19 @@
 {% block hero %}
 <div class="card module-hero mb-4">
   <div class="card-body py-4">
-    <h1 class="h3 mb-2">{% block atendimento_heading %}Central de Atendimento{% endblock %}</h1>
-    <p class="mb-0 text-muted">
-      {% block atendimento_description %}
-      Área preparada para triagem, primeiros socorros, acompanhamento assistencial e registro visual do fluxo.
-      {% endblock %}
-    </p>
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">{% block atendimento_heading %}Central de Atendimento{% endblock %}</h1>
+        <p class="mb-0 text-muted">
+          {% block atendimento_description %}
+          Área preparada para triagem, primeiros socorros, acompanhamento assistencial e registro visual do fluxo.
+          {% endblock %}
+        </p>
+      </div>
+      <div class="module-hero-actions">
+        {% block atendimento_hero_actions %}{% endblock %}
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

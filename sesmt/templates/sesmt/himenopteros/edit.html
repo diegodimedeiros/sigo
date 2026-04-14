@@ -1,0 +1,102 @@
+{% extends 'sesmt/himenopteros/base.html' %}
+{% load static %}
+
+{% block title %}Monitor Himenóptero #{{ registro.id }} | SESMT{% endblock %}
+{% block himenopteros_heading %}Editar Registro #{{ registro.id }}{% endblock %}
+{% block himenopteros_description %}Atualize dados técnicos, evidências e encerramento da ocorrência com himenópteros.{% endblock %}
+{% block himenopteros_hero_actions %}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Formulário de edição</div></div>
+  <div class="card-body">
+    <form id="himenopteros-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'sesmt:api_himenopteros_detail' registro.id %}" class="row g-4">
+      {% csrf_token %}
+      <div class="alert alert-danger d-none js-form-feedback"></div>
+
+      <div class="col-12">
+        <h5 class="mb-1">Identificação da Ocorrência</h5>
+        <p class="text-muted mb-0">Dados principais do local, tipo de himenóptero e evidências iniciais.</p>
+      </div>
+      <div class="col-md-3"><label class="form-label">Data da Inspeção</label><input type="datetime-local" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}"></div>
+      <div class="col-md-3"><label class="form-label">Data/Hora de Encerramento</label><input type="datetime-local" name="data_hora_fim" class="form-control" value="{{ request_data.data_hora_fim }}"></div>
+      <div class="col-md-6"><label class="form-label">Responsável pela Inspeção</label><select name="responsavel_registro" class="form-select"><option value="">Selecione</option>{% for item in responsavel_registro_options %}<option value="{{ item.chave }}" {% if request_data.responsavel_registro == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Área</label><select id="himenopteros-area" name="area" class="form-select" data-locais-url="{% url 'sesmt:himenopteros_api_locais' %}"><option value="">Selecione</option>{% for item in area_options %}<option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Localização</label><select id="himenopteros-local" name="local" class="form-select" data-selected-value="{{ request_data.local }}"><option value="">Selecione</option>{% for item in local_options %}<option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Tipo de Himenóptero</label><select name="hipomenoptero" class="form-select"><option value="">Selecione</option>{% for item in tipo_himenoptero_options %}<option value="{{ item.chave }}" {% if request_data.hipomenoptero == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-12"><label class="form-label">Descrição do Local</label><textarea name="descricao_local" class="form-control" rows="3">{{ request_data.descricao_local }}</textarea></div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Avaliação de Risco</h5>
+        <p class="text-muted mb-0">Dados de exposição, classificação e condição inicial da ocorrência.</p>
+      </div>
+      <div class="col-md-4"><label class="form-label">Proximidade de pessoas</label><select name="proximidade_pessoas" class="form-select"><option value="">Selecione</option>{% for item in proximidade_pessoas_options %}<option value="{{ item.chave }}" {% if request_data.proximidade_pessoas == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Classificação do Risco</label><select name="classificacao_risco" class="form-select"><option value="">Selecione</option>{% for item in classificacao_risco_options %}<option value="{{ item.chave }}" {% if request_data.classificacao_risco == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Condição</label><select name="condicao" class="form-select"><option value="">Selecione</option>{% for item in condicao_options %}<option value="{{ item.chave }}" {% if request_data.condicao == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Isolamento de Área</label><select name="isolamento_area" class="form-select"><option value="" {% if request_data.isolamento_area == '' %}selected{% endif %}>Selecione</option><option value="false" {% if request_data.isolamento_area == 'false' or request_data.isolamento_area is False %}selected{% endif %}>Não</option><option value="true" {% if request_data.isolamento_area == 'true' or request_data.isolamento_area is True %}selected{% endif %}>Sim</option></select><div class="invalid-feedback d-block field-error d-none" data-field-error="isolamento_area"></div></div>
+      <div class="col-md-4"><label class="form-label">Nome Popular</label><input type="text" name="popular" class="form-control" value="{{ request_data.popular }}"></div>
+      <div class="col-md-4"><label class="form-label">Espécie</label><input type="text" name="especie" class="form-control" value="{{ request_data.especie }}"></div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Ação e Observações</h5>
+        <p class="text-muted mb-0">Ação realizada, descrição técnica e justificativa quando necessária.</p>
+      </div>
+      <div class="col-md-6"><label class="form-label">Ação Realizada</label><select name="acao_realizada" class="form-select"><option value="">Selecione</option>{% for item in acao_realizada_options %}<option value="{{ item.chave }}" {% if request_data.acao_realizada == item.chave %}selected{% endif %}>{{ item.valor }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label">Responsável Técnico</label><input type="text" name="responsavel_tecnico" class="form-control" value="{{ request_data.responsavel_tecnico }}"></div>
+      <div class="col-12"><label class="form-label">Observações</label><textarea name="observacao" class="form-control" rows="4">{{ request_data.observacao }}</textarea></div>
+      <div class="col-12"><label class="form-label">Justificativa Técnica</label><textarea name="justificativa_tecnica" class="form-control" rows="3">{{ request_data.justificativa_tecnica }}</textarea></div>
+
+      <div class="col-12 pt-3"><h5 class="mb-1">Anexos e Evidências</h5><p class="text-muted mb-0">Registro fotográfico e geolocalização vinculados à inspeção.</p></div>
+      <div class="col-12">
+        <div id="himenopteros_fotos_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Fotos</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="file" id="himenopteros_fotos" name="fotos" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#himenopteros_fotos_panel">
+              <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="himenopteros_fotos"><i class="fas fa-camera me-2"></i>Abrir câmera</button>
+              <div class="small text-muted mt-2" id="himenopteros_fotos_status">Nenhum ficheiro selecionado</div>
+              <div class="invalid-feedback d-block field-error d-none" data-field-error="fotos"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Já registradas</div>
+              <div class="d-grid gap-2 mb-3">
+                {% for foto in registro.fotos.all %}
+                <div class="small border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-3 js-existing-photo-row" data-photo-id="{{ foto.id }}">
+                  <a href="{% url 'sesmt:himenopteros_foto_view' registro.id foto.id %}" target="_blank" rel="noopener" class="text-truncate text-decoration-none d-block flex-grow-1">{{ foto.nome_arquivo }}</a>
+                  <button type="button" class="btn btn-sm btn-label-danger" data-remove-existing-photo="true" data-hidden-name="foto_delete" data-photo-id="{{ foto.id }}">X</button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="small text-muted mb-2">Novas fotos</div>
+              <div id="lista_himenopteros_fotos_vazia" class="detail-note-box">Nenhuma foto capturada ainda.</div>
+              <div id="lista_himenopteros_fotos" class="d-grid gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div id="geolocalizacao_himenopteros_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Geolocalização do Registro</div>
+          <input type="hidden" id="himenopteros-latitude" name="latitude" value="{{ request_data.latitude }}" data-invalid-target="#geolocalizacao_himenopteros_panel">
+          <input type="hidden" id="himenopteros-longitude" name="longitude" value="{{ request_data.longitude }}" data-invalid-target="#geolocalizacao_himenopteros_panel">
+          <div id="geolocalizacao_himenopteros_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
+          <div id="geolocalizacao_himenopteros" class="d-grid gap-2"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="latitude"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="longitude"></div>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <a href="{% url 'sesmt:himenopteros_view' registro.id %}" class="btn btn-label-info">Voltar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/himenopteros-form.js' %}"></script>
+{% endblock %}

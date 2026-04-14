@@ -43,6 +43,9 @@
     form.querySelectorAll(".is-invalid").forEach(function (node) {
       node.classList.remove("is-invalid");
     });
+    form.querySelectorAll(".field-invalid-surface").forEach(function (node) {
+      node.classList.remove("field-invalid-surface");
+    });
   }
 
   function resolveErrorTarget(control) {
@@ -78,6 +81,13 @@
 
       controls.forEach(function (control) {
         control.classList.add("is-invalid");
+        var invalidTargetSelector = control.dataset.invalidTarget;
+        if (invalidTargetSelector) {
+          var invalidTarget = form.querySelector(invalidTargetSelector);
+          if (invalidTarget) {
+            invalidTarget.classList.add("field-invalid-surface");
+          }
+        }
       });
 
       var target = form.querySelector('[data-field-error="' + fieldName + '"]') || resolveErrorTarget(controls[0]);

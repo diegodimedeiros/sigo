@@ -78,9 +78,9 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a href="#">
+                <a href="{% url 'reportos:home' %}">
                   <i class="fas fa-cubes"></i>
-                  <p>Outros Modulos</p>
+                  <p>ReportOS</p>
                 </a>
               </li>
             </ul>
@@ -263,25 +263,6 @@
 
         <div class="container">
           <div class="page-inner">
-            <div class="page-header">
-              <h3 class="fw-bold mb-3">{% block page_title %}Painel do SIGO{% endblock %}</h3>
-              <ul class="breadcrumbs mb-3">
-                {% block breadcrumbs %}
-                <li class="nav-home">
-                  <a href="/">
-                    <i class="icon-home"></i>
-                  </a>
-                </li>
-                <li class="separator">
-                  <i class="icon-arrow-right"></i>
-                </li>
-                <li class="nav-item">
-                  <a href="#">SIGO</a>
-                </li>
-                {% endblock %}
-              </ul>
-            </div>
-
             {% if messages %}
               {% for message in messages %}
               <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
@@ -290,17 +271,6 @@
               </div>
               {% endfor %}
             {% endif %}
-
-            {% block hero %}
-            <div class="card page-hero mb-4">
-              <div class="card-body py-4">
-                <h1 class="h3 mb-2">SIGO conecta e organiza os módulos do sistema</h1>
-                <p class="mb-0 text-muted">
-                  Acesse áreas, acompanhe indicadores e execute suas rotinas em um único painel.
-                </p>
-              </div>
-            </div>
-            {% endblock %}
 
             {% block content %}{% endblock %}
           </div>

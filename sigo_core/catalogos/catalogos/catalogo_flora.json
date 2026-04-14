@@ -41,7 +41,7 @@
         {
           "chave": "obstrucao_de_via_passeio",
           "valor": "Obstrução de via/passeio"
-        },
+        },        
         {
           "chave": "situacao_emergencial",
           "valor": "Situação emergencial"
@@ -52,6 +52,10 @@
       "chave": "acao_final",
       "valor": "Ação final",
       "itens": [
+        {
+          "chave": "nenhuma",
+          "valor": "Nenhuma"
+        },
         {
           "chave": "poda_de_limpeza",
           "valor": "Poda de limpeza"
