@@ -83,14 +83,22 @@
               {% endblock %}
             </ul>
             <div class="sidebar-copyright">
-              <div class="sidebar-logo">
+              <div class="sidebar-footer-brand">
                 <a
                   href="https://www.parquecaracol.com.br"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="institution-logo"
                   aria-label="Parque do Caracol"
-                ></a>
+                >
+                  <img
+                    src="{% static 'sigo/assets/img/institucional/parque_caracol_white.png' %}"
+                    alt="Parque do Caracol"
+                    class="institution-logo-img"
+                    width="160"
+                    height="52"
+                  />
+                </a>
               </div>
               <a href="mailto:ti@cnct.com.br">
                 &copy; {% now "Y" %} SESMT - Todos os direitos reservados<br />
@@ -250,7 +258,7 @@
             {% block hero %}
             <div class="card module-hero mb-4">
               <div class="card-body py-4">
-                <h1 class="h3 mb-2">SESMT centraliza as rotinas da área</h1>
+                <h1 class="h3 mb-2">No módulo SESMT centraliza as rotinas da área</h1>
                 <p class="mb-0 text-muted">
                   Acesse atendimento, manejo e flora em um único módulo, com o mesmo padrão operacional e visual do sistema.
                 </p>

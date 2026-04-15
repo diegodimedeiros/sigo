@@ -4,9 +4,6 @@
 {% block title %}Atendimento #{{ atendimento.id }} | SESMT{% endblock %}
 {% block atendimento_heading %}Atendimento #{{ atendimento.id }}{% endblock %}
 {% block atendimento_description %}Leitura completa do caso, pessoa atendida, conduta aplicada, destino e evidências vinculadas ao atendimento.{% endblock %}
-{% block atendimento_hero_actions %}
-<a href="{% url 'sesmt:atendimento_edit' atendimento.id %}" class="btn btn-primary btn-round">Editar atendimento</a>
-{% endblock %}
 
 {% block content %}
 <div class="row g-4">

@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Unidade
+from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Unidade
 from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, hipomenoptero
 
 
@@ -12,6 +13,8 @@ class AtendimentoFlowTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = get_user_model().objects.create_user(username="sesmt", password="senha-forte-123")
+        self.group = Group.objects.create(name="group_sesmt")
+        self.user.groups.add(self.group)
         self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
         ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
 
@@ -48,6 +51,7 @@ class AtendimentoFlowTests(TestCase):
         self.assertEqual(atendimento.unidade, self.unidade)
         self.assertEqual(atendimento.pessoa.nome, "Diego Medeiros")
         self.assertEqual(atendimento.responsavel_atendimento, "Luciana Pires")
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 1)
 
     def test_atendimento_list_renderiza_registro_real(self):
         self.client.force_login(self.user)
@@ -137,6 +141,7 @@ class AtendimentoFlowTests(TestCase):
         self.assertEqual(atendimento.responsavel_atendimento, "Fernanda Costa")
         self.assertEqual(atendimento.primeiros_socorros, "curativo")
         self.assertEqual(payload["data"]["redirect_url"], atendimento.get_absolute_url())
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 2)
 
     def test_api_atendimento_list_filtra_por_status_e_paginacao(self):
         self.client.force_login(self.user)
@@ -328,6 +333,8 @@ class ManejoFlowTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = get_user_model().objects.create_user(username="manejo", password="senha-forte-123")
+        self.group = Group.objects.create(name="group_sesmt")
+        self.user.groups.add(self.group)
         self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
         ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
 
@@ -373,6 +380,7 @@ class ManejoFlowTests(TestCase):
         manejo = Manejo.objects.get()
         self.assertEqual(payload["data"]["id"], manejo.pk)
         self.assertEqual(manejo.unidade, self.unidade)
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 1)
 
     def test_api_manejo_create_abre_apenas_com_captura(self):
         self.client.force_login(self.user)
@@ -419,6 +427,7 @@ class ManejoFlowTests(TestCase):
         self.assertTrue(manejo.realizado_manejo)
         self.assertEqual(Foto.objects.filter(object_id=manejo.id, tipo=Foto.TIPO_SOLTURA).count(), 1)
         self.assertEqual(Geolocalizacao.objects.filter(object_id=manejo.id, tipo="soltura").count(), 1)
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 2)
 
     def test_api_manejo_detail_rejeita_finalizacao_sem_foto_soltura(self):
         self.client.force_login(self.user)
@@ -527,6 +536,8 @@ class FloraFlowTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = get_user_model().objects.create_user(username="flora", password="senha-forte-123")
+        self.group = Group.objects.create(name="group_sesmt")
+        self.user.groups.add(self.group)
         self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
         ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
 
@@ -559,6 +570,7 @@ class FloraFlowTests(TestCase):
         self.assertEqual(Foto.objects.filter(object_id=flora.id, tipo=Foto.TIPO_FLORA_ANTES).count(), 1)
         self.assertEqual(Foto.objects.filter(object_id=flora.id, tipo=Foto.TIPO_FLORA_DEPOIS).count(), 0)
         self.assertEqual(Geolocalizacao.objects.filter(object_id=flora.id).count(), 1)
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 1)
 
     def test_api_flora_create_exige_isolamento_area(self):
         self.client.force_login(self.user)
@@ -609,6 +621,8 @@ class HimenopterosFlowTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = get_user_model().objects.create_user(username="himenopteros", password="senha-forte-123")
+        self.group = Group.objects.create(name="group_sesmt")
+        self.user.groups.add(self.group)
         self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
         ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
 
@@ -647,6 +661,16 @@ class HimenopterosFlowTests(TestCase):
         self.assertEqual(registro.unidade, self.unidade)
         self.assertEqual(Foto.objects.filter(object_id=registro.id, tipo=Foto.TIPO_CAPTURA).count(), 1)
         self.assertEqual(Geolocalizacao.objects.filter(object_id=registro.id).count(), 1)
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 1)
+
+    def test_notifications_list_exibe_registro_do_sesmt_para_usuario_do_grupo(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse("sesmt:api_himenopteros"), data=self._payload())
+
+        response = self.client.get(reverse("sesmt:notifications_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Monitor Himenóptero | Novo Registrado")
 
     def test_himenopteros_list_renderiza_registro_real(self):
         self.client.force_login(self.user)
@@ -671,6 +695,38 @@ class HimenopterosFlowTests(TestCase):
         self.assertEqual(payload["data"]["id"], registro.pk)
         self.assertEqual(payload["data"]["responsavel_registro"], "Diego Geloch")
         self.assertEqual(len(payload["data"]["evidencias"]["fotos"]), 1)
+
+    def test_api_himenopteros_update_preserva_isolamento_area_sem_exigir_reenvio(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse("sesmt:api_himenopteros"), data=self._payload(isolamento_area="true"))
+        registro = hipomenoptero.objects.get()
+
+        response = self.client.post(
+            reverse("sesmt:api_himenopteros_detail", args=[registro.pk]),
+            data={
+                "data_hora_inicio": timezone.localtime(registro.data_hora_inicio).strftime("%Y-%m-%dT%H:%M"),
+                "data_hora_fim": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+                "responsavel_registro": "outro_responsavel",
+                "area": "outra_area",
+                "local": "outro_local",
+                "descricao_local": "Estrutura próxima à bilheteria, com atualização.",
+                "hipomenoptero": "marimbondo",
+                "popular": "Marimbondo",
+                "especie": "Vespidae sp.",
+                "proximidade_pessoas": "baixa",
+                "classificacao_risco": "baixo",
+                "condicao": "sem_intervencao",
+                "acao_realizada": "monitoramento",
+                "observacao": "Acompanhamento realizado sem nova exigência de isolamento.",
+                "justificativa_tecnica": "",
+                "latitude": "-29.3142851",
+                "longitude": "-50.8541445",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        registro.refresh_from_db()
+        self.assertTrue(registro.isolamento_area)
 
     def test_himenopteros_export_gera_csv_real(self):
         self.client.force_login(self.user)

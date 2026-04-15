@@ -38,6 +38,16 @@ from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.pdf_export import draw_pdf_label_value
 from sigo_core.shared.xlsx_export import export_generic_excel
 from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, hipomenoptero as HipomenopteroModel
+from sesmt.notificacoes import (
+    publicar_notificacao_atendimento_atualizado,
+    publicar_notificacao_atendimento_criado,
+    publicar_notificacao_flora_atualizada,
+    publicar_notificacao_flora_criada,
+    publicar_notificacao_himenoptero_atualizado,
+    publicar_notificacao_himenoptero_criado,
+    publicar_notificacao_manejo_atualizado,
+    publicar_notificacao_manejo_criado,
+)
 
 
 def _paginate_mock_list(request, items):
@@ -628,6 +638,7 @@ def _extract_error_details(exc):
 
 
 def _save_atendimento_from_payload(*, payload, files, user, atendimento=None):
+    is_create = atendimento is None
     errors = {}
     recusa_atendimento = to_bool(payload.get("recusa_atendimento"))
     estrangeiro = _tipo_pessoa_estrangeiro(payload.get("tipo_pessoa"))
@@ -799,6 +810,10 @@ def _save_atendimento_from_payload(*, payload, files, user, atendimento=None):
                 files=files.getlist("fotos"),
                 user=user,
             )
+            if is_create:
+                publicar_notificacao_atendimento_criado(atendimento)
+            else:
+                publicar_notificacao_atendimento_atualizado(atendimento)
     except ValidationError as exc:
         return None, _extract_error_details(exc)
 
@@ -1342,6 +1357,10 @@ def _save_manejo_from_payload(*, payload, files, user, manejo=None):
                 tipo=Foto.TIPO_SOLTURA,
                 user=user,
             )
+            if is_opening:
+                publicar_notificacao_manejo_criado(manejo)
+            else:
+                publicar_notificacao_manejo_atualizado(manejo)
     except ValidationError as exc:
         return None, _extract_error_details(exc)
 
@@ -1815,6 +1834,10 @@ def _save_flora_from_payload(*, payload, files, user, flora=None):
             _create_flora_fotos(flora=flora, files=foto_antes_files, tipo=Foto.TIPO_FLORA_ANTES, user=user)
             if not is_create:
                 _create_flora_fotos(flora=flora, files=foto_depois_files, tipo=Foto.TIPO_FLORA_DEPOIS, user=user)
+            if is_create:
+                publicar_notificacao_flora_criada(flora)
+            else:
+                publicar_notificacao_flora_atualizada(flora)
     except ValidationError as exc:
         return None, _extract_error_details(exc)
 
@@ -3066,6 +3089,7 @@ def _build_himenopteros_form_context(payload=None, errors=None, registro=None):
 
 
 def _save_himenopteros_from_payload(*, payload, files, user, registro=None):
+    is_create = registro is None
     errors = {}
     try:
         data_hora_inicio = parse_local_datetime(payload.get("data_hora_inicio"), field_name="data_hora_inicio", required=True)
@@ -3101,7 +3125,7 @@ def _save_himenopteros_from_payload(*, payload, files, user, registro=None):
         errors["latitude"] = "Informe a geolocalização do registro."
     if longitude is None:
         errors["longitude"] = "Informe a geolocalização do registro."
-    if not str(payload.get("isolamento_area") or "").strip():
+    if is_create and not str(payload.get("isolamento_area") or "").strip():
         errors["isolamento_area"] = "Informe se houve isolamento de área."
     if (
         _normalize_payload_value(payload.get("acao_realizada")) == "controle_letal"
@@ -3117,21 +3141,21 @@ def _save_himenopteros_from_payload(*, payload, files, user, registro=None):
             unidade = get_unidade_ativa()
             registro = registro or HipomenopteroModel(criado_por=user)
             registro.unidade = unidade
-            registro.data_hora_inicio = data_hora_inicio
+            registro.data_hora_inicio = registro.data_hora_inicio if registro.pk else data_hora_inicio
             registro.data_hora_fim = data_hora_fim
-            registro.responsavel_registro = payload.get("responsavel_registro")
-            registro.area = payload.get("area")
-            registro.local = payload.get("local")
+            registro.responsavel_registro = registro.responsavel_registro if registro.pk else payload.get("responsavel_registro")
+            registro.area = registro.area if registro.pk else payload.get("area")
+            registro.local = registro.local if registro.pk else payload.get("local")
             registro.descricao_local = payload.get("descricao_local")
             registro.hipomenoptero = payload.get("hipomenoptero")
             registro.popular = payload.get("popular")
             registro.especie = payload.get("especie")
-            registro.proximidade_pessoas = payload.get("proximidade_pessoas")
-            registro.classificacao_risco = payload.get("classificacao_risco")
-            registro.isolamento_area = to_bool(payload.get("isolamento_area"))
+            registro.proximidade_pessoas = registro.proximidade_pessoas if registro.pk else payload.get("proximidade_pessoas")
+            registro.classificacao_risco = registro.classificacao_risco if registro.pk else payload.get("classificacao_risco")
+            registro.isolamento_area = registro.isolamento_area if registro.pk else to_bool(payload.get("isolamento_area"))
             registro.observacao = payload.get("observacao")
             registro.justificativa_tecnica = payload.get("justificativa_tecnica")
-            registro.condicao = payload.get("condicao")
+            registro.condicao = registro.condicao if registro.pk else payload.get("condicao")
             registro.acao_realizada = payload.get("acao_realizada")
             registro.responsavel_tecnico = payload.get("responsavel_tecnico")
             registro.modificado_por = user
@@ -3140,6 +3164,10 @@ def _save_himenopteros_from_payload(*, payload, files, user, registro=None):
             _replace_himenopteros_geolocalizacao(registro=registro, latitude=latitude, longitude=longitude, user=user)
             _delete_himenopteros_fotos(registro=registro, foto_ids=foto_delete_ids)
             _create_himenopteros_fotos(registro=registro, files=foto_files, user=user)
+            if is_create:
+                publicar_notificacao_himenoptero_criado(registro)
+            else:
+                publicar_notificacao_himenoptero_atualizado(registro)
     except ValidationError as exc:
         return None, _extract_error_details(exc)
 

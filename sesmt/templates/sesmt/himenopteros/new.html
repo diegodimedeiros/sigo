@@ -17,36 +17,44 @@
         <h5 class="mb-1">Dados de Registro</h5>
         <p class="text-muted mb-0">Campos obrigatórios para abertura do registro e avaliação inicial da ocorrência.</p>
       </div>
-      <div class="col-md-3">
-        <label class="form-label">Data e Hora do Registro</label>
-        <input type="datetime-local" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}">
+      <div class="col-12">
+        <div class="row g-4">
+          <div class="col-md-3">
+            <label class="form-label">Data e Hora do Registro</label>
+            <input type="datetime-local" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Responsável pelo Registro</label>
+            <select name="responsavel_registro" class="form-select">
+              <option value="">Selecione</option>
+              {% for item in responsavel_registro_options %}
+              <option value="{{ item.chave }}" {% if request_data.responsavel_registro == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="col-md-5">
-        <label class="form-label">Responsável pelo Registro</label>
-        <select name="responsavel_registro" class="form-select">
-          <option value="">Selecione</option>
-          {% for item in responsavel_registro_options %}
-          <option value="{{ item.chave }}" {% if request_data.responsavel_registro == item.chave %}selected{% endif %}>{{ item.valor }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Área</label>
-        <select id="himenopteros-area" name="area" class="form-select" data-locais-url="{% url 'sesmt:himenopteros_api_locais' %}">
-          <option value="">Selecione</option>
-          {% for item in area_options %}
-          <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Local</label>
-        <select id="himenopteros-local" name="local" class="form-select" data-selected-value="{{ request_data.local }}">
-          <option value="">Selecione</option>
-          {% for item in local_options %}
-          <option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>
-          {% endfor %}
-        </select>
+      <div class="col-12">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label">Área</label>
+            <select id="himenopteros-area" name="area" class="form-select" data-locais-url="{% url 'sesmt:himenopteros_api_locais' %}">
+              <option value="">Selecione</option>
+              {% for item in area_options %}
+              <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Local</label>
+            <select id="himenopteros-local" name="local" class="form-select" data-selected-value="{{ request_data.local }}">
+              <option value="">Selecione</option>
+              {% for item in local_options %}
+              <option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       </div>
       <div class="col-12">
         <label class="form-label">Descrição do Local</label>
