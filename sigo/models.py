@@ -464,6 +464,10 @@ class Notificacao(models.Model):
         verbose_name = "Notificação"
         verbose_name_plural = "Notificações"
         ordering = ["-criado_em"]
+        indexes = [
+            models.Index(fields=["ativo", "-criado_em"]),
+            models.Index(fields=["modulo", "ativo", "-criado_em"]),
+        ]
 
     def normalizar_campos(self):
         self.titulo = normalize_text(self.titulo)

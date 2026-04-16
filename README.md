@@ -72,6 +72,13 @@ siop/
 
 sesmt/
   modulo de saude e seguranca
+  views separadas por area:
+    core_views.py
+    atendimento/
+    manejo/
+    flora/
+    himenopteros/
+    views.py como fachada de compatibilidade
 ```
 
 ## Funcionalidades implementadas
@@ -197,6 +204,7 @@ Rodar apenas o `SIOP`:
 - [Visão geral do SIOP](docs/siop.md)
 - [Visão atual do SESMT](docs/sesmt.md)
 - [Catálogos e convenções](docs/catalogos.md)
+- [ToDo de arquitetura 10/10](docs/todo_arquitetura_10_10.md)
 
 ## Observações
 
@@ -213,6 +221,7 @@ Rodar apenas o `SIOP`:
 - continuar a limpeza conservadora dos assets legados do tema que não têm uso real no projeto
 - ampliar a profundidade dos testes, especialmente em cenários de borda e contratos de API/listagem
 - seguir com o pente fino de padronização visual e textual entre as áreas do `SIOP`
+- executar o roadmap de robustez descrito em `docs/todo_arquitetura_10_10.md`, com prioridade para a refatoração estrutural do `SESMT`
 
 ## Licença
 

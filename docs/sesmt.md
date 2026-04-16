@@ -11,6 +11,17 @@ Hoje o `SESMT` já tem quatro áreas em fluxo real:
 - `Flora`
 - `Monitor Himenóptero`
 
+Também já passou pela primeira etapa de refatoração estrutural:
+
+- `sesmt/views.py` deixou de concentrar a implementação inteira do módulo
+- as views foram separadas por área em:
+  - `sesmt/atendimento/views.py`
+  - `sesmt/manejo/views.py`
+  - `sesmt/flora/views.py`
+  - `sesmt/himenopteros/views.py`
+- `sesmt/core_views.py` concentra a base compartilhada de navegação do módulo
+- `sesmt/views.py` foi mantido como fachada de compatibilidade para não quebrar rotas e imports existentes
+
 Essas áreas seguem o padrão do projeto para o fluxo web principal:
 
 - `index`

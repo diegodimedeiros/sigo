@@ -33,7 +33,7 @@ class Ocorrencia(BaseModel):
     area = models.CharField(max_length=50, verbose_name="Área", null=False, blank=False, db_index=True)
     local = models.CharField(max_length=50, verbose_name="Local", null=False, blank=False, db_index=True)
     cftv = models.BooleanField(verbose_name="Possui imagens CFTV?", default=False)
-    bombeiro_civil = models.BooleanField(verbose_name="Acionou BC?", default=False, db_index=True)
+    bombeiro_civil = models.BooleanField(verbose_name="Acionou BC?", default=False)
     anexos = GenericRelation(Anexo)
     status = models.BooleanField(verbose_name="Ocorrência Finalizada?", default=False, db_index=True)
     descricao = models.TextField(verbose_name="Descrição da Ocorrência", blank=True, null=True)
@@ -478,8 +478,8 @@ class LiberacaoAcesso(BaseModel):
     chegadas_registradas = models.JSONField(default=list, blank=True, verbose_name="Pessoas com chegada registrada")
     motivo = models.TextField(verbose_name="Motivo da Liberação de Acesso", blank=False, null=False)
     data_liberacao = models.DateTimeField(verbose_name="Data e Hora da Liberação de Acesso", db_index=True)
-    empresa = models.CharField(max_length=255, verbose_name="Empresa", null=True, blank=True)
-    solicitante = models.CharField(max_length=255, verbose_name="Solicitante", null=True, blank=True)
+    empresa = models.CharField(max_length=255, verbose_name="Empresa", null=True, blank=True, db_index=True)
+    solicitante = models.CharField(max_length=255, verbose_name="Solicitante", null=True, blank=True, db_index=True)
     anexos = GenericRelation(Anexo)
 
     def __str__(self):
