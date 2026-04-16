@@ -205,6 +205,7 @@ Rodar apenas o `SIOP`:
 - [Visão atual do SESMT](docs/sesmt.md)
 - [Catálogos e convenções](docs/catalogos.md)
 - [ToDo de arquitetura 10/10](docs/todo_arquitetura_10_10.md)
+- [Guia de padrão de módulo (inclui instruções para AI)](docs/padrao_modulo_ai.md)
 
 ## Observações
 

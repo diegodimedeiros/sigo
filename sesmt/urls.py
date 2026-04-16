@@ -1,38 +1,39 @@
 from django.urls import path
 
-from .views import (
+from .core_views import home, notifications_list
+from .atendimento.views import (
     api_atendimento,
     api_atendimento_detail,
     api_atendimento_export,
-    api_flora,
-    api_flora_detail,
-    api_flora_export,
-    api_himenopteros,
-    api_himenopteros_detail,
-    api_himenopteros_export,
-    api_manejo,
-    api_manejo_detail,
-    api_manejo_export,
-    atendimento_export,
     atendimento_api_locais,
+    atendimento_assinatura_view,
     atendimento_edit,
+    atendimento_export,
+    atendimento_export_view_pdf,
     atendimento_foto_view,
     atendimento_index,
     atendimento_list,
     atendimento_new,
-    atendimento_assinatura_view,
     atendimento_view,
-    atendimento_export_view_pdf,
+)
+from .flora.views import (
+    api_flora,
+    api_flora_detail,
+    api_flora_export,
+    flora_api_locais,
+    flora_edit,
     flora_export,
     flora_export_view_pdf,
     flora_foto_view,
     flora_index,
     flora_list,
     flora_new,
-    flora_edit,
-    flora_api_locais,
     flora_view,
-    home,
+)
+from .himenopteros.views import (
+    api_himenopteros,
+    api_himenopteros_detail,
+    api_himenopteros_export,
     himenopteros_api_locais,
     himenopteros_edit,
     himenopteros_export,
@@ -42,8 +43,11 @@ from .views import (
     himenopteros_list,
     himenopteros_new,
     himenopteros_view,
-    manejo_export,
-    manejo_export_view_pdf,
+)
+from .manejo.views import (
+    api_manejo,
+    api_manejo_detail,
+    api_manejo_export,
     manejo_api_especies,
     manejo_api_locais,
     manejo_edit,
@@ -51,7 +55,8 @@ from .views import (
     manejo_index,
     manejo_list,
     manejo_new,
-    notifications_list,
+    manejo_export,
+    manejo_export_view_pdf,
     manejo_view,
 )
 

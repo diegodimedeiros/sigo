@@ -22,6 +22,21 @@ Também já passou pela primeira etapa de refatoração estrutural:
 - `sesmt/core_views.py` concentra a base compartilhada de navegação do módulo
 - `sesmt/views.py` foi mantido como fachada de compatibilidade para não quebrar rotas e imports existentes
 
+Na evolução de isonomia com o `SIOP`, cada área também passou a ter o mesmo esqueleto de camadas:
+
+- `views.py`: camada HTTP (render, redirect, response)
+- `services.py`: regras de negócio e orquestração de criação/edição
+- `query.py`: filtros e consultas reutilizáveis
+- `serializers.py`: serialização para payloads de API
+- `support.py` e `common.py`: utilitários pequenos e funções de apoio
+
+Estrutura atual por área:
+
+- `sesmt/atendimento/`
+- `sesmt/manejo/`
+- `sesmt/flora/`
+- `sesmt/himenopteros/`
+
 Essas áreas seguem o padrão do projeto para o fluxo web principal:
 
 - `index`
