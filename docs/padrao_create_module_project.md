@@ -252,6 +252,19 @@ Para diretrizes completas e detalhadas sobre criação de arquivos JavaScript, i
 
 O documento define o padrão **oficial** para arquivos `.js` com base no SIOP como referência de excelência.
 
+### 6.4 Padrão Detalhado de CSS
+
+Para diretrizes completas de CSS, incluindo:
+- convenções de nomenclatura e semântica de classes
+- uso obrigatório de design tokens (spacing, radius, transitions, colors)
+- padrão de breakpoints alinhado ao Bootstrap
+- estratégia de dark mode por variáveis
+- checklist de qualidade e compatibilidade com legado
+
+**Consulte**: [padrao_css.md](padrao_css.md)
+
+O documento define o padrão **oficial** para arquivos `.css` e evolução do estilo sem quebra visual.
+
 ## 7. Models e migrations
 
 Para novos modelos:
