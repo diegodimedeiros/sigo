@@ -4,10 +4,8 @@
 
 ## Base funcional usada para iniciar o modulo
 
-O escopo inicial foi consolidado a partir destes documentos:
-
-- [legacy_siop_bc.md](/home/administrador/sources_app/sigo_src/docs/legacy_siop_bc.md)
-- [referencia_siop_src_bc.md](/home/administrador/sources_app/sigo_src/docs/referencia_siop_src_bc.md)
+O escopo inicial foi consolidado a partir da analise do legado de `Controle BC`,
+`Atendimento`, `Flora` e `Manejo/Fauna`, ja incorporada a este repositorio.
 
 ## Frentes iniciais
 
@@ -55,4 +53,4 @@ Neste momento, `ReportOS` foi aberto como modulo proprio do sistema:
 - template proprio
 - card no menu lateral do `SIGO`
 
-O objetivo desta primeira entrega e abrir a base do modulo sem acoplar regra de negocio prematura, usando a documentacao do legado como referencia oficial.
+O objetivo desta primeira entrega e abrir a base do modulo sem acoplar regra de negocio prematura, usando como referencia os requisitos funcionais ja consolidados neste repositorio.

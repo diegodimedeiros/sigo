@@ -159,7 +159,6 @@ O módulo foi evoluído a partir de:
 
 - `sesmt/models.py`
 - fluxos novos do próprio projeto
-- referências documentadas em [legacy_siop_bc.md](/home/administrador/sources_app/sigo_src/docs/legacy_siop_bc.md)
 - legado antigo de `Controle BC`, especialmente para `Atendimento`, `Manejo` e `Flora`
 
 ## Observações atuais
