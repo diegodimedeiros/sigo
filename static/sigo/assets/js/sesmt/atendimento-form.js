@@ -242,181 +242,24 @@
   }
 
   function initPhotoEvidence() {
-    var cameraInput = document.getElementById("fotos_camera");
-    var deviceInput = document.getElementById("fotos_dispositivo");
-    var cameraStatus = document.getElementById("fotos_camera_status");
-    var deviceStatus = document.getElementById("fotos_dispositivo_status");
-    var totalStatus = document.getElementById("quantidade_fotos_atendimento");
-    var listNode = document.getElementById("lista_fotos_atendimento");
-    var emptyNode = document.getElementById("lista_fotos_atendimento_vazia");
-    if (!cameraInput || !deviceInput || !cameraStatus || !deviceStatus || !totalStatus || !listNode || !emptyNode) {
-      return;
-    }
-
-    var cameraFiles = Array.from(cameraInput.files || []);
-    var deviceFiles = Array.from(deviceInput.files || []);
-
-    function createTransfer(files) {
-      var transfer = new DataTransfer();
-      files.forEach(function (file) {
-        transfer.items.add(file);
-      });
-      return transfer.files;
-    }
-
-    function syncInputFiles() {
-      cameraInput.files = createTransfer(cameraFiles);
-      deviceInput.files = createTransfer(deviceFiles);
-    }
-
-    function fileSignature(file) {
-      return [file.name, file.size, file.lastModified, file.type].join("::");
-    }
-
-    function appendFiles(targetFiles, incomingFiles) {
-      incomingFiles.forEach(function (file) {
-        var signature = fileSignature(file);
-        var exists = targetFiles.some(function (current) {
-          return fileSignature(current) === signature;
-        });
-        if (!exists) {
-          targetFiles.push(file);
-        }
-      });
-    }
-
-    function getFiles() {
-      return cameraFiles.map(function (file, index) {
-        return { file: file, source: "camera", index: index };
-      }).concat(deviceFiles.map(function (file, index) {
-        return { file: file, source: "device", index: index };
-      }));
-    }
-
-    function pluralize(total) {
-      return total === 1 ? "foto capturada" : "fotos capturadas";
-    }
-
-    function refresh() {
-      syncInputFiles();
-      var cameraCount = cameraFiles.length;
-      var deviceCount = deviceFiles.length;
-      var files = getFiles();
-
-      cameraStatus.textContent = cameraCount ? cameraCount + " ficheiro(s) selecionado(s)" : "Nenhum ficheiro selecionado";
-      deviceStatus.textContent = deviceCount ? deviceCount + " ficheiro(s) selecionado(s)" : "Nenhum ficheiro selecionado";
-      totalStatus.textContent = files.length ? files.length + " " + pluralize(files.length) : "Nenhuma foto capturada";
-
-      listNode.innerHTML = "";
-      emptyNode.style.display = files.length ? "none" : "";
-      files.forEach(function (entry) {
-        var item = document.createElement("div");
-        item.className = "small border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-3";
-
-        var label = document.createElement("div");
-        label.className = "text-truncate";
-        label.textContent = entry.file.name;
-
-        var removeButton = document.createElement("button");
-        removeButton.type = "button";
-        removeButton.className = "btn btn-sm btn-label-danger";
-        removeButton.textContent = "X";
-        removeButton.addEventListener("click", function () {
-          if (entry.source === "camera") {
-            cameraFiles.splice(entry.index, 1);
-          } else {
-            deviceFiles.splice(entry.index, 1);
-          }
-          refresh();
-        });
-
-        item.appendChild(label);
-        item.appendChild(removeButton);
-        listNode.appendChild(item);
-      });
-    }
-
-    cameraInput.addEventListener("click", function () {
-      cameraInput.value = "";
+    window.SesmtPhotoManager.dual({
+      cameraInputId: "fotos_camera",
+      deviceInputId: "fotos_dispositivo",
+      cameraStatusId: "fotos_camera_status",
+      deviceStatusId: "fotos_dispositivo_status",
+      totalStatusId: "quantidade_fotos_atendimento",
+      listNodeId: "lista_fotos_atendimento",
+      emptyNodeId: "lista_fotos_atendimento_vazia"
     });
-
-    deviceInput.addEventListener("click", function () {
-      deviceInput.value = "";
-    });
-
-    cameraInput.addEventListener("change", function () {
-      appendFiles(cameraFiles, Array.from(cameraInput.files || []));
-      refresh();
-    });
-
-    deviceInput.addEventListener("change", function () {
-      appendFiles(deviceFiles, Array.from(deviceInput.files || []));
-      refresh();
-    });
-
-    refresh();
   }
 
   function initGeolocationCapture() {
-    var latitudeField = document.getElementById("geo_latitude");
-    var longitudeField = document.getElementById("geo_longitude");
-    var emptyNode = document.getElementById("geolocalizacao_atendimento_vazia");
-    var listNode = document.getElementById("geolocalizacao_atendimento");
-    if (!latitudeField || !longitudeField || !emptyNode || !listNode) {
-      return;
-    }
-
-    function renderCoordinates(latitude, longitude) {
-      listNode.innerHTML = "";
-      var latNode = document.createElement("div");
-      latNode.className = "small border rounded-2 px-3 py-2";
-      latNode.textContent = "Latitude: " + latitude;
-      var lngNode = document.createElement("div");
-      lngNode.className = "small border rounded-2 px-3 py-2";
-      lngNode.textContent = "Longitude: " + longitude;
-      listNode.appendChild(latNode);
-      listNode.appendChild(lngNode);
-      emptyNode.style.display = "none";
-    }
-
-    function renderMessage(message) {
-      listNode.innerHTML = "";
-      emptyNode.textContent = message;
-      emptyNode.style.display = "";
-    }
-
-    function capture() {
-      if ((latitudeField.value || "").trim() && (longitudeField.value || "").trim()) {
-        renderCoordinates(latitudeField.value.trim(), longitudeField.value.trim());
-        return;
-      }
-
-      if (!navigator.geolocation) {
-        renderMessage("Geolocalização indisponível neste dispositivo.");
-        return;
-      }
-
-      renderMessage("Obtendo geolocalização...");
-      navigator.geolocation.getCurrentPosition(
-        function (position) {
-          var latitude = Number(position.coords.latitude || 0).toFixed(7);
-          var longitude = Number(position.coords.longitude || 0).toFixed(7);
-          latitudeField.value = latitude;
-          longitudeField.value = longitude;
-          renderCoordinates(latitude, longitude);
-        },
-        function () {
-          renderMessage("Não foi possível obter a localização.");
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 8000,
-          maximumAge: 15000
-        }
-      );
-    }
-
-    capture();
+    window.SesmtGeolocation.initCapture({
+      latitudeId: "geo_latitude",
+      longitudeId: "geo_longitude",
+      containerId: "geolocalizacao_atendimento",
+      emptyNodeId: "geolocalizacao_atendimento_vazia"
+    });
   }
 
   function initSignatureCapture() {

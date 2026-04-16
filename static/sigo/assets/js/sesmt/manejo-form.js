@@ -98,75 +98,6 @@
     });
   }
 
-  function initPhotoManager(config) {
-    var input = document.getElementById(config.inputId);
-    var status = document.getElementById(config.statusId);
-    var listNode = document.getElementById(config.listId);
-    var emptyNode = document.getElementById(config.emptyId);
-    if (!input || !status || !listNode || !emptyNode) return;
-
-    var files = Array.from(input.files || []);
-
-    function createTransfer(currentFiles) {
-      var transfer = new DataTransfer();
-      currentFiles.forEach(function (file) {
-        transfer.items.add(file);
-      });
-      return transfer.files;
-    }
-
-    function fileSignature(file) {
-      return [file.name, file.size, file.lastModified, file.type].join("::");
-    }
-
-    function syncInput() {
-      input.files = createTransfer(files);
-    }
-
-    function refresh() {
-      syncInput();
-      status.textContent = files.length ? files.length + " ficheiro(s) selecionado(s)" : "Nenhum ficheiro selecionado";
-      listNode.innerHTML = "";
-      emptyNode.style.display = files.length ? "none" : "";
-      files.forEach(function (file, index) {
-        var row = document.createElement("div");
-        row.className = "small border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-3";
-
-        var label = document.createElement("div");
-        label.className = "text-truncate";
-        label.textContent = file.name;
-
-        var removeButton = document.createElement("button");
-        removeButton.type = "button";
-        removeButton.className = "btn btn-sm btn-label-danger";
-        removeButton.textContent = "X";
-        removeButton.addEventListener("click", function () {
-          files = files.filter(function (_item, currentIndex) { return currentIndex !== index; });
-          refresh();
-        });
-
-        row.appendChild(label);
-        row.appendChild(removeButton);
-        listNode.appendChild(row);
-      });
-    }
-
-    input.addEventListener("change", function () {
-      var incoming = Array.from(input.files || []);
-      incoming.forEach(function (file) {
-        var signature = fileSignature(file);
-        var exists = files.some(function (current) { return fileSignature(current) === signature; });
-        if (!exists) files.push(file);
-      });
-      refresh();
-      if (typeof config.onChange === "function") {
-        config.onChange();
-      }
-    });
-
-    refresh();
-  }
-
   function initExistingPhotoRemoval(form) {
     if (!form) return;
     form.querySelectorAll("[data-remove-existing-photo='true']").forEach(function (button) {
@@ -188,72 +119,11 @@
   }
 
   function renderGeolocation(container, emptyNode, latitude, longitude, hash) {
-    if (!container || !emptyNode) return;
-    emptyNode.style.display = "none";
-    var div = document.createElement("div");
-    div.className = "detail-note-box";
-    var text = "Latitude: " + latitude + " | Longitude: " + longitude;
-    if (hash) text += " | Hash: " + hash;
-    div.textContent = text;
-    container.innerHTML = "";
-    container.appendChild(div);
+    window.SesmtGeolocation.render(container, emptyNode, latitude, longitude, hash);
   }
 
   function renderGeolocationError(container, emptyNode, message) {
-    if (!container || !emptyNode) return;
-    container.innerHTML = "";
-    emptyNode.style.display = "";
-    emptyNode.textContent = message;
-  }
-
-  function syncGeolocation(kind, options) {
-    var latInput = document.getElementById("latitude_" + kind);
-    var lonInput = document.getElementById("longitude_" + kind);
-    var container = document.getElementById("geolocalizacao_" + kind);
-    var emptyNode = document.getElementById("geolocalizacao_" + kind + "_vazia");
-    if (!latInput || !lonInput || !container || !emptyNode) return;
-
-    function renderCurrent() {
-      if ((latInput.value || "").trim() && (lonInput.value || "").trim()) {
-        renderGeolocation(container, emptyNode, latInput.value, lonInput.value, "");
-      } else {
-        renderGeolocationError(container, emptyNode, "Nenhuma geolocalização registrada ainda.");
-      }
-    }
-
-    function capture() {
-      if (!navigator.geolocation) {
-        renderGeolocationError(container, emptyNode, "Geolocalização indisponível neste dispositivo.");
-        return;
-      }
-      renderGeolocationError(container, emptyNode, "Obtendo geolocalização...");
-      navigator.geolocation.getCurrentPosition(
-        function (position) {
-          latInput.value = Number(position.coords.latitude).toFixed(7);
-          lonInput.value = Number(position.coords.longitude).toFixed(7);
-          renderCurrent();
-        },
-        function () {
-          renderGeolocationError(container, emptyNode, "Não foi possível obter a localização.");
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 10000,
-          timeout: 15000
-        }
-      );
-    }
-
-    if ((options || {}).autoCapture) {
-      capture();
-    } else {
-      renderCurrent();
-    }
-
-    return {
-      capture: capture,
-      renderCurrent: renderCurrent
-    };
+    window.SesmtGeolocation.showMessage(container, emptyNode, message);
   }
 
   function initManejoList() {
@@ -306,36 +176,42 @@
     var areaSolturaField = document.getElementById("area_soltura");
     syncCatalogSelect("area_soltura", "local_soltura", areaSolturaField ? areaSolturaField.dataset.locaisUrl : "", "area", "Selecione a área primeiro");
 
-    var capturaGeo = syncGeolocation("captura", { autoCapture: !(document.getElementById("latitude_captura").value || "").trim() });
-    var solturaGeo = syncGeolocation("soltura", { autoCapture: false });
+    var capturaGeo = null;
+    var solturaGeo = null;
 
     var realizadoField = document.getElementById("realizado_manejo");
-    if (realizadoField && solturaGeo) {
+    if (realizadoField) {
       realizadoField.addEventListener("change", function () {
         syncToggleFields();
-        if (isTruthyValue(realizadoField.value) && !(document.getElementById("latitude_soltura").value || "").trim()) {
-          solturaGeo.capture();
-        }
       });
     }
 
-    initPhotoManager({
+    window.SesmtPhotoManager.init({
       inputId: "foto_captura",
       statusId: "foto_captura_status",
       listId: "lista_fotos_captura",
-      emptyId: "lista_fotos_captura_vazia",
-      onChange: function () {
-        if (capturaGeo) capturaGeo.capture();
-      }
+      emptyId: "lista_fotos_captura_vazia"
     });
-    initPhotoManager({
+
+    window.SesmtPhotoManager.init({
       inputId: "foto_soltura",
       statusId: "foto_soltura_status",
       listId: "lista_fotos_soltura",
-      emptyId: "lista_fotos_soltura_vazia",
-      onChange: function () {
-        if (solturaGeo) solturaGeo.capture();
-      }
+      emptyId: "lista_fotos_soltura_vazia"
+    });
+
+    window.SesmtGeolocation.initCapture({
+      latitudeId: "latitude_captura",
+      longitudeId: "longitude_captura",
+      containerId: "geolocalizacao_captura",
+      emptyNodeId: "geolocalizacao_captura_vazia"
+    });
+
+    window.SesmtGeolocation.initCapture({
+      latitudeId: "latitude_soltura",
+      longitudeId: "longitude_soltura",
+      containerId: "geolocalizacao_soltura",
+      emptyNodeId: "geolocalizacao_soltura_vazia"
     });
   }
 

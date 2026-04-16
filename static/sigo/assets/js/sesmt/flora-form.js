@@ -89,122 +89,14 @@
     });
   }
 
-  function initPhotoManager(config) {
-    var input = document.getElementById(config.inputId);
-    var status = document.getElementById(config.statusId);
-    var listNode = document.getElementById(config.listId);
-    var emptyNode = document.getElementById(config.emptyId);
-    if (!input || !status || !listNode || !emptyNode) return;
-
-    var files = Array.from(input.files || []);
-
-    function createTransfer(currentFiles) {
-      var transfer = new DataTransfer();
-      currentFiles.forEach(function (file) {
-        transfer.items.add(file);
-      });
-      return transfer.files;
-    }
-
-    function signature(file) {
-      return [file.name, file.size, file.lastModified, file.type].join("::");
-    }
-
-    function refresh() {
-      input.files = createTransfer(files);
-      status.textContent = files.length ? files.length + " ficheiro(s) selecionado(s)" : "Nenhum ficheiro selecionado";
-      listNode.innerHTML = "";
-      emptyNode.style.display = files.length ? "none" : "";
-      files.forEach(function (file, index) {
-        var row = document.createElement("div");
-        row.className = "small border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-3";
-        var label = document.createElement("div");
-        label.className = "text-truncate";
-        label.textContent = file.name;
-        var removeButton = document.createElement("button");
-        removeButton.type = "button";
-        removeButton.className = "btn btn-sm btn-label-danger";
-        removeButton.textContent = "X";
-        removeButton.addEventListener("click", function () {
-          files = files.filter(function (_item, currentIndex) { return currentIndex !== index; });
-          refresh();
-        });
-        row.appendChild(label);
-        row.appendChild(removeButton);
-        listNode.appendChild(row);
-      });
-    }
-
-    input.addEventListener("change", function () {
-      Array.from(input.files || []).forEach(function (file) {
-        var exists = files.some(function (current) { return signature(current) === signature(file); });
-        if (!exists) files.push(file);
-      });
-      refresh();
-      if (typeof config.onChange === "function") config.onChange();
-    });
-
-    refresh();
-  }
-
   function renderGeolocation(container, emptyNode, latitude, longitude, hash) {
-    emptyNode.style.display = "none";
-    var div = document.createElement("div");
-    div.className = "detail-note-box";
-    var text = "Latitude: " + latitude + " | Longitude: " + longitude;
-    if (hash) text += " | Hash: " + hash;
-    div.textContent = text;
-    container.innerHTML = "";
-    container.appendChild(div);
+    window.SesmtGeolocation.render(container, emptyNode, latitude, longitude, hash);
   }
 
   function renderGeolocationError(container, emptyNode, message) {
     container.innerHTML = "";
     emptyNode.style.display = "";
     emptyNode.textContent = message;
-  }
-
-  function syncGeolocation() {
-    var latInput = document.getElementById("flora-latitude");
-    var lonInput = document.getElementById("flora-longitude");
-    var container = document.getElementById("geolocalizacao_flora");
-    var emptyNode = document.getElementById("geolocalizacao_flora_vazia");
-    if (!latInput || !lonInput || !container || !emptyNode) return null;
-
-    function renderCurrent() {
-      if ((latInput.value || "").trim() && (lonInput.value || "").trim()) {
-        renderGeolocation(container, emptyNode, latInput.value, lonInput.value, "");
-      } else {
-        renderGeolocationError(container, emptyNode, "Nenhuma geolocalização registrada ainda.");
-      }
-    }
-
-    function capture() {
-      if (!navigator.geolocation) {
-        renderGeolocationError(container, emptyNode, "Geolocalização indisponível neste dispositivo.");
-        return;
-      }
-      renderGeolocationError(container, emptyNode, "Obtendo geolocalização...");
-      navigator.geolocation.getCurrentPosition(
-        function (position) {
-          latInput.value = Number(position.coords.latitude).toFixed(7);
-          lonInput.value = Number(position.coords.longitude).toFixed(7);
-          renderCurrent();
-        },
-        function () {
-          renderGeolocationError(container, emptyNode, "Não foi possível obter a localização.");
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
-      );
-    }
-
-    if (!(latInput.value || "").trim()) {
-      capture();
-    } else {
-      renderCurrent();
-    }
-
-    return { capture: capture, renderCurrent: renderCurrent };
   }
 
   function initFloraList() {
@@ -245,20 +137,26 @@
     triggerFileButtons();
     syncAreaLocais();
     initExistingPhotoRemoval(form);
-    var geo = syncGeolocation();
-    initPhotoManager({
+
+    window.SesmtPhotoManager.init({
       inputId: "foto_antes",
       statusId: "foto_antes_status",
       listId: "lista_foto_antes",
-      emptyId: "lista_foto_antes_vazia",
-      onChange: function () { if (geo) geo.capture(); }
+      emptyId: "lista_foto_antes_vazia"
     });
-    initPhotoManager({
+
+    window.SesmtPhotoManager.init({
       inputId: "foto_depois",
       statusId: "foto_depois_status",
       listId: "lista_foto_depois",
-      emptyId: "lista_foto_depois_vazia",
-      onChange: function () { if (geo) geo.capture(); }
+      emptyId: "lista_foto_depois_vazia"
+    });
+
+    window.SesmtGeolocation.initCapture({
+      latitudeId: "flora-latitude",
+      longitudeId: "flora-longitude",
+      containerId: "geolocalizacao_flora",
+      emptyNodeId: "geolocalizacao_flora_vazia"
     });
   }
 

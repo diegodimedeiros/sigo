@@ -238,6 +238,20 @@ Regras:
 - manter escapes e sanitização em renderização HTML dinâmica
 - usar rotas da API para listagem e detalhe
 
+### 6.3 Padrão Detalhado de Criação de JavaScript
+
+Para diretrizes completas e detalhadas sobre criação de arquivos JavaScript, incluindo:
+- Padrão IIFE e encapsulamento
+- Organização de funções
+- Segurança (XSS prevention)
+- Padrões reutilizáveis (forms, exports, photo management)
+- Checklist de criação
+- Migração de código legado
+
+**Consulte**: [padrao_criacao_javascript.md](padrao_criacao_javascript.md)
+
+O documento define o padrão **oficial** para arquivos `.js` com base no SIOP como referência de excelência.
+
 ## 7. Models e migrations
 
 Para novos modelos:
