@@ -137,7 +137,11 @@
 
   function renderGeolocation(container, emptyNode, latitude, longitude) {
     emptyNode.style.display = "none";
-    container.innerHTML = '<div class="detail-note-box">Latitude: ' + latitude + " | Longitude: " + longitude + "</div>";
+    var div = document.createElement("div");
+    div.className = "detail-note-box";
+    div.textContent = "Latitude: " + latitude + " | Longitude: " + longitude;
+    container.innerHTML = "";
+    container.appendChild(div);
   }
 
   function renderGeolocationError(container, emptyNode, message) {

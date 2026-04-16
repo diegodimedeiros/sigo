@@ -149,7 +149,13 @@
 
   function renderGeolocation(container, emptyNode, latitude, longitude, hash) {
     emptyNode.style.display = "none";
-    container.innerHTML = '<div class="detail-note-box">Latitude: ' + latitude + " | Longitude: " + longitude + (hash ? " | Hash: " + hash : "") + "</div>";
+    var div = document.createElement("div");
+    div.className = "detail-note-box";
+    var text = "Latitude: " + latitude + " | Longitude: " + longitude;
+    if (hash) text += " | Hash: " + hash;
+    div.textContent = text;
+    container.innerHTML = "";
+    container.appendChild(div);
   }
 
   function renderGeolocationError(container, emptyNode, message) {

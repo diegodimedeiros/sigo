@@ -31,17 +31,13 @@ def api_success(data=None, message="Operacao realizada com sucesso.", status=Api
 
 
 def api_error(code, message, status=ApiStatus.BAD_REQUEST, details=None):
-    return JsonResponse(
-        {
-            "ok": False,
-            "error": {
-                "code": code,
-                "message": message,
-                "details": details,
-            },
-        },
-        status=status,
-    )
+    error_payload = {
+        "code": code,
+        "message": message,
+    }
+    if details is not None:
+        error_payload["details"] = details
+    return JsonResponse({"ok": False, "error": error_payload}, status=status)
 
 
 def api_method_not_allowed(message="Metodo nao permitido."):
