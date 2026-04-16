@@ -110,7 +110,7 @@
       metaSelector: "#acesso-colaboradores-list-meta",
       paginationSelector: "#acesso-colaboradores-pagination",
       columnCount: 7,
-      emptyMessage: "Nenhum acesso de colaboradores encontrado para os filtros informados.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " acesso" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

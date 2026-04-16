@@ -37,7 +37,6 @@
                 <th>ID</th>
                 <th>Pessoas</th>
                 <th>Empresa</th>
-                <th>Solicitante</th>
                 <th>Liberação</th>
                 <th>Status</th>
                 <th class="text-end">Ação</th>
@@ -55,7 +54,6 @@
                   {% endif %}
                 </td>
                 <td>{{ registro.empresa|default:"-" }}</td>
-                <td>{{ registro.solicitante|default:"-" }}</td>
                 <td>{{ registro.data_liberacao|date:"d/m/Y H:i" }}</td>
                 <td>
                   {% with total_pessoas=registro.pessoas.count chegadas=registro.chegadas_registradas|length %}
@@ -69,7 +67,7 @@
                 <td class="text-end"><a href="{% url 'siop:liberacao_acesso_view' registro.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="7" class="text-center py-4 text-muted">Nenhuma liberação de acesso cadastrada ainda.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -82,11 +80,10 @@
       <div class="card-header"><div class="card-title">Fila operacional</div></div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Checar autorização via email</li>
-          <li class="mb-3">Validar motivo</li>
-          <li class="mb-3">Registrar Pessoas, Documentos e Empresa</li>
-          <li class="mb-3">Registrar solicitante</li>          
-          <li >Rastrear auditoria</li>
+          <li class="mb-3">Validar autorização e motivo</li>
+          <li class="mb-3">Registrar solicitante e empresa</li>
+          <li class="mb-3">Vincular pessoas e documentos</li>
+          <li>Acompanhar chegadas e auditoria</li>
         </ol>
       </div>
     </div>

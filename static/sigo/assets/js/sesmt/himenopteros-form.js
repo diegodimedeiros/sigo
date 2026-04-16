@@ -104,7 +104,7 @@
       dataKey: "registros",
       columnCount: 7,
       loadingText: "Carregando registros de himenópteros...",
-      emptyMessage: "Nenhum registro de himenóptero encontrado.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " registro" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

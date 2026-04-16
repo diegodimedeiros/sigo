@@ -290,7 +290,7 @@
       paginationSelector: '#achados-perdidos-list-pagination',
       dataKey: 'itens',
       columnCount: 8,
-      emptyMessage: 'Nenhum item encontrado.',
+      emptyMessage: 'Nenhum registro encontrado.',
       metaText: function (total) {
         return total + (total === 1 ? ' item encontrado.' : ' itens encontrados.');
       },

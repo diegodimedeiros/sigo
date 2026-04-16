@@ -137,7 +137,7 @@
       dataKey: "registros",
       columnCount: 7,
       loadingText: "Carregando manejos...",
-      emptyMessage: "Nenhum manejo encontrado.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " manejo" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

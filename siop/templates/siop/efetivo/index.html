@@ -65,7 +65,7 @@
                 <td class="text-end"><a href="{% url 'siop:efetivo_view' registro.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro de efetivo cadastrado ainda.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -78,10 +78,10 @@
       <div class="card-header"><div class="card-title">Fila operacional</div></div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Preencher responsáveis</li>
-          <li class="mb-3">Conferir postos</li>
-          <li class="mb-3">Salvar o registro</li>
-          <li>Atualizar mudanças</li>
+          <li class="mb-3">Preencher responsáveis e equipes</li>
+          <li class="mb-3">Conferir postos e alocação</li>
+          <li class="mb-3">Salvar registro do plantão</li>
+          <li>Atualizar alterações do turno</li>
         </ol>
       </div>
     </div>

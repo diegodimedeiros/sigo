@@ -47,7 +47,7 @@
       metaSelector: "#controle-chaves-list-meta",
       paginationSelector: "#controle-chaves-pagination",
       columnCount: 10,
-      emptyMessage: "Nenhum controle de chave encontrado para os filtros informados.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " chave" + (total === 1 ? "" : "s") + " encontrada" + (total === 1 ? "" : "s") + ".";
       },

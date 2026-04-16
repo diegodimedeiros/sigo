@@ -108,6 +108,18 @@ sesmt/
 - exportação PDF por registro também nas áreas implementadas do `SESMT`
 - normalização de campos string concentrada em `save()`/helpers nos models mais recentes, com `clean()` focado em validação
 - helper compartilhado no `BaseModel` para preenchimento de `unidade_sigla`
+- padronização transversal de UX textual nos módulos `SIOP` e `SESMT` com:
+  - estado vazio de listagem unificado em `Nenhum registro encontrado.`
+  - título de dashboard unificado em `Últimos registros`
+  - cards de dashboard `Últimos registros` alinhados para 6 colunas visíveis (incluindo `Ação`)
+  - card `Fila operacional` com estrutura isonômica de 4 passos por área
+
+## Atualização recente (2026-04-16)
+
+- consolidação de mensagens vazias nas listagens e respostas assíncronas (`fetch`) do `SIOP` e `SESMT`
+- unificação de títulos variantes (`Últimos acessos`, `Últimos atendimentos`, `Últimos itens registrados`) para `Últimos registros`
+- ajuste final do `SESMT > Atendimento` para o mesmo padrão de título, tabela e fila operacional dos demais dashboards
+- revisão de colunas e `colspan` dos cards `Últimos registros` para manter consistência visual entre áreas
 
 ## Fluxos já consolidados no SIOP
 

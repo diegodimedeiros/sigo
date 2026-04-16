@@ -61,7 +61,7 @@
                 <td class="text-end"><a href="{% url 'siop:acesso_colaboradores_view' registro.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum acesso de colaboradores cadastrado ainda.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -74,10 +74,10 @@
       <div class="card-header"><div class="card-title">Fila operacional</div></div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Registrar pessoas</li>
-          <li class="mb-3">Confirmar P1</li>
-          <li class="mb-3">Salvar entrada</li>
-          <li>Concluir saída</li>
+          <li class="mb-3">Validar dados dos colaboradores</li>
+          <li class="mb-3">Confirmar P1 e contexto</li>
+          <li class="mb-3">Registrar entrada no sistema</li>
+          <li>Concluir saída e auditoria</li>
         </ol>
       </div>
     </div>

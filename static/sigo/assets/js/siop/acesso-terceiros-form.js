@@ -16,7 +16,7 @@
       paginationSelector: "#acesso-terceiros-list-pagination",
       dataKey: "acessos",
       columnCount: 9,
-      emptyMessage: "Nenhum acesso de terceiros encontrado para os filtros informados.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " acesso" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

@@ -42,7 +42,6 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Número</th>
                 <th>Chave</th>
                 <th>Área</th>
                 <th>Responsável</th>
@@ -54,7 +53,6 @@
               {% for chave in recentes %}
               <tr>
                 <td>#{{ chave.id }}</td>
-                <td>{{ chave.chave_numero|default:"-" }}</td>
                 <td>{{ chave.chave_label|default:chave.chave|default:"-" }}</td>
                 <td>{{ chave.chave_area|default:"-" }}</td>
                 <td>{{ chave.pessoa.nome|default:"-" }}</td>
@@ -68,7 +66,7 @@
                 <td class="text-end"><a href="{% url 'siop:controle_chaves_view' chave.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum controle de chave cadastrado ainda.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -83,10 +81,10 @@
       </div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Selecionar a área</li>
-          <li class="mb-3">Escolher a chave</li>
-          <li class="mb-3">Registrar a retirada</li>
-          <li>Registrar a devolução</li>
+          <li class="mb-3">Selecionar área e chave</li>
+          <li class="mb-3">Registrar responsável pela retirada</li>
+          <li class="mb-3">Confirmar uso e prazo de retorno</li>
+          <li>Registrar devolução e status</li>
         </ol>
       </div>
     </div>

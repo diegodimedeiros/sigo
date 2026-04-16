@@ -144,7 +144,7 @@
       metaSelector: "#liberacao-acesso-list-meta",
       paginationSelector: "#liberacao-acesso-pagination",
       columnCount: 8,
-      emptyMessage: "Nenhuma liberação de acesso encontrada para os filtros informados.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " liberação" + (total === 1 ? "" : "ões") + " encontrada" + (total === 1 ? "" : "s") + ".";
       },

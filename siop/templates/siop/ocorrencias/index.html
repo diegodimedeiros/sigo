@@ -66,6 +66,7 @@
                 <th>ID</th>
                 <th>Natureza</th>
                 <th>Área</th>
+                 <th>Registro</th>
                 <th>Status</th>
                 <th class="text-end">Ação</th>
               </tr>
@@ -76,6 +77,7 @@
                 <td>#{{ ocorrencia.pk }}</td>
                 <td>{{ ocorrencia.natureza_label }}</td>
                 <td>{{ ocorrencia.area_label }}</td>
+                 <td>{{ ocorrencia.data_hora|default:ocorrencia.data_registro|default:ocorrencia.criado_em|date:"d/m/Y H:i"|default:"-" }}</td>
                 <td>
                   {% if ocorrencia.status %}
                   <span class="badge badge-success">Finalizada</span>
@@ -87,7 +89,7 @@
               </tr>
               {% empty %}
               <tr>
-                <td colspan="5" class="text-center py-4 text-muted">Nenhuma ocorrência cadastrada até o momento.</td>
+                 <td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -103,10 +105,10 @@
       </div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Registrar ocorrências</li>
-          <li class="mb-3">Monitorar pendências</li>
-          <li class="mb-3">Conferir anexos</li>
-          <li>Preparar exportações</li>
+          <li class="mb-3">Registrar natureza e área</li>
+          <li class="mb-3">Anexar evidências da ocorrência</li>
+          <li class="mb-3">Acompanhar status e pendências</li>
+          <li>Finalizar e preparar exportação</li>
         </ol>
       </div>
     </div>

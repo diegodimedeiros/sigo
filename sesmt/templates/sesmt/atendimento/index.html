@@ -29,22 +29,23 @@
 <div class="row g-4 mt-1">
   <div class="col-lg-8">
     <div class="card">
-      <div class="card-header"><div class="card-title">Últimos atendimentos</div></div>
+      <div class="card-header"><div class="card-title">Últimos registros</div></div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead><tr><th>ID</th><th>Pessoa</th><th>Tipo</th><th>Atendimento</th><th class="text-end">Ação</th></tr></thead>
+            <thead><tr><th>ID</th><th>Registro</th><th>Pessoa</th><th>Tipo</th><th>Atendimento</th><th class="text-end">Ação</th></tr></thead>
             <tbody>
               {% for atendimento in registros_recentes %}
               <tr>
                 <td>#{{ atendimento.id }}</td>
+                <td>{{ atendimento.data_atendimento|date:"d/m/Y H:i" }}</td>
                 <td>{{ atendimento.pessoa.nome }}</td>
                 <td>{{ atendimento.tipo_ocorrencia_label }}</td>
                 <td><span class="badge badge-{% if atendimento.recusa_atendimento %}danger{% else %}success{% endif %}">{{ atendimento.recusa_atendimento|yesno:"Não,Sim" }}</span></td>
                 <td class="text-end"><a href="{% url 'sesmt:atendimento_view' atendimento.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="5" class="text-center py-4 text-muted">Nenhum atendimento registrado ainda.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -54,13 +55,13 @@
   </div>
   <div class="col-lg-4">
     <div class="card">
-      <div class="card-header"><div class="card-title">Fila assistencial</div></div>
+      <div class="card-header"><div class="card-title">Fila operacional</div></div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Triagem dos atendimentos abertos</li>
-          <li class="mb-3">Conferência dos anexos assistenciais</li>
-          <li class="mb-3">Encaminhamento dos casos concluídos</li>
-          <li>Preparação da exportação diária</li>
+          <li class="mb-3">Registrar pessoa e tipo de ocorrência</li>
+          <li class="mb-3">Anexar evidências do atendimento</li>
+          <li class="mb-3">Atualizar status assistencial</li>
+          <li>Finalizar caso e preparar exportação</li>
         </ol>
       </div>
     </div>

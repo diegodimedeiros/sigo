@@ -219,7 +219,7 @@
         paginationSelector: "#ocorrencias-list-pagination",
         dataKey: "ocorrencias",
         columnCount: 8,
-        emptyMessage: "Nenhuma ocorrência encontrada para os filtros informados.",
+        emptyMessage: "Nenhum registro encontrado.",
         metaText: function (total) {
           return total + " registro" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
         },

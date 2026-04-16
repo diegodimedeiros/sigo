@@ -54,7 +54,7 @@
                 <td class="text-end"><a href="{% url 'sesmt:himenopteros_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro de himenóptero encontrado.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -67,10 +67,10 @@
       <div class="card-header"><div class="card-title">Fila operacional</div></div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Conferência fotográfica do local</li>
-          <li class="mb-3">Avaliação de risco e proximidade de pessoas</li>
-          <li class="mb-3">Validação da geolocalização</li>
-          <li>Definição da ação realizada</li>
+          <li class="mb-3">Registrar tipo e área da ocorrência</li>
+          <li class="mb-3">Anexar evidências fotográficas</li>
+          <li class="mb-3">Avaliar risco e geolocalização</li>
+          <li>Definir ação realizada e finalizar</li>
         </ol>
       </div>
     </div>

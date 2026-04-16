@@ -56,7 +56,7 @@
   <div class="col-lg-8">
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Últimos acessos</div>
+        <div class="card-title">Últimos registros</div>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
@@ -82,7 +82,7 @@
                 <td class="text-end"><a href="{% url 'siop:acesso_terceiros_view' acesso.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="6" class="text-center text-muted py-4">Nenhum acesso registrado ainda.</td></tr>
+              <tr><td colspan="6" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -97,10 +97,10 @@
       </div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Conferir documentos</li>
-          <li class="mb-3">Validar permanências</li>
-          <li class="mb-3">Fechar acessos</li>
-          <li>Preparar exportação</li>
+          <li class="mb-3">Validar documento e autorização</li>
+          <li class="mb-3">Registrar entrada do terceiro</li>
+          <li class="mb-3">Monitorar permanência</li>
+          <li>Registrar saída e finalizar</li>
         </ol>
       </div>
     </div>

@@ -22,7 +22,7 @@
       metaSelector: "#crachas-provisorios-list-meta",
       paginationSelector: "#crachas-provisorios-pagination",
       columnCount: 9,
-      emptyMessage: "Nenhum crachá provisório encontrado para os filtros informados.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " crachá" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

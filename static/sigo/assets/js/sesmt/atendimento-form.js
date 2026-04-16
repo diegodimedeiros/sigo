@@ -463,7 +463,7 @@
       paginationSelector: "#atendimento-list-pagination",
       dataKey: "registros",
       columnCount: 7,
-      emptyMessage: "Nenhum atendimento encontrado.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " atendimento" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

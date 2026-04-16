@@ -52,7 +52,7 @@
       metaSelector: "#controle-ativos-list-meta",
       paginationSelector: "#controle-ativos-pagination",
       columnCount: 9,
-      emptyMessage: "Nenhum controle de ativo encontrado para os filtros informados.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " ativo" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

@@ -110,7 +110,7 @@
       dataKey: "registros",
       columnCount: 7,
       loadingText: "Carregando registros de flora...",
-      emptyMessage: "Nenhum registro de flora encontrado.",
+      emptyMessage: "Nenhum registro encontrado.",
       metaText: function (total) {
         return total + " registro" + (total === 1 ? "" : "s") + " encontrado" + (total === 1 ? "" : "s") + ".";
       },

@@ -38,6 +38,7 @@
                 <th>ID</th>
                 <th>Espécie</th>
                 <th>Área</th>
+                <th>Registro</th>
                 <th>Status</th>
                 <th class="text-end">Ação</th>
               </tr>
@@ -48,11 +49,12 @@
                 <td>#{{ item.id }}</td>
                 <td>{{ item.popular|default:item.especie|default:'-' }}</td>
                 <td>{{ item.area_label }}</td>
+                <td>{{ item.data_hora|default:item.criado_em|date:"d/m/Y H:i"|default:"-" }}</td>
                 <td><span class="badge badge-{{ item.status_badge }}">{{ item.status_label }}</span></td>
                 <td class="text-end"><a href="{% url 'sesmt:flora_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
               </tr>
               {% empty %}
-              <tr><td colspan="5" class="text-center py-4 text-muted">Nenhum registro de flora encontrado.</td></tr>
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -65,10 +67,10 @@
       <div class="card-header"><div class="card-title">Fila operacional</div></div>
       <div class="card-body">
         <ol class="ps-3 mb-0">
-          <li class="mb-3">Conferência das evidências de campo</li>
-          <li class="mb-3">Avaliação técnica e ação final</li>
-          <li class="mb-3">Validação de geolocalização</li>
-          <li>Preparação da exportação diária</li>
+          <li class="mb-3">Registrar espécie e localização</li>
+          <li class="mb-3">Anexar evidências fotográficas</li>
+          <li class="mb-3">Validar geolocalização e ação técnica</li>
+          <li>Finalizar registro e preparar exportação</li>
         </ol>
       </div>
     </div>
