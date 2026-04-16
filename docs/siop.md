@@ -1,181 +1,112 @@
 # SIOP
 
-Visão geral do módulo operacional.
+## 1. Visão geral
 
-## Áreas implementadas
+SIOP é o módulo operacional mais maduro da base, servindo como referência de nomenclatura e estrutura para os demais módulos.
 
-- `Ocorrências`
-- `Acesso de Terceiros`
-- `Acesso de Colaboradores`
-- `Achados e Perdidos`
-- `Controle de Ativos`
-- `Controle de Chaves`
-- `Crachás Provisórios`
-- `Efetivo`
-- `Liberação de Acesso`
+## 2. Áreas implementadas
 
-## Padrões do módulo
+- Ocorrências
+- Acesso de Terceiros
+- Acesso de Colaboradores
+- Achados e Perdidos
+- Controle de Ativos
+- Controle de Chaves
+- Crachás Provisórios
+- Efetivo
+- Liberação de Acesso
 
-- páginas de `index`, `list`, `new`, `view`, `edit` e `export`
-- resumo com card de `Ações rápidas`
-- exportação PDF por item no resumo
-- filtros e paginação nas listagens
-- dashboard principal separado por área
-- notificações no topo e página dedicada de notificações
-- ações de interface padronizadas, incluindo o uso do rótulo `Exportar`
-- formulários assíncronos via `fetch` quando a área já está no padrão novo do módulo
-- organização de views por responsabilidade:
-  - `dashboard_views.py` para dashboard e notificações
-  - `download_views.py` para downloads compartilhados
-  - `common.py`, `notificacoes.py` e `view_shared.py` para infraestrutura compartilhada do módulo
-  - `ocorrencias/views.py` para o domínio de ocorrências
-  - pacotes próprios para `acesso_colaboradores`, `controle_ativos`, `controle_chaves`, `crachas_provisorios`, `efetivo` e `liberacao_acesso`
-  - `views.py` mantido como compatibilidade fina
-- models mais recentes alinhados ao padrão:
-  - `clean()` para validação
-  - normalização de strings em `save()`/helpers
-  - preenchimento de `unidade_sigla` via helper comum do `BaseModel`
+## 3. Estrutura arquitetural
 
-## Integração front-back
+Organização no nível do app:
 
-Hoje o `SIOP` já opera com `API + fetch` nas áreas implementadas do módulo.
+- dashboard_views.py para dashboard e notificações
+- download_views.py para downloads compartilhados
+- common.py, notificacoes.py e view_shared.py para infraestrutura compartilhada
+- pacote por domínio para as áreas operacionais
+- views.py mantido como camada de compatibilidade
 
-As áreas com API própria e contrato JSON explícito incluem:
+Padrão funcional dominante:
 
-- `Ocorrências`
-- `Acesso de Terceiros`
-- `Acesso de Colaboradores`
-- `Achados e Perdidos`
-- `Controle de Ativos`
-- `Controle de Chaves`
-- `Crachás Provisórios`
-- `Efetivo`
-- `Liberação de Acesso`
+- fluxo web index/list/new/edit/view/export
+- integração API + fetch
+- respostas JSON padronizadas nas áreas novas
+- validação de domínio via clean() e normalização de dados em save/helpers
 
-## APIs disponíveis
+## 4. APIs e integrações
 
-### Ocorrências
+O módulo opera com APIs por domínio e contrato explícito para consumo assíncrono.
 
-- `GET /siop/api/ocorrencias/`
-- `GET /siop/api/ocorrencias/<pk>/`
+Catálogos auxiliares expostos por API:
 
-### Acesso de Terceiros
+- /siop/api/catalogos/naturezas/
+- /siop/api/catalogos/naturezas/tipos/
+- /siop/api/catalogos/areas/
+- /siop/api/catalogos/areas/locais/
+- /siop/api/catalogos/tipos-pessoa/
+- /siop/api/catalogos/tipos-ocorrencia/
 
-- `GET /siop/api/acesso-terceiros/`
-- `GET /siop/api/acesso-terceiros/<pk>/`
+## 5. Regras operacionais relevantes
 
-### Achados e Perdidos
+### 5.1 Controle de Ativos
 
-- `GET /siop/api/achados-perdidos/`
-- `GET /siop/api/achados-perdidos/<pk>/`
+- ativo não pode ser retirado novamente sem devolução
 
-### Acesso de Colaboradores
+### 5.2 Controle de Chaves
 
-- `GET /siop/api/acesso-colaboradores/`
-- `POST /siop/api/acesso-colaboradores/`
-- `GET /siop/api/acesso-colaboradores/<pk>/`
-- `POST /siop/api/acesso-colaboradores/<pk>/`
+- chave não pode ser retirada novamente sem devolução
 
-## Catálogos auxiliares expostos por API
+### 5.3 Crachás Provisórios
 
-- `GET /siop/api/catalogos/naturezas/`
-- `GET /siop/api/catalogos/naturezas/tipos/`
-- `GET /siop/api/catalogos/areas/`
-- `GET /siop/api/catalogos/areas/locais/`
-- `GET /siop/api/catalogos/tipos-pessoa/`
-- `GET /siop/api/catalogos/tipos-ocorrencia/`
+- crachá não pode ser entregue novamente sem devolução
 
-## Regras operacionais relevantes
+### 5.4 Efetivo
 
-### Controle de Ativos
+- máximo de um registro por dia
+- bombeiro civil 1 e 2 não podem repetir a mesma pessoa
 
-- um ativo não pode ser retirado novamente enquanto não houver devolução
-- o formulário já responde em JSON quando submetido via `fetch`
+### 5.5 Liberação de Acesso
 
-### Controle de Chaves
+- registro pode conter múltiplas pessoas
+- chegada pode ser individual ou em lote
+- chegada confirmada gera item individual em Acesso de Terceiros
 
-- uma chave não pode ser retirada novamente enquanto não houver devolução
-- o formulário já responde em JSON quando submetido via `fetch`
+### 5.6 Acesso de Colaboradores
 
-### Crachás Provisórios
+- criação pode receber múltiplos colaboradores
+- persistência cria um registro por colaborador
+- edição opera em item individual
 
-- um crachá não pode ser entregue novamente enquanto não houver devolução
-- o formulário já responde em JSON quando submetido via `fetch`
+## 6. Exportações e evidências
 
-### Efetivo
+Exportação por registro (PDF) disponível nas áreas operacionais principais.
 
-- só pode existir um registro por dia
-- `Bombeiro Civil 1` e `Bombeiro Civil 2` não podem repetir a mesma pessoa
-- o atributo Python do campo de manutenção foi normalizado para `manutencao`
-- o formulário já responde em JSON quando submetido via `fetch`
+Exportação geral (XLSX e CSV) consolidada nas áreas:
 
-### Liberação de Acesso
+- Acesso de Colaboradores
+- Controle de Ativos
+- Controle de Chaves
+- Crachás Provisórios
+- Efetivo
+- Liberação de Acesso
 
-- um registro pode conter uma ou mais pessoas
-- a chegada pode ser registrada por pessoa ou para todos
-- ao registrar a chegada, o backend cria um item individual em `Acesso de Terceiros`
-- o acompanhamento de chegada fica salvo no próprio registro por `chegadas_registradas`
-- o cadastro e a edição já respondem em JSON quando submetidos via `fetch`
+Uso de anexos documentais nas áreas com necessidade operacional relevante, incluindo ocorrências e fluxos de acesso.
 
-### Acesso de Colaboradores
+## 7. Cobertura de testes
 
-- o formulário pode receber um ou mais colaboradores no cadastro
-- ao salvar, o backend cria `1 registro por colaborador`
-- a edição opera sempre sobre um único colaborador por item
-- a criação aceita seleção por catálogo e digitação manual no cadastro
-- a exibição de `P1` usa o rótulo do catálogo no front, exportação e PDF
+Cobertura automatizada atual inclui:
 
-## Exportação PDF por item
-
-Áreas com PDF por registro:
-
-- `Ocorrências`
-- `Acesso de Terceiros`
-- `Achados e Perdidos`
-- `Acesso de Colaboradores`
-- `Controle de Ativos`
-- `Controle de Chaves`
-- `Crachás Provisórios`
-- `Efetivo`
-- `Liberação de Acesso`
-
-## Exportação geral
-
-As áreas abaixo já possuem exportação consolidada em `XLSX` e `CSV` a partir da tela `export`:
-
-- `Acesso de Colaboradores`
-- `Controle de Ativos`
-- `Controle de Chaves`
-- `Crachás Provisórios`
-- `Efetivo`
-- `Liberação de Acesso`
-
-## Anexos
-
-Atualmente há uso de anexos em áreas com necessidade documental, como:
-
-- `Ocorrências`
-- `Acesso de Terceiros`
-- `Acesso de Colaboradores`
-- `Achados e Perdidos`
-- `Liberação de Acesso`
-
-## Testes
-
-O módulo possui cobertura automatizada para:
-
-- contratos das APIs
+- contratos de API
 - fluxos de criação e edição
 - regras de indisponibilidade
 - notificações principais
-- fluxos de chegada em `Liberação de Acesso`
-- formulários assíncronos sem regressão nos fluxos principais
-- exportações gerais das áreas operacionais novas
-- cenários adicionais de validação nas áreas novas, como destino inválido, chave incompatível com área e chegada sem `P1`
-- filtros reais de API em áreas novas, incluindo status, área, empresa, solicitante e paginação com `limit/offset`
+- cenários de chegada em Liberação de Acesso
+- formulários assíncronos sem regressão
+- exportações gerais
+- filtros reais de listagem e paginação
 
-## ToDo atual
+## 8. Próximos passos
 
-- continuar a limpeza conservadora de assets legados do tema que não participam do projeto
-- ampliar a profundidade dos testes em APIs, listagens assíncronas e cenários de borda
-- manter o pente fino de padronização visual e textual entre as áreas do `SIOP`
+- continuar limpeza conservadora de assets legados sem uso real
+- ampliar testes de borda em APIs e listagens assíncronas
+- manter padronização visual e textual entre áreas

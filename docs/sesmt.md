@@ -1,168 +1,123 @@
 # SESMT
 
-Visão atual do módulo `SESMT`.
+## 1. Visão geral
 
-## Estado do módulo
+SESMT é um módulo operacional já em produção funcional, estruturado por domínios e alinhado ao padrão arquitetural do projeto.
 
-Hoje o `SESMT` já tem quatro áreas em fluxo real:
+## 2. Estado atual
 
-- `Atendimento`
-- `Manejo`
-- `Flora`
-- `Monitor Himenóptero`
+Áreas em fluxo real:
 
-Também já passou pela primeira etapa de refatoração estrutural:
+- Atendimento
+- Manejo
+- Flora
+- Monitor Himenóptero
 
-- `sesmt/views.py` deixou de concentrar a implementação inteira do módulo
-- as views foram separadas por área em:
-  - `sesmt/atendimento/views.py`
-  - `sesmt/manejo/views.py`
-  - `sesmt/flora/views.py`
-  - `sesmt/himenopteros/views.py`
-- `sesmt/core_views.py` concentra a base compartilhada de navegação do módulo
-- `sesmt/views.py` foi mantido como fachada de compatibilidade para não quebrar rotas e imports existentes
+Situação arquitetural atual:
 
-Na evolução de isonomia com o `SIOP`, cada área também passou a ter o mesmo esqueleto de camadas:
+- views separadas por área
+- camadas de serviço e consulta criadas por domínio
+- contrato API mais estável para integração com fetch
+- fluxo web padronizado entre áreas
 
-- `views.py`: camada HTTP (render, redirect, response)
-- `services.py`: regras de negócio e orquestração de criação/edição
-- `query.py`: filtros e consultas reutilizáveis
-- `serializers.py`: serialização para payloads de API
-- `support.py` e `common.py`: utilitários pequenos e funções de apoio
+## 3. Estrutura arquitetural
 
-Estrutura atual por área:
+O módulo segue estrutura por área com camadas:
 
-- `sesmt/atendimento/`
-- `sesmt/manejo/`
-- `sesmt/flora/`
-- `sesmt/himenopteros/`
+- views.py para camada HTTP
+- services.py para regra de negócio
+- query.py para filtros e consultas
+- serializers.py para payloads de API
+- support.py e common.py para utilitários
 
-Essas áreas seguem o padrão do projeto para o fluxo web principal:
+Áreas atuais:
 
-- `index`
-- `list`
-- `new`
-- `edit`
-- `view`
-- `export`
-- APIs de coleção e detalhe
-- envio e leitura principal em `API + fetch`
+- sesmt/atendimento/
+- sesmt/manejo/
+- sesmt/flora/
+- sesmt/himenopteros/
 
-Observação:
+No nível do app:
 
-- o `PDF` individual por registro continua sendo entregue por rota direta de arquivo, no mesmo padrão usado nas outras áreas maduras do sistema
+- dashboard_views.py para home e notificações
+- urls.py com import direto de cada área
+- views.py mantido como fachada de compatibilidade
 
-## Atendimento
+## 4. Fluxos padrão
 
-A área de `Atendimento` já está em fluxo operacional real.
+Fluxo web por área:
 
-Hoje ela cobre:
+- index
+- list
+- new
+- edit
+- view
+- export
 
-- identificação da pessoa atendida
-- contato e endereço
-- dados do atendimento
-- saúde
-- destino
-- acompanhante
-- testemunhas
-- fotos
-- geolocalização
-- assinatura
-- exportação geral
-- PDF do registro
+Fluxo API por área:
 
-Também segue regras herdadas do legado, como:
+- api_<area>
+- api_<area>_detail
+- api_<area>_export
 
-- recusa de atendimento com regra mínima
-- comportamento específico para estrangeiro com `província`
-- persistência de evidências e hashes
+Integração principal:
 
-## Manejo
+- API + fetch
 
-A área de `Manejo` foi separada em dois momentos operacionais:
+## 5. Resumo funcional por área
 
-- `abertura`
-- `finalização`
+### 5.1 Atendimento
 
-Na prática:
+Cobertura atual:
 
-- a abertura cobre captura
-- a edição/finalização cobre soltura e fechamento operacional
+- identificação e contato da pessoa
+- dados de atendimento e saúde
+- acompanhante e testemunhas
+- fotos, geolocalização e assinatura
+- exportação geral e PDF do registro
 
-Hoje ela já entrega:
+### 5.2 Manejo
 
-- fotos de captura
-- fotos de soltura
-- geolocalização de captura
-- geolocalização de soltura
-- resumo separado por `Captura` e `Soltura`
-- exportação geral
-- PDF do registro
+Cobertura atual:
 
-## Flora
+- abertura e finalização operacional
+- captura e soltura com evidências
+- geolocalização de captura e soltura
+- exportação geral e PDF do registro
 
-A área de `Flora` também foi organizada em dois momentos:
+### 5.3 Flora
 
-- `abertura`
-- `finalização`
+Cobertura atual:
 
-Na abertura, o fluxo prioriza o registro inicial da ocorrência e das evidências do local.
+- abertura e finalização
+- avaliação de condição e ação realizada
+- evidências fotográficas e geolocalização
+- exportação geral e PDF do registro
 
-Hoje a área já cobre:
+### 5.4 Monitor Himenóptero
 
-- dados de registro
-- avaliação das condições gerais
-- ação realizada
-- informações complementares
-- foto antes
-- foto depois
-- geolocalização
-- exportação geral
-- PDF do registro
+Cobertura atual:
 
-Também já existem travas de edição para preservar os dados de abertura que não devem ser alterados depois.
-
-## Monitor Himenóptero
-
-A área de `Monitor Himenóptero` foi criada para ocorrências com:
-
-- abelhas
-- vespas
-- marimbondos
-
-Hoje ela já cobre:
-
-- dados de registro
-- identificação do himenóptero
+- identificação de ocorrência
 - avaliação de risco
-- ação realizada
-- observações
-- justificativa técnica
+- ação realizada e justificativa técnica
 - isolamento de área
-- fotos
-- geolocalização
-- exportação geral
-- PDF do registro
+- fotos, geolocalização, exportação e PDF
 
-O catálogo próprio da área fica em:
+Catálogo da área:
 
-- `sigo_core/catalogos/catalogos/catalogo_himenopteros.json`
+- sigo_core/catalogos/catalogos/catalogo_himenopteros.json
 
-E segue o padrão do projeto:
+## 6. Referências de evolução
 
-- `chave` persistida no banco
-- `valor` exibido na interface
+Base de evolução do módulo:
 
-## Base funcional usada
+- sesmt/models.py
+- fluxo novo do próprio projeto
+- referência funcional histórica de Controle BC para Atendimento, Manejo e Flora
 
-O módulo foi evoluído a partir de:
+## 7. Próximos passos
 
-- `sesmt/models.py`
-- fluxos novos do próprio projeto
-- legado antigo de `Controle BC`, especialmente para `Atendimento`, `Manejo` e `Flora`
-
-## Observações atuais
-
-- o `SESMT` já deixou de ser frente futura e passou a ter áreas operacionais reais
-- o padrão visual e estrutural do módulo foi alinhado ao restante do sistema
-- as áreas novas seguem a mesma direção de `API + fetch` consolidada no `SIOP`
+- continuar extração de regra pesada de views para services/query
+- ampliar cobertura de testes de cenários de borda
+- manter isonomia estrutural com o padrão oficial em docs/padrao_create_module_project.md

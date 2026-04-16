@@ -1,56 +1,83 @@
 # ReportOS
 
-`ReportOS` e o modulo planejado para operacao de campo com foco em uso progressivo como `PWA`.
+## 1. Visão geral
 
-## Base funcional usada para iniciar o modulo
+ReportOS é o módulo planejado para operação de campo, com evolução progressiva para uso em PWA.
 
-O escopo inicial foi consolidado a partir da analise do legado de `Controle BC`,
-`Atendimento`, `Flora` e `Manejo/Fauna`, ja incorporada a este repositorio.
+Objetivo principal:
 
-## Frentes iniciais
+- abrir base funcional do módulo sem acoplamento prematuro
+- preparar estrutura para crescimento por domínio
+- reaproveitar padrões operacionais já consolidados no sistema
 
-### Atendimento
+## 2. Estado atual
 
-Baseado no legado de `ControleAtendimento`, com interesse principal em:
+No momento, o módulo já existe na aplicação com base mínima:
+
+- rota própria em /reportos/
+- template dedicado
+- card no menu lateral do SIGO
+
+Situação funcional:
+
+- módulo em fase inicial de estrutura
+- sem acoplamento forte de regra de negócio
+- pronto para evolução incremental por área
+
+## 3. Base funcional de referência
+
+O escopo inicial foi consolidado a partir da análise do legado de Controle BC,
+Atendimento, Flora e Manejo/Fauna, já internalizado no repositório atual.
+
+## 4. Frentes funcionais iniciais
+
+### 4.1 Atendimento
+
+Escopo inicial previsto:
 
 - dados da pessoa
 - contato
 - dados do atendimento
-- saude
-- remocao e encaminhamento
+- saúde
+- remoção e encaminhamento
 - acompanhante
 - testemunhas
-- evidencias, geolocalizacao e assinatura
+- evidências, geolocalização e assinatura
 
-### Flora
+### 4.2 Flora
 
-Baseado no legado de `Flora`, com interesse principal em:
+Escopo inicial previsto:
 
 - data e hora do registro
-- area e local
-- acao inicial
-- medicao basica
-- descricao
+- área e local
+- ação inicial
+- medição básica
+- descrição
 - foto antes e depois
-- geolocalizacao
+- geolocalização
 
-### Fauna
+### 4.3 Fauna
 
-Baseada no legado de `Manejo`, onde fauna aparecia como dominio catalogado, com interesse principal em:
+Escopo inicial previsto:
 
-- classe taxonomica
-- especie/nome popular
-- area e local de captura
+- classe taxonômica
+- espécie e nome popular
+- área e local de captura
 - soltura
 - acionamento institucional
-- evidencias e geolocalizacao
+- evidências e geolocalização
 
-## Estado atual
+## 5. Padrão arquitetural alvo
 
-Neste momento, `ReportOS` foi aberto como modulo proprio do sistema:
+A evolução do módulo deve seguir o padrão oficial em docs/padrao_create_module_project.md:
 
-- rota: `/reportos/`
-- template proprio
-- card no menu lateral do `SIGO`
+- estrutura por área
+- fluxo web index/list/new/edit/view/export
+- APIs com contrato estável para fetch
+- separação em views, services, query, serializers e support
 
-O objetivo desta primeira entrega e abrir a base do modulo sem acoplar regra de negocio prematura, usando como referencia os requisitos funcionais ja consolidados neste repositorio.
+## 6. Próximos passos
+
+- iniciar primeira área operacional com o padrão oficial completo
+- validar contrato API e fluxo de listagem assíncrona
+- ampliar cobertura de testes a cada área incorporada
