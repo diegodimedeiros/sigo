@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
-from siop.common import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
+from sigo_core.shared.pdf_export import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
 from sigo.models import Assinatura, Contato, Foto, Geolocalizacao, Pessoa, get_unidade_ativa
 from sigo_core.api import ApiStatus, api_error, api_method_not_allowed, api_success, parse_limit_offset
 from sigo_core.catalogos import (
