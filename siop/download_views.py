@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.http import content_disposition_header
 
 from sigo.models import Assinatura, Anexo, Foto
 
@@ -12,7 +13,10 @@ def anexo_download(request, pk):
         anexo.arquivo,
         content_type=anexo.mime_type or "application/octet-stream",
     )
-    response["Content-Disposition"] = f'attachment; filename="{anexo.nome_arquivo}"'
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=True,
+        filename=anexo.nome_arquivo,
+    )
     return response
 
 
@@ -23,7 +27,10 @@ def foto_download(request, pk):
         foto.arquivo,
         content_type=foto.mime_type or "application/octet-stream",
     )
-    response["Content-Disposition"] = f'attachment; filename="{foto.nome_arquivo}"'
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=True,
+        filename=foto.nome_arquivo,
+    )
     return response
 
 
@@ -34,5 +41,8 @@ def assinatura_download(request, pk):
         assinatura.arquivo,
         content_type=assinatura.mime_type or "application/octet-stream",
     )
-    response["Content-Disposition"] = f'inline; filename="{assinatura.nome_arquivo}"'
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=False,
+        filename=assinatura.nome_arquivo,
+    )
     return response

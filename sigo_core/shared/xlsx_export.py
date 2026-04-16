@@ -1,6 +1,7 @@
 import io
 
 from django.http import HttpResponse
+from django.utils.http import content_disposition_header
 from django.utils import timezone
 
 from sigo_core.shared.formatters import to_export_text, user_display
@@ -88,5 +89,8 @@ def export_generic_excel(
         buffer.getvalue(),
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=True,
+        filename=filename,
+    )
     return response

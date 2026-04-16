@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.http import content_disposition_header
 from django.utils import timezone
 
 from sigo_core.shared.pdf_export import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
@@ -953,7 +954,10 @@ def manejo_foto_view(request, pk, foto_id):
         object_id=manejo.pk,
     )
     response = HttpResponse(bytes(foto.arquivo), content_type=foto.mime_type or "application/octet-stream")
-    response["Content-Disposition"] = f'inline; filename="{foto.nome_arquivo}"'
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=False,
+        filename=foto.nome_arquivo,
+    )
     return response
 
 

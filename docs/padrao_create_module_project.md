@@ -295,3 +295,163 @@ Antes de concluir um módulo novo, a AI deve garantir:
 ## 12. Prompt recomendado para AI (copiar e usar)
 
 "Crie uma nova área no projeto Django seguindo estritamente o padrão arquitetural de `docs/padrao_create_module_project.md`, usando o SIOP como régua de nomenclatura e estrutura. Gere estrutura completa com models (se necessário), services, query, serializers, support, views, urls, templates, scripts JS, exportações e testes mínimos. Crie também os stubs obrigatórios de views, templates e JS mesmo quando a lógica ainda não estiver implementada. Use pasta em snake_case, path em kebab-case, nomes de rota em snake_case e compatibilidade com o padrão API + fetch." 
+
+## 13. Roadmap arquitetural (unificado)
+
+Este roadmap consolida o antigo ToDo arquitetural no mesmo documento de padrão.
+
+### 13.1 Objetivo
+
+Consolidar a base atual de `SIGO`, `SIOP` e `SESMT` sem reescrever o projeto,
+priorizando:
+
+- arquitetura por domínio
+- separação clara de responsabilidades
+- previsibilidade para evolução
+- maior cobertura contra regressão
+- performance operacional e segurança
+
+### 13.2 Diagnóstico resumido
+
+Hoje o projeto já tem uma base forte em:
+
+- validação de domínio com `clean()` e `full_clean()`
+- constraints e índices relevantes
+- bom reaproveitamento de anexos, fotos, assinatura e geolocalização
+- padrão visual consistente entre módulos
+- fluxos `API + fetch` nas áreas novas e maduras
+- organização por área já bem resolvida no `SIOP`
+
+Ponto de atenção:
+
+- diferença de maturidade estrutural entre `SIOP` e `SESMT`, especialmente na
+  concentração de lógica em `sesmt/views.py`
+
+### 13.3 Prioridade alta
+
+#### 1. Extrair regra de negócio das views
+
+Objetivo:
+
+- deixar a camada HTTP mais fina e mais segura para manutenção
+
+Entregáveis:
+
+- criar `services.py` por área para regras de criação, edição, finalização e notificações
+- criar `query.py` por área para filtros, paginação, dashboards e agregações
+- mover helpers específicos para `support.py` quando fizer sentido
+
+Critério de conclusão:
+
+- a view passa a orquestrar request/response
+- regra operacional deixa de ficar espalhada em função HTTP
+
+#### 2. Ampliar cobertura de testes por fluxo crítico
+
+Objetivo:
+
+- endurecer o projeto contra regressões
+
+Entregáveis:
+
+- testes de criação e edição nas áreas críticas
+- testes de transição de status
+- testes de notificações por módulo
+- testes de exportação
+- testes de persistência de fotos, geolocalização e assinatura
+- testes de filtros reais das listagens
+
+Critério de conclusão:
+
+- fluxos operacionais principais ficam cobertos de forma previsível
+
+#### 3. Consolidar padrões de resposta de API
+
+Objetivo:
+
+- tornar o contrato do front mais previsível
+
+Entregáveis:
+
+- revisar payloads de sucesso e erro
+- padronizar mensagens de validação
+- centralizar helpers de resposta JSON quando couber
+
+Critério de conclusão:
+
+- todas as áreas novas respondem de maneira consistente para `fetch`
+
+### 13.4 Prioridade média
+
+#### 4. Revisar consultas, índices e ordenações com base no uso real
+
+Objetivo:
+
+- manter performance sem inflar custo de escrita
+
+Entregáveis:
+
+- revisar consultas mais usadas em dashboards e listagens
+- revisar índices compostos periodicamente
+- medir ganhos antes de adicionar índices pouco seletivos
+
+Critério de conclusão:
+
+- índices passam a refletir padrão real de consulta, não só hipótese
+
+#### 5. Refinar nomenclatura técnica e consistência do código
+
+Objetivo:
+
+- reduzir ruído e ambiguidade no código
+
+Entregáveis:
+
+- revisar nomes fora do padrão idiomático do Django
+- padronizar nomes de classes, funções e arquivos novos
+- reduzir legados de nomenclatura onde o risco de compatibilidade for baixo
+
+### 13.5 Prioridade baixa
+
+#### 6. Melhorar observabilidade e manutenção operacional
+
+Objetivo:
+
+- facilitar suporte e diagnóstico
+
+Entregáveis:
+
+- logging mais claro por módulo
+- padronização de erros operacionais
+- auditoria técnica mais consistente em áreas críticas
+
+#### 7. Revisão contínua de segurança de upload e evidências
+
+Objetivo:
+
+- reforçar proteção sobre arquivos e conteúdo operacional
+
+Entregáveis:
+
+- revisar limites e validações de upload
+- revisar fluxo de persistência de assinatura e foto
+- revisar políticas de leitura e download dos arquivos
+
+### 13.6 Ordem sugerida de execução
+
+1. Extrair `services` e `query` das áreas do `SESMT`.
+2. Ampliar cobertura de testes dos fluxos principais.
+3. Padronizar contratos de API e respostas JSON.
+4. Continuar o pente fino de performance, nomenclatura e observabilidade.
+
+### 13.7 Status atual
+
+- [x] Refatorar a estrutura do `SESMT` por área
+- [ ] Extrair regra de negócio das views
+- [x] Formalizar a convenção arquitetural do projeto
+- [ ] Ampliar a cobertura de testes por fluxo crítico
+- [ ] Consolidar padrões de resposta de API
+- [ ] Revisar consultas, índices e ordenações com base no uso real
+- [ ] Refinar nomenclatura técnica e consistência do código
+- [ ] Melhorar observabilidade e manutenção operacional
+- [ ] Revisão contínua de segurança de upload e evidências

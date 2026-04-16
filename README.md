@@ -204,8 +204,7 @@ Rodar apenas o `SIOP`:
 - [Visão geral do SIOP](docs/siop.md)
 - [Visão atual do SESMT](docs/sesmt.md)
 - [Catálogos e convenções](docs/catalogos.md)
-- [ToDo de arquitetura](docs/ToDo_arquitetura_modulo.md)
-- [Guia de padrão de módulo (inclui instruções para AI)](docs/padrao_create_module_project.md)
+- [Guia de padrão de módulo e roadmap arquitetural (inclui instruções para AI)](docs/padrao_create_module_project.md)
 
 ## Observações
 
@@ -222,7 +221,7 @@ Rodar apenas o `SIOP`:
 - continuar a limpeza conservadora dos assets legados do tema que não têm uso real no projeto
 - ampliar a profundidade dos testes, especialmente em cenários de borda e contratos de API/listagem
 - seguir com o pente fino de padronização visual e textual entre as áreas do `SIOP`
-- executar o roadmap de robustez descrito em `docs/ToDo_arquitetura_modulo.md`, com prioridade para a refatoração estrutural do `SESMT`
+- executar o roadmap de robustez descrito em `docs/padrao_create_module_project.md` (seção `13`), com prioridade para a refatoração estrutural do `SESMT`
 
 ## Licença
 
