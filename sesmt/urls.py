@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .core_views import home, notifications_list
+from .dashboard_views import home, notifications_list
 from .atendimento.views import (
     api_atendimento,
     api_atendimento_detail,
