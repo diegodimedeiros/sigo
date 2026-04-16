@@ -425,7 +425,6 @@ class Himenoptero(BaseModel):
     class Meta:
         verbose_name = "Himenóptero"
         verbose_name_plural = "Himenópteros"
-        db_table = "sesmt_hipomenoptero"
         ordering = ["-criado_em"]
         indexes = [
             models.Index(fields=["area", "local"]),
