@@ -633,7 +633,7 @@
           "<td>" + escapeHtml(item.pessoa || "-") + "</td>" +
           "<td>" + escapeHtml(item.tipo_ocorrencia || "-") + "</td>" +
           "<td>" + escapeHtml(item.area || "-") + "</td>" +
-          '<td><span class="badge badge-' + escapeHtml(item.atendimento_badge || "info") + '">' + escapeHtml(item.atendimento_label || "-") + "</span></td>' +
+            '<td><span class="badge badge-' + escapeHtml(item.atendimento_badge || "info") + '">' + escapeHtml(item.atendimento_label || "-") + '</span></td>' +
           '<td class="text-end"><a href="' + escapeHtml(item.view_url || "#") + '" class="btn btn-sm btn-label-info">Ver</a></td>' +
           "</tr>"
         );

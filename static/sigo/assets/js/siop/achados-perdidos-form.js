@@ -20,13 +20,13 @@
       throw new Error('Falha ao carregar locais.');
     }
     const payload = await response.json();
-    const items = payload?.data?.locais || [];
+      const items = payload && payload.data && payload.data.locais ? payload.data.locais : [];
     fillLocalOptions(localSelect, items, localSelect.dataset.selected || '');
   }
 
   function syncSetor(colaboradorSelect, setorInput) {
     const option = colaboradorSelect.options[colaboradorSelect.selectedIndex];
-    setorInput.value = option?.dataset?.setor || '';
+      setorInput.value = option && option.dataset && option.dataset.setor ? option.dataset.setor : '';
   }
 
   function syncColaboradorMode(organicoSelect, colaboradorSelect, colaboradorText, setorInput) {
