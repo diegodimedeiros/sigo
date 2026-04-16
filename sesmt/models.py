@@ -397,7 +397,7 @@ class Flora(BaseModel):
     def get_absolute_url(self):
         return reverse("sesmt:flora_view", args=[self.pk])
 
-class hipomenoptero(BaseModel):
+class Himenoptero(BaseModel):
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, null=True, blank=True, related_name="himenopteros", verbose_name="Unidade")
     unidade_sigla = models.CharField(max_length=50, null=True, blank=True, verbose_name="Sigla da Unidade", db_index=True)
     responsavel_registro = models.CharField(max_length=255, verbose_name="Responsável pelo Registro", null=False, blank=False)
@@ -425,6 +425,7 @@ class hipomenoptero(BaseModel):
     class Meta:
         verbose_name = "Himenóptero"
         verbose_name_plural = "Himenópteros"
+        db_table = "sesmt_hipomenoptero"
         ordering = ["-criado_em"]
         indexes = [
             models.Index(fields=["area", "local"]),

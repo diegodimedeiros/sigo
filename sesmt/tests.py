@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Unidade
-from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, hipomenoptero
+from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero
 
 
 class AtendimentoFlowTests(TestCase):
@@ -657,7 +657,7 @@ class HimenopterosFlowTests(TestCase):
         response = self.client.post(reverse("sesmt:api_himenopteros"), data=self._payload())
 
         self.assertEqual(response.status_code, 201)
-        registro = hipomenoptero.objects.get()
+        registro = Himenoptero.objects.get()
         self.assertEqual(registro.unidade, self.unidade)
         self.assertEqual(Foto.objects.filter(object_id=registro.id, tipo=Foto.TIPO_CAPTURA).count(), 1)
         self.assertEqual(Geolocalizacao.objects.filter(object_id=registro.id).count(), 1)
@@ -685,7 +685,7 @@ class HimenopterosFlowTests(TestCase):
     def test_api_himenopteros_detail_retorna_payload_estruturado(self):
         self.client.force_login(self.user)
         self.client.post(reverse("sesmt:api_himenopteros"), data=self._payload())
-        registro = hipomenoptero.objects.get()
+        registro = Himenoptero.objects.get()
 
         response = self.client.get(reverse("sesmt:api_himenopteros_detail", args=[registro.pk]))
 
@@ -699,7 +699,7 @@ class HimenopterosFlowTests(TestCase):
     def test_api_himenopteros_update_preserva_isolamento_area_sem_exigir_reenvio(self):
         self.client.force_login(self.user)
         self.client.post(reverse("sesmt:api_himenopteros"), data=self._payload(isolamento_area="true"))
-        registro = hipomenoptero.objects.get()
+        registro = Himenoptero.objects.get()
 
         response = self.client.post(
             reverse("sesmt:api_himenopteros_detail", args=[registro.pk]),

@@ -8,7 +8,7 @@ O projeto reúne módulos internos com interface administrativa em Django, layou
 
 - `SIGO`: autenticação, perfil, notificações e modelos compartilhados
 - `SIOP`: operação, portaria, controle e auditoria
-- `SESMT`: saúde e segurança do trabalho
+- `SESMT`: saúde, segurança do trabalho e meio ambiente
 
 ## Estado atual
 

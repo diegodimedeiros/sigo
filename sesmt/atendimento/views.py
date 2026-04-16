@@ -35,7 +35,7 @@ from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.parsers import parse_local_datetime, to_bool
 from sigo_core.shared.pdf_export import draw_pdf_label_value
 from sigo_core.shared.xlsx_export import export_generic_excel
-from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, hipomenoptero as HipomenopteroModel
+from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero as HipomenopteroModel
 from sesmt.notificacoes import (
     publicar_notificacao_atendimento_atualizado,
     publicar_notificacao_atendimento_criado,
