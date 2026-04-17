@@ -248,7 +248,7 @@ Para diretrizes completas e detalhadas sobre criação de arquivos JavaScript, i
 - Checklist de criação
 - Migração de código legado
 
-**Consulte**: [padrao_criacao_javascript.md](padrao_criacao_javascript.md)
+**Consulte**: [padrao_create_javascript.md](padrao_create_javascript.md)
 
 O documento define o padrão **oficial** para arquivos `.js` com base no SIOP como referência de excelência.
 
@@ -471,14 +471,3 @@ Entregáveis:
 3. Padronizar contratos de API e respostas JSON.
 4. Continuar o pente fino de performance, nomenclatura e observabilidade.
 
-### 13.7 Status atual
-
-- [x] Refatorar a estrutura do `SESMT` por área
-- [ ] Extrair regra de negócio das views
-- [x] Formalizar a convenção arquitetural do projeto
-- [ ] Ampliar a cobertura de testes por fluxo crítico
-- [ ] Consolidar padrões de resposta de API
-- [ ] Revisar consultas, índices e ordenações com base no uso real
-- [ ] Refinar nomenclatura técnica e consistência do código
-- [ ] Melhorar observabilidade e manutenção operacional
-- [ ] Revisão contínua de segurança de upload e evidências

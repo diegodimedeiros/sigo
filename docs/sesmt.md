@@ -16,6 +16,7 @@ SESMT é um módulo operacional já em produção funcional, estruturado por dom
 Situação arquitetural atual:
 
 - views separadas por área
+- utilitários compartilhados extraídos para `view_shared.py`
 - camadas de serviço e consulta criadas por domínio
 - contrato API mais estável para integração com fetch
 - fluxo web padronizado entre áreas
@@ -30,18 +31,19 @@ O módulo segue estrutura por área com camadas:
 - serializers.py para payloads de API
 - support.py e common.py para utilitários
 
+No nível do app:
+
+- `view_shared.py` com helpers e constantes de catálogo compartilhados entre todas as áreas
+- dashboard_views.py para home e notificações
+- urls.py com import direto de cada área
+- views.py mantido como fachada de compatibilidade
+
 Áreas atuais:
 
 - sesmt/atendimento/
 - sesmt/manejo/
 - sesmt/flora/
 - sesmt/himenopteros/
-
-No nível do app:
-
-- dashboard_views.py para home e notificações
-- urls.py com import direto de cada área
-- views.py mantido como fachada de compatibilidade
 
 ## 4. Fluxos padrão
 

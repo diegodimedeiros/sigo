@@ -462,46 +462,7 @@ Ao criar um novo arquivo `<modulo>-<feature>-<tipo>.js`:
 
 ---
 
-## 6. Migração de Código Legado (SESMT)
-
-Para módulos legados como SESMT que tinham código duplicado:
-
-### **Antes (Duplicado)**
-```javascript
-// atendimento-form.js (~787 lines)
-// - Photo management code (100+ lines)
-// - Geolocation code (80+ lines)
-// - Export code (60+ lines)
-
-// flora-form.js (~480 lines)
-// - Photo management code (DUPLICATED)
-// - Geolocation code (DUPLICATED)
-// - Export code (DUPLICATED)
-```
-
-### **Depois (Modular)**
-```javascript
-// CORES (reutilizáveis)
-// core/photo-manager.js       (260 lines)
-// core/geolocation.js         (153 lines)
-// core/async-export.js        (77 lines)
-
-// FEATURES (usando cores)
-// atendimento-form.js         (508 lines → -279 lines)
-// flora-form.js               (167 lines → -313 lines)
-// himenopteros-form.js        (153 lines → -297 lines)
-// manejo-form.js              (222 lines → -318 lines)
-
-// EXPORT (usando cores)
-// atendimento-export.js       (9 lines → -59 lines)
-// flora-export.js             (9 lines → -59 lines)
-// himenopteros-export.js      (9 lines → -59 lines)
-// manejo-export.js            (9 lines → -59 lines)
-
-// TOTAL: ~3,500 lines → ~1,500 lines (57% reduction)
-```
-
-### Estratégia de Refatoração
+## 6. Estratégia de Refatoração
 
 1. **Identifique código duplicado** entre features
 2. **Extraia para `/core/<funcionalidade>.js`** com public API em `window.*`
@@ -539,7 +500,6 @@ Para módulos legados como SESMT que tinham código duplicado:
 
 - **Exemplar SIOP**: `/static/sigo/assets/js/siop/` - Código modular de referência
 - **SESMT (refatorado)**: `/static/sigo/assets/js/sesmt/` - Aplicação prática do padrão
-- **Análise detalhada**: `/docs/JAVASCRIPT_ANALYSIS.md`
 - **Padrão de módulos**: Ver `/docs/padrao_create_module_project.md` seção 4
 
 ---
