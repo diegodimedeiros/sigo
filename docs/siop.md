@@ -105,7 +105,17 @@ Cobertura automatizada atual inclui:
 - exportações gerais
 - filtros reais de listagem e paginação
 
-## 8. Próximos passos
+## 8. Atualizações visuais e textuais
+
+Mudanças recentes aplicadas no módulo:
+
+- padronização dos títulos e descrições das telas `new` para o formato "Novo Registro de ..."
+- revisão de textos de apoio nas áreas operacionais para reforçar cadastro operacional, evidências e rastreabilidade
+- adoção do seletor de temas com opções `light`, `dark`, `forest` e `aqua` no topo do módulo
+- adequação da paleta do tema claro para CTAs principais e variações label em azul `#0e75eb`
+- manutenção de variações próprias para `forest` e `aqua`, com sidebar, hero e botões coerentes por tema
+
+## 9. Próximos passos
 
 - continuar limpeza conservadora de assets legados sem uso real
 - ampliar testes de borda em APIs e listagens assíncronas

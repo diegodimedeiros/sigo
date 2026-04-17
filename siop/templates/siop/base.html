@@ -173,11 +173,47 @@
                 </li>
                 {% endif %}
                 <li class="nav-item topbar-icon dropdown hidden-caret">
-                  <button type="button" class="theme-toggle-btn me-2" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">
-                    <i class="fas fa-moon theme-icon-light"></i>
-                    <i class="fas fa-sun theme-icon-dark"></i>
+                  <button
+                    type="button"
+                    class="theme-toggle-btn me-2"
+                    id="themeToggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    aria-label="Selecionar tema"
+                    title="Selecionar tema"
+                  >
+                    <i class="fas fa-sun theme-icon-light"></i>
+                    <i class="fas fa-moon theme-icon-dark"></i>
+                    <i class="fas fa-leaf theme-icon-forest"></i>
+                    <i class="fas fa-tint theme-icon-aqua"></i>
                   </button>
-                </li>                
+                  <ul class="dropdown-menu dropdown-menu-end theme-dropdown-menu animated fadeIn" aria-labelledby="themeToggle">
+                    <li>
+                      <a class="dropdown-item theme-option-item" href="#" data-theme-option="light" aria-current="false">
+                        <span class="theme-option-swatch theme-option-swatch-light"></span>
+                        Tema Claro
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item theme-option-item" href="#" data-theme-option="dark" aria-current="false">
+                        <span class="theme-option-swatch theme-option-swatch-dark"></span>
+                        Tema Escuro
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item theme-option-item" href="#" data-theme-option="forest" aria-current="false">
+                        <span class="theme-option-swatch theme-option-swatch-forest"></span>
+                        Tema Floresta
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item theme-option-item" href="#" data-theme-option="aqua" aria-current="false">
+                        <span class="theme-option-swatch theme-option-swatch-aqua"></span>
+                        Tema Aqua
+                      </a>
+                    </li>
+                  </ul>
+                </li>
                 <li class="nav-item topbar-icon dropdown hidden-caret">
                   <a class="nav-link dropdown-toggle" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fa fa-bell"></i>

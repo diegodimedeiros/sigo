@@ -86,6 +86,22 @@ body {
 }
 ```
 
+## 5.1 Temas suportados no projeto
+
+O projeto passa a suportar quatro temas visuais via `html[data-sigo-theme]`:
+
+- `light`
+- `dark`
+- `forest`
+- `aqua`
+
+Regras:
+
+- `data-bs-theme` deve continuar restrito a `light` ou `dark` para compatibilidade com Bootstrap
+- temas adicionais como `forest` e `aqua` devem sobrescrever tokens próprios em `data-sigo-theme`
+- o seletor de temas deve refletir o estado atual por ícone, `aria-current` e classe `active`
+- botões primários, labels, hero e sidebar devem receber overrides por tema somente quando houver necessidade visual real
+
 ## 6. Estrutura recomendada (evolutiva)
 
 Enquanto o projeto usa arquivo central, a evolução deve seguir separação por responsabilidade:
@@ -120,3 +136,11 @@ Este padrão é compatível com práticas consolidadas de:
 - CSS Guidelines
 
 Não copiar regras literalmente de fontes externas; adaptar ao contexto do projeto.
+
+## 10. Convenção visual recente
+
+Para o tema `light`, a paleta operacional adotada recentemente usa azul `#0e75eb` como cor principal de CTAs e heros contextuais.
+
+Para o tema `dark`, as ações primárias recentes usam ciano `#7dd3fc` com contraste escuro no texto.
+
+Temas `forest` e `aqua` mantêm identidade própria com overrides explícitos de botões, sidebar e hero.

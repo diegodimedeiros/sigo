@@ -1,8 +1,8 @@
 {% extends 'siop/achados_perdidos/base.html' %}
 {% load static %}
 
-{% block achados_heading %}Novo Item{% endblock %}
-{% block achados_description %}Cadastro operacional do item encontrado ou perdido.{% endblock %}
+{% block achados_heading %}Novo Registro de Achados e Perdidos{% endblock %}
+{% block achados_description %}Cadastro operacional para registro, rastreabilidade e evidências do item encontrado ou perdido.{% endblock %}
 {% block achados_hero_actions %}<a href="{% url 'siop:achados_perdidos_list' %}" class="btn btn-label-info btn-round">Voltar</a>{% endblock %}
 
 {% block content %}

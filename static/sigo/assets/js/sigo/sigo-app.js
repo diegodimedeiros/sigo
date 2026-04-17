@@ -1,12 +1,46 @@
 (function () {
   var root = document.documentElement;
   var button = document.getElementById("themeToggle");
+  var themeOptions = document.querySelectorAll("[data-theme-option]");
   var mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  var supportedThemes = ["light", "dark", "forest", "aqua"];
+
+  function normalizeTheme(theme) {
+    if (supportedThemes.indexOf(theme) !== -1) {
+      return theme;
+    }
+    return mediaQuery.matches ? "dark" : "light";
+  }
+
+  function toBootstrapTheme(theme) {
+    return theme === "dark" ? "dark" : "light";
+  }
+
+  function updateThemeUi(theme) {
+    if (button) {
+      button.setAttribute("data-theme-current", theme);
+      button.setAttribute("title", "Tema: " + theme);
+      button.setAttribute("aria-label", "Tema atual: " + theme);
+    }
+
+    if (!themeOptions.length) {
+      return;
+    }
+
+    themeOptions.forEach(function (option) {
+      var optionTheme = option.getAttribute("data-theme-option");
+      var isActive = optionTheme === theme;
+      option.classList.toggle("active", isActive);
+      option.setAttribute("aria-current", isActive ? "true" : "false");
+    });
+  }
 
   function applyTheme(theme) {
-    root.setAttribute("data-sigo-theme", theme);
-    root.setAttribute("data-bs-theme", theme);
-    localStorage.setItem("sigo-theme", theme);
+    var normalized = normalizeTheme(theme);
+    root.setAttribute("data-sigo-theme", normalized);
+    root.setAttribute("data-bs-theme", toBootstrapTheme(normalized));
+    localStorage.setItem("sigo-theme", normalized);
+    updateThemeUi(normalized);
   }
 
   function applySystemTheme(event) {
@@ -16,15 +50,28 @@
 
     var systemTheme = event.matches ? "dark" : "light";
     root.setAttribute("data-sigo-theme", systemTheme);
-    root.setAttribute("data-bs-theme", systemTheme);
+    root.setAttribute("data-bs-theme", toBootstrapTheme(systemTheme));
+    updateThemeUi(systemTheme);
   }
 
-  if (button) {
+  if (themeOptions.length) {
+    themeOptions.forEach(function (option) {
+      option.addEventListener("click", function (event) {
+        event.preventDefault();
+        var selectedTheme = option.getAttribute("data-theme-option");
+        applyTheme(selectedTheme);
+      });
+    });
+  } else if (button) {
     button.addEventListener("click", function () {
-      var current = root.getAttribute("data-sigo-theme") || "light";
-      applyTheme(current === "dark" ? "light" : "dark");
+      var current = normalizeTheme(root.getAttribute("data-sigo-theme") || "light");
+      var currentIndex = supportedThemes.indexOf(current);
+      var nextTheme = supportedThemes[(currentIndex + 1) % supportedThemes.length];
+      applyTheme(nextTheme);
     });
   }
+
+  updateThemeUi(normalizeTheme(root.getAttribute("data-sigo-theme") || "light"));
 
   if (typeof mediaQuery.addEventListener === "function") {
     mediaQuery.addEventListener("change", applySystemTheme);

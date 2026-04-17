@@ -2,8 +2,21 @@
   var root = document.documentElement;
   var mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
   var savedTheme = localStorage.getItem("sigo-theme");
-  var initialTheme = savedTheme || (mediaQuery.matches ? "dark" : "light");
+  var supportedThemes = ["light", "dark", "forest", "aqua"];
+
+  function normalizeTheme(theme) {
+    if (supportedThemes.indexOf(theme) !== -1) {
+      return theme;
+    }
+    return mediaQuery.matches ? "dark" : "light";
+  }
+
+  function toBootstrapTheme(theme) {
+    return theme === "dark" ? "dark" : "light";
+  }
+
+  var initialTheme = normalizeTheme(savedTheme);
 
   root.setAttribute("data-sigo-theme", initialTheme);
-  root.setAttribute("data-bs-theme", initialTheme);
+  root.setAttribute("data-bs-theme", toBootstrapTheme(initialTheme));
 })();

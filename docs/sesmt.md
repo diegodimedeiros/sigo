@@ -118,13 +118,23 @@ Base de evolução do módulo:
 - fluxo novo do próprio projeto
 - referência funcional histórica de Controle BC para Atendimento, Manejo e Flora
 
-## 7. Próximos passos
+## 7. Atualizações visuais e textuais
+
+Mudanças recentes aplicadas no módulo:
+
+- padronização dos títulos e descrições de telas `new` para o formato "Novo Registro de ..."
+- ajuste do hero de exportação de atendimento com remoção da ação de retorno no cabeçalho
+- adoção do seletor de temas com opções `light`, `dark`, `forest` e `aqua` no topo do módulo
+- adequação da paleta do tema claro para hero e botões principais em azul `#0e75eb`
+- revisão de contraste e estados de botões no tema escuro com paleta ciano para ações primárias
+
+## 8. Próximos passos
 
 - continuar extração de regra pesada de views para services/query
 - ampliar cobertura de testes de cenários de borda
 - manter isonomia estrutural com o padrão oficial em docs/padrao_create_module_project.md
 
-## 8. Integração SESMT -> SIOP (finalizada)
+## 9. Integração SESMT -> SIOP (finalizada)
 
 Implementação consolidada para replicação automática de registros SESMT em Ocorrências SIOP.
 

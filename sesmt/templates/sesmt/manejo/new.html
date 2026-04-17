@@ -1,8 +1,8 @@
 {% extends 'sesmt/manejo/base.html' %}
 {% load static %}
 
-{% block manejo_heading %}Abertura de Manejo{% endblock %}
-{% block manejo_description %}Registre a captura inicial, as evidências e a geolocalização para abrir o chamado de manejo.{% endblock %}
+{% block manejo_heading %}Novo Registro de Manejo{% endblock %}
+{% block manejo_description %}Cadastro operacional para registro da captura inicial, geolocalização e evidências do manejo.{% endblock %}
 
 {% block content %}
 {% url 'sesmt:api_manejo' as api_manejo_url %}
