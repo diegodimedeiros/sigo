@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sigo.models import ConfiguracaoSistema, Notificacao, Operador, Unidade
+from sigo.access import allowed_notification_modules
 
 
 User = get_user_model()
@@ -118,6 +119,24 @@ class ProfileViewTests(TestCase):
         self.assertEqual(operador.foto_tamanho, 0)
 
 
+class NotificationAccessPolicyTests(TestCase):
+    def test_user_without_module_groups_sees_only_sigo_context(self):
+        user = User.objects.create_user(username="sem_grupo", password="SenhaForte123!")
+
+        allowed = allowed_notification_modules(user)
+
+        self.assertEqual(allowed, {"", "sigo"})
+
+    def test_user_with_siop_group_receives_siop_notifications(self):
+        user = User.objects.create_user(username="com_siop", password="SenhaForte123!")
+        group = Group.objects.create(name="group_siop")
+        user.groups.add(group)
+
+        allowed = allowed_notification_modules(user)
+
+        self.assertEqual(allowed, {"", "sigo", "siop"})
+
+
 class NotificationFlowTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -126,6 +145,9 @@ class NotificationFlowTests(TestCase):
             first_name="Operador",
         )
         self.client.force_login(self.user)
+
+        self.group_siop = Group.objects.create(name="group_siop")
+        self.user.groups.add(self.group_siop)
 
         self.group = Group.objects.create(name="Operacoes")
         self.user.groups.add(self.group)

@@ -156,7 +156,7 @@
     var apiUrl = contentNode.dataset.apiUrl;
     if (!apiUrl) return;
 
-    fetch(apiUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+    window.SigoCsrf.fetch(apiUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(function (response) {
         return response.json().then(function (payload) {
           return { response: response, payload: payload };

@@ -10,6 +10,8 @@ def grupo_sesmt():
 
 def _publicar_notificacao(*, titulo, mensagem, link, tipo, unidade):
     grupo = grupo_sesmt()
+    if not grupo:
+        return
     publicar_notificacao(
         titulo=titulo,
         mensagem=mensagem,

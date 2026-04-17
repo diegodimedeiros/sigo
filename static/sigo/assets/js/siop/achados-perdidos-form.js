@@ -15,7 +15,7 @@
       return;
     }
     const url = `${areaSelect.dataset.localUrl}?area=${encodeURIComponent(area)}`;
-    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const response = await window.SigoCsrf.fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     if (!response.ok) {
       throw new Error('Falha ao carregar locais.');
     }

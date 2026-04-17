@@ -235,7 +235,7 @@
     if (!apiUrl) {
       return;
     }
-    window.fetch(apiUrl, {
+    window.SigoCsrf.fetch(apiUrl, {
       headers: {
         "X-Requested-With": "XMLHttpRequest"
       }

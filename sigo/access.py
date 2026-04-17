@@ -77,8 +77,4 @@ def allowed_notification_modules(user: User) -> set[str]:
         allowed.add("siop")
     if GROUP_SESMT in groups:
         allowed.add("sesmt")
-
-    # If user has no SIOP/SESMT group yet, keep legacy behavior.
-    if allowed == base:
-        return {"", "sigo", "siop", "sesmt"}
     return allowed

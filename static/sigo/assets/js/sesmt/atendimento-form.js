@@ -2,7 +2,7 @@
   function requestCatalog(url, queryParam, queryValue) {
     var fullUrl = new URL(url, window.location.origin);
     fullUrl.searchParams.set(queryParam, queryValue);
-    return fetch(fullUrl.toString(), {
+    return window.SigoCsrf.fetch(fullUrl.toString(), {
       headers: {
         "X-Requested-With": "XMLHttpRequest"
       }

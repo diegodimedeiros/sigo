@@ -66,7 +66,7 @@
     if (!contentNode || !evidenceNode || !auditNode) return;
     var apiUrl = contentNode.dataset.apiUrl;
     if (!apiUrl) return;
-    window.fetch(apiUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+    window.SigoCsrf.fetch(apiUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(function (response) { return response.json().then(function (payload) { return { response: response, payload: payload }; }); })
       .then(function (result) {
         if (!result.response.ok || !result.payload.ok) throw new Error("Falha ao carregar flora.");

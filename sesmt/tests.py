@@ -7,6 +7,37 @@ from django.utils import timezone
 
 from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Unidade
 from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero
+from sesmt.notificacoes import _publicar_notificacao
+
+
+class SesmtNotificationPolicyTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
+
+    def test_notification_is_not_created_when_group_sesmt_is_missing(self):
+        _publicar_notificacao(
+            titulo="Teste",
+            mensagem="Mensagem",
+            link="/sesmt/",
+            tipo=Notificacao.TIPO_INFO,
+            unidade=self.unidade,
+        )
+
+        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 0)
+
+    def test_notification_is_created_when_group_sesmt_exists(self):
+        group = Group.objects.create(name="group_sesmt")
+
+        _publicar_notificacao(
+            titulo="Teste",
+            mensagem="Mensagem",
+            link="/sesmt/",
+            tipo=Notificacao.TIPO_INFO,
+            unidade=self.unidade,
+        )
+
+        notification = Notificacao.objects.get(modulo=Notificacao.MODULO_SESMT)
+        self.assertEqual(notification.grupo, group)
 
 
 class AtendimentoFlowTests(TestCase):
