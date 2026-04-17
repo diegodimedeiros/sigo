@@ -2,7 +2,14 @@
   function requestCatalog(url, queryParam, queryValue) {
     var fullUrl = new URL(url, window.location.origin);
     fullUrl.searchParams.set(queryParam, queryValue);
-    return window.SigoCsrf.fetch(fullUrl.toString(), {
+    // Compatibilidade com versões antigas do endpoint/cliente.
+    if (queryParam === "area") {
+      fullUrl.searchParams.set("area_atendimento", queryValue);
+    }
+    var fetchFn = (window.SigoCsrf && typeof window.SigoCsrf.fetch === "function")
+      ? window.SigoCsrf.fetch.bind(window.SigoCsrf)
+      : window.fetch.bind(window);
+    return fetchFn(fullUrl.toString(), {
       headers: {
         "X-Requested-With": "XMLHttpRequest"
       }
@@ -46,7 +53,11 @@
 
       requestCatalog(locaisUrl, "area", area)
         .then(function (payload) {
-          var locais = (((payload || {}).data || {}).locais) || [];
+          if (payload && payload.ok === false) {
+            throw new Error("Falha ao carregar catálogo.");
+          }
+          var data = (payload && payload.data) ? payload.data : (payload || {});
+          var locais = data.locais || [];
           buildOptions(localField, locais, "Selecione");
 
           if (!resetSelection && currentLocal && locais.some(function (item) { return item.chave === currentLocal; })) {
@@ -138,6 +149,51 @@
 
     seguiuPasseioField.addEventListener("change", refresh);
     houveRemocaoField.addEventListener("change", refresh);
+    refresh();
+  }
+
+  function syncPrimeirosSocorrosRule() {
+    var atendimentoField = document.getElementById("atendimentos");
+    var primeirosSocorrosField = document.getElementById("primeiros_socorros");
+    if (!atendimentoField || !primeirosSocorrosField) {
+      return;
+    }
+
+    function removeTempOption() {
+      var tempOption = primeirosSocorrosField.querySelector('option[data-system-option="nao_realizado"]');
+      if (tempOption) {
+        tempOption.remove();
+      }
+    }
+
+    function ensureTempOption() {
+      var tempOption = primeirosSocorrosField.querySelector('option[data-system-option="nao_realizado"]');
+      if (tempOption) {
+        return tempOption;
+      }
+      tempOption = document.createElement("option");
+      tempOption.value = "nao_realizado";
+      tempOption.textContent = "Não realizado";
+      tempOption.setAttribute("data-system-option", "nao_realizado");
+      primeirosSocorrosField.appendChild(tempOption);
+      return tempOption;
+    }
+
+    function refresh() {
+      var atendimentoRealizado = isTruthyValue(atendimentoField.value);
+      if (!atendimentoRealizado) {
+        ensureTempOption();
+        primeirosSocorrosField.value = "nao_realizado";
+      } else {
+        if (primeirosSocorrosField.value === "nao_realizado") {
+          primeirosSocorrosField.value = "";
+        }
+        removeTempOption();
+      }
+      primeirosSocorrosField.disabled = !atendimentoRealizado;
+    }
+
+    atendimentoField.addEventListener("change", refresh);
     refresh();
   }
 
@@ -242,6 +298,9 @@
   }
 
   function initPhotoEvidence() {
+    if (!window.SesmtPhotoManager || typeof window.SesmtPhotoManager.dual !== "function") {
+      return;
+    }
     window.SesmtPhotoManager.dual({
       cameraInputId: "fotos_camera",
       deviceInputId: "fotos_dispositivo",
@@ -254,6 +313,9 @@
   }
 
   function initGeolocationCapture() {
+    if (!window.SesmtGeolocation || typeof window.SesmtGeolocation.initCapture !== "function") {
+      return;
+    }
     window.SesmtGeolocation.initCapture({
       latitudeId: "geo_latitude",
       longitudeId: "geo_longitude",
@@ -495,6 +557,7 @@
     initToggleBindings();
     syncContactRegionFields();
     syncDestinoRules();
+    syncPrimeirosSocorrosRule();
     syncWitnessBlocks();
     initPhotoEvidence();
     initGeolocationCapture();

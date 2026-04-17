@@ -22,6 +22,7 @@ class OcorrenciasFlowTests(TestCase):
             password="senha-forte-123",
         )
         self.group_siop = Group.objects.create(name="group_siop")
+        self.user.groups.add(self.group_siop)
         self.ocorrencia = Ocorrencia.objects.create(
             tipo_pessoa="visitante",
             data_ocorrencia=timezone.now(),
@@ -69,6 +70,15 @@ class OcorrenciasFlowTests(TestCase):
         payload = response.json()
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["error"]["code"], "invalid_pagination")
+
+    def test_ocorrencias_index_renderiza_sem_data_registro(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("siop:ocorrencias_index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Últimos registros")
+        self.assertContains(response, f"#{self.ocorrencia.pk}")
 
     def test_ocorrencia_create_json_returns_success_and_persists(self):
         self.client.force_login(self.user)

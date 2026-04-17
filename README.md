@@ -210,6 +210,28 @@ Rodar apenas o `SIOP`:
 - [Visão geral do SESMT](docs/sesmt.md)
 - [Catálogos e convenções](docs/catalogos.md)
 
+## Seed opcional de desenvolvimento
+
+Existe uma ferramenta isolada em `dev_seed/` para gerar massa local de teste.
+
+Características:
+
+- não faz parte dos módulos de domínio
+- só entra no `INSTALLED_APPS` se a pasta `dev_seed/` existir
+- pode ser removida depois sem impactar o restante do projeto
+
+Uso:
+
+```bash
+./.venv/bin/python manage.py seed_dev --clear
+```
+
+Dependência opcional para dados mais ricos:
+
+```bash
+./.venv/bin/pip install -r requirements-dev-seed.txt
+```
+
 ## Licença
 
 Uso interno.

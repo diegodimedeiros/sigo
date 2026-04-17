@@ -78,6 +78,12 @@ Cobertura atual:
 - fotos, geolocalização e assinatura
 - exportação geral e PDF do registro
 
+Regras recentes:
+
+- quando `atendimentos=false` ou há `recusa_atendimento`, o campo de primeiros socorros é forçado para `nao_realizado`
+- o formulário passa a sincronizar essa regra também no front-end, desabilitando a seleção manual de primeiros socorros quando não houve atendimento
+- endpoint de locais aceita tanto `area` quanto `area_atendimento` para compatibilidade de clientes
+
 ### 5.2 Manejo
 
 Cobertura atual:
@@ -127,6 +133,7 @@ Mudanças recentes aplicadas no módulo:
 - adoção do seletor de temas com opções `light`, `dark`, `forest` e `aqua` no topo do módulo
 - adequação da paleta do tema claro para hero e botões principais em azul `#0e75eb`
 - revisão de contraste e estados de botões no tema escuro com paleta ciano para ações primárias
+- ajuste de cópias de notificação para uso de "módulo" no lugar de "contexto"
 
 ## 8. Próximos passos
 
@@ -150,9 +157,16 @@ Padrão técnico aplicado em todas as áreas:
 
 - receiver post_save por modelo
 - criação/uso de usuário técnico `sigo_sistema`
-- idempotência por marcador em `descricao` com prefixo por área + ID SESMT
+- idempotência por marcador em `descricao` com prefixo por área + ID SESMT (`[SESMT <AREA> ID:<pk>]`)
 - create/update da mesma Ocorrência SIOP quando o mesmo registro SESMT é alterado
 - campos fixos de integração: `bombeiro_civil=True` e `status=True`
+- criação de notificação SIOP "Ocorrência | Novo Registrado" sem grupo fixo, preservando visibilidade por módulo
+
+Formato de descrição sincronizada:
+
+- conteúdo em múltiplas linhas com marcador na primeira linha
+- campos normalizados com labels legíveis (catálogos, áreas e locais)
+- estrutura em bullets para facilitar leitura na visualização da ocorrência
 
 Mapeamento por área:
 

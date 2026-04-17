@@ -1856,6 +1856,7 @@ html[data-sigo-theme="light"] .sidebar .nav .nav-item:hover a i {
   color: #ffffff !important;
 }
 
+html[data-sigo-theme="light"] .card.page-hero.mb-4,
 html[data-sigo-theme="light"] .card.module-hero.mb-4,
 html[data-sigo-theme="light"] .mb-4.page-hero.p-4  {
   background:linear-gradient(120deg, #0e75eb 60%, #053d87 100%) !important;
@@ -1866,6 +1867,7 @@ html[data-sigo-theme="light"] .mb-4.page-hero.p-4  {
 html[data-sigo-theme="light"] .mb-0.text-muted  {  
   color: #ffffff !important;
 }
+
 
 html[data-sigo-theme="light"] .mb-0.text-muted.d  {  
   color: #000000 !important;

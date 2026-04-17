@@ -15,9 +15,9 @@ from django.utils import timezone
 from django.utils.http import content_disposition_header
 
 from sigo_core.shared.pdf_export import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
-from sigo.models import Assinatura, Foto, Geolocalizacao
+from sigo.models import Assinatura, Contato, Foto, Geolocalizacao, get_unidade_ativa
 from sigo_core.api import ApiStatus, api_error, api_method_not_allowed, api_success, parse_limit_offset
-from sigo_core.catalogos import catalogo_bc_key, catalogo_bc_label
+from sigo_core.catalogos import catalogo_bc_key, catalogo_bc_label, catalogo_locais_por_area_data
 from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.parsers import parse_local_datetime, to_bool
@@ -238,6 +238,11 @@ def _build_atendimento_request_data(payload=None, atendimento=None):
     acompanhante = atendimento.acompanhante_pessoa if atendimento and atendimento.acompanhante_pessoa_id else None
     contato = atendimento.contato if atendimento and atendimento.contato_id else None
     testemunhas_data = _build_testemunhas_request_data(payload=payload, atendimento=atendimento)
+    atendimentos_value = to_bool(payload.get("atendimentos")) if payload else (atendimento.atendimentos if atendimento else False)
+    recusa_atendimento_value = to_bool(payload.get("recusa_atendimento")) if payload else (atendimento.recusa_atendimento if atendimento else False)
+    primeiros_socorros_value = payload.get("primeiros_socorros", atendimento.primeiros_socorros if atendimento else "") or ""
+    if recusa_atendimento_value or not atendimentos_value:
+        primeiros_socorros_value = "nao_realizado"
     return {
         "tipo_pessoa": payload.get("tipo_pessoa", atendimento.tipo_pessoa if atendimento else "") or "",
         "pessoa_nome": payload.get("pessoa_nome", atendimento.pessoa.nome if atendimento and atendimento.pessoa_id else "") or "",
@@ -277,9 +282,9 @@ def _build_atendimento_request_data(payload=None, atendimento=None):
         "plano_saude": to_bool(payload.get("plano_saude")) if payload else (atendimento.plano_saude if atendimento else False),
         "nome_plano_saude": payload.get("nome_plano_saude", atendimento.nome_plano_saude if atendimento else "") or "",
         "numero_carteirinha": payload.get("numero_carteirinha", atendimento.numero_carteirinha if atendimento else "") or "",
-        "primeiros_socorros": payload.get("primeiros_socorros", atendimento.primeiros_socorros if atendimento else "") or "",
-        "atendimentos": to_bool(payload.get("atendimentos")) if payload else (atendimento.atendimentos if atendimento else False),
-        "recusa_atendimento": to_bool(payload.get("recusa_atendimento")) if payload else (atendimento.recusa_atendimento if atendimento else False),
+        "primeiros_socorros": primeiros_socorros_value,
+        "atendimentos": atendimentos_value,
+        "recusa_atendimento": recusa_atendimento_value,
         "responsavel_atendimento": payload.get(
             "responsavel_atendimento",
             catalogo_bc_key(atendimento.responsavel_atendimento) if atendimento else "",
@@ -321,6 +326,7 @@ def _save_atendimento_from_payload(*, payload, files, user, atendimento=None):
     is_create = atendimento is None
     errors = {}
     recusa_atendimento = to_bool(payload.get("recusa_atendimento"))
+    atendimento_realizado = to_bool(payload.get("atendimentos")) and not recusa_atendimento
     estrangeiro = _tipo_pessoa_estrangeiro(payload.get("tipo_pessoa"))
     try:
         testemunhas_payload = _parse_testemunhas_payload(payload) if to_bool(payload.get("testemunha")) else []
@@ -459,8 +465,8 @@ def _save_atendimento_from_payload(*, payload, files, user, atendimento=None):
             atendimento.plano_saude = False if recusa_atendimento else to_bool(payload.get("plano_saude"))
             atendimento.nome_plano_saude = "" if recusa_atendimento else payload.get("nome_plano_saude")
             atendimento.numero_carteirinha = "" if recusa_atendimento else payload.get("numero_carteirinha")
-            atendimento.primeiros_socorros = payload.get("primeiros_socorros")
-            atendimento.atendimentos = to_bool(payload.get("atendimentos"))
+            atendimento.primeiros_socorros = "nao_realizado" if not atendimento_realizado else payload.get("primeiros_socorros")
+            atendimento.atendimentos = atendimento_realizado
             atendimento.recusa_atendimento = recusa_atendimento
             atendimento.responsavel_atendimento = catalogo_bc_key(payload.get("responsavel_atendimento"))
             atendimento.seguiu_passeio = to_bool(payload.get("seguiu_passeio"))
@@ -509,7 +515,11 @@ def _annotate_atendimento(atendimento):
     atendimento.tipo_ocorrencia_label = TIPO_OCORRENCIA_MAP.get(atendimento.tipo_ocorrencia, atendimento.tipo_ocorrencia)
     atendimento.area_atendimento_label = AREA_MAP.get(atendimento.area_atendimento, atendimento.area_atendimento)
     atendimento.local_label = _local_atendimento_label(atendimento.area_atendimento, atendimento.local)
-    atendimento.primeiros_socorros_label = PRIMEIROS_SOCORROS_MAP.get(atendimento.primeiros_socorros, atendimento.primeiros_socorros or "-")
+    atendimento.primeiros_socorros_label = (
+        "Não realizado"
+        if atendimento.primeiros_socorros == "nao_realizado"
+        else PRIMEIROS_SOCORROS_MAP.get(atendimento.primeiros_socorros, atendimento.primeiros_socorros or "-")
+    )
     atendimento.transporte_label = TRANSPORTE_MAP.get(atendimento.transporte, atendimento.transporte or "-")
     atendimento.encaminhamento_label = ENCAMINHAMENTO_MAP.get(atendimento.encaminhamento, atendimento.encaminhamento or "-")
     atendimento.responsavel_atendimento_label = catalogo_bc_label(atendimento.responsavel_atendimento) or "-"
@@ -1054,7 +1064,7 @@ def atendimento_export_view_pdf(request, pk):
 
 @login_required
 def atendimento_api_locais(request):
-    area = (request.GET.get("area") or "").strip()
+    area = (request.GET.get("area") or request.GET.get("area_atendimento") or "").strip()
     return api_success(
         data={"locais": _catalogo_choice_options(catalogo_locais_por_area_data(area))},
         message="Locais carregados com sucesso.",

@@ -26,6 +26,9 @@ __all__ = [
     "_parse_decimal_7",
     "_extract_error_details",
     "_filter_export_period",
+    "get_unidade_ativa",
+    # re-exports de catálogos usados nas views filhas
+    "catalogo_locais_por_area_data",
     # constantes
     "TIPO_PESSOA_OPTIONS", "TIPO_PESSOA_MAP",
     "TIPO_OCORRENCIA_OPTIONS", "TIPO_OCORRENCIA_MAP",

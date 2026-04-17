@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Pessoa, Unidade
+from sigo_core.catalogos import catalogo_bc_data, catalogo_lista_items
 from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero
 from sesmt.notificacoes import _publicar_notificacao
 
@@ -14,7 +15,7 @@ class SesmtNotificationPolicyTests(TestCase):
     def setUp(self):
         self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
 
-    def test_notification_is_not_created_when_group_sesmt_is_missing(self):
+    def test_notification_is_created_when_group_sesmt_is_missing(self):
         _publicar_notificacao(
             titulo="Teste",
             mensagem="Mensagem",
@@ -23,7 +24,8 @@ class SesmtNotificationPolicyTests(TestCase):
             unidade=self.unidade,
         )
 
-        self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 0)
+        notification = Notificacao.objects.get(modulo=Notificacao.MODULO_SESMT)
+        self.assertIsNone(notification.grupo)
 
     def test_notification_is_created_when_group_sesmt_exists(self):
         group = Group.objects.create(name="group_sesmt")
@@ -84,6 +86,16 @@ class AtendimentoFlowTests(TestCase):
         self.assertEqual(atendimento.responsavel_atendimento, "Luciana Pires")
         self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 1)
 
+    def test_atendimento_new_carrega_scripts_core_de_evidencias(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("sesmt:atendimento_new"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "sigo/assets/js/sesmt/core/photo-manager.js")
+        self.assertContains(response, "sigo/assets/js/sesmt/core/geolocation.js")
+        self.assertContains(response, "sigo/assets/js/sesmt/atendimento-form.js")
+
     def test_atendimento_list_renderiza_registro_real(self):
         self.client.force_login(self.user)
         self.client.post(reverse("sesmt:atendimento_new"), data=self._payload())
@@ -113,6 +125,24 @@ class AtendimentoFlowTests(TestCase):
         self.assertContains(response, "Carregando resumo do atendimento")
         self.assertContains(response, reverse("sesmt:api_atendimento_detail", args=[atendimento.pk]))
         self.assertContains(response, reverse("sesmt:atendimento_export_view_pdf", args=[atendimento.pk]))
+
+    def test_atendimento_api_locais_aceita_area_e_area_atendimento(self):
+        self.client.force_login(self.user)
+
+        response_area = self.client.get(reverse("sesmt:atendimento_api_locais"), {"area": "area_administrativo"})
+        self.assertEqual(response_area.status_code, 200)
+        payload_area = response_area.json()
+        self.assertTrue(payload_area["ok"])
+        self.assertGreater(len(payload_area["data"]["locais"]), 0)
+
+        response_area_atendimento = self.client.get(
+            reverse("sesmt:atendimento_api_locais"),
+            {"area_atendimento": "area_administrativo"},
+        )
+        self.assertEqual(response_area_atendimento.status_code, 200)
+        payload_area_atendimento = response_area_atendimento.json()
+        self.assertTrue(payload_area_atendimento["ok"])
+        self.assertEqual(payload_area_atendimento["data"]["locais"], payload_area["data"]["locais"])
 
     def test_api_atendimento_create_retorna_contrato_de_sucesso(self):
         self.client.force_login(self.user)
@@ -173,6 +203,22 @@ class AtendimentoFlowTests(TestCase):
         self.assertEqual(atendimento.primeiros_socorros, "curativo")
         self.assertEqual(payload["data"]["redirect_url"], atendimento.get_absolute_url())
         self.assertEqual(Notificacao.objects.filter(modulo=Notificacao.MODULO_SESMT).count(), 2)
+
+    def test_api_atendimento_forca_primeiros_socorros_nao_realizado_quando_atendimento_nao_realizado(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("sesmt:api_atendimento"),
+            data=self._payload(
+                atendimentos="false",
+                primeiros_socorros="curativo",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 201)
+        atendimento = ControleAtendimento.objects.get()
+        self.assertFalse(atendimento.atendimentos)
+        self.assertEqual(atendimento.primeiros_socorros, "nao_realizado")
 
     def test_api_atendimento_list_filtra_por_status_e_paginacao(self):
         self.client.force_login(self.user)
@@ -777,6 +823,8 @@ class SesmtToSiopSyncTests(TestCase):
         from siop.models import Ocorrencia
         self.Ocorrencia = Ocorrencia
         self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
+        self.group_siop = Group.objects.create(name="group_siop")
+        self.group_sesmt = Group.objects.create(name="group_sesmt")
 
     def test_atendimento_sync_cria_ocorrencia_siop_ao_salvar(self):
         """Verificar que salvar ControleAtendimento cria Ocorrência SIOP."""
@@ -804,7 +852,11 @@ class SesmtToSiopSyncTests(TestCase):
         self.assertEqual(ocorrencia.tipo, "atendimento_bombeiro_civil")
         self.assertTrue(ocorrencia.bombeiro_civil)
         self.assertTrue(ocorrencia.status)
-        self.assertIn(f"[SESMT_ATENDIMENTO_SYNC:{atendimento.pk}]", ocorrencia.descricao)
+        self.assertIn(f"Resumo de Atendimento SESMT ID #{atendimento.pk}:", ocorrencia.descricao)
+
+        notificacao_siop = Notificacao.objects.get(titulo="Ocorrência | Novo Registrado", modulo=Notificacao.MODULO_SIOP)
+        self.assertIsNone(notificacao_siop.grupo)
+        self.assertEqual(notificacao_siop.link, ocorrencia.get_absolute_url())
 
     def test_atendimento_sync_atualiza_ocorrencia_ao_modificar(self):
         """Verificar que modificar ControleAtendimento atualiza a mesma Ocorrência SIOP (idempotência)."""
@@ -837,6 +889,92 @@ class SesmtToSiopSyncTests(TestCase):
         self.assertEqual(self.Ocorrencia.objects.filter(descricao__startswith=_marker(atendimento.pk)).count(), 1)
         self.assertIn("Descrição modificada", ocorrencia_2.descricao)
 
+        self.assertEqual(
+            Notificacao.objects.filter(
+                titulo="Ocorrência | Atualizado",
+                modulo=Notificacao.MODULO_SIOP,
+                link=ocorrencia_2.get_absolute_url(),
+            ).count(),
+            0,
+        )
+
+    def test_notificacao_siop_sync_eh_visivel_apenas_no_contexto_siop(self):
+        from sesmt.sesmt_to_siop_sync import _marker
+
+        user = get_user_model().objects.create_user(username="ops", password="senha-forte-123")
+        user.groups.add(self.group_siop, self.group_sesmt)
+
+        pessoa = Pessoa.objects.create(nome="Paciente Teste", documento="12345678900")
+        atendimento = ControleAtendimento.objects.create(
+            unidade=self.unidade,
+            tipo_pessoa="colaborador",
+            pessoa=pessoa,
+            area_atendimento="entrada",
+            local="entrada_de_pedestres",
+            data_atendimento=timezone.now(),
+            tipo_ocorrencia="mal_subito",
+            responsavel_atendimento="Técnico Teste",
+            descricao="Atendimento teste",
+        )
+
+        ocorrencia = self.Ocorrencia.objects.filter(descricao__startswith=_marker(atendimento.pk)).first()
+        notificacao_siop = Notificacao.objects.get(
+            titulo="Ocorrência | Novo Registrado",
+            modulo=Notificacao.MODULO_SIOP,
+            link=ocorrencia.get_absolute_url(),
+        )
+
+        visiveis_em_siop = Notificacao.objects.visiveis_para_usuario(
+            user=user,
+            modulo=Notificacao.MODULO_SIOP,
+            unidade=self.unidade,
+        )
+        visiveis_em_sesmt = Notificacao.objects.visiveis_para_usuario(
+            user=user,
+            modulo=Notificacao.MODULO_SESMT,
+            unidade=self.unidade,
+        )
+
+        self.assertIn(notificacao_siop, visiveis_em_siop)
+        self.assertNotIn(notificacao_siop, visiveis_em_sesmt)
+
+    def test_atendimento_sync_formata_descricao_conforme_padrao_legivel(self):
+        from sesmt.sesmt_to_siop_sync import _marker
+
+        pessoa = Pessoa.objects.create(nome="Paciente Teste", documento="12345678900")
+        bc_item = (catalogo_bc_data() or [{"chave": "jean_carlos_da_silva_agirres", "valor": "Jean Carlos da Silva Agirres"}])[0]
+        bc_key = bc_item.get("chave") or "jean_carlos_da_silva_agirres"
+        bc_label = bc_item.get("valor") or bc_key
+        ps_item = (catalogo_lista_items("primeiros_socorros") or [{"chave": "assepsia", "valor": "Assepsia"}])[0]
+        ps_key = ps_item.get("chave") or "assepsia"
+        ps_label = ps_item.get("valor") or ps_key
+
+        atendimento = ControleAtendimento.objects.create(
+            unidade=self.unidade,
+            tipo_pessoa="colaborador",
+            pessoa=pessoa,
+            area_atendimento="entrada",
+            local="entrada_de_pedestres",
+            data_atendimento=timezone.now(),
+            tipo_ocorrencia="mal_subito",
+            responsavel_atendimento=bc_key,
+            primeiros_socorros=ps_key,
+            encaminhamento="",
+            transporte="",
+            hospital="",
+            descricao="Visitante tropeçou e caiu na região do mirante.",
+        )
+
+        ocorrencia = self.Ocorrencia.objects.get(descricao__startswith=_marker(atendimento.pk))
+
+        self.assertTrue(ocorrencia.descricao.startswith(f"Resumo de Atendimento SESMT ID #{atendimento.pk}:"))
+        self.assertIn(f"• Primeiros socorros: {ps_label}; Encaminhamento: Não;", ocorrencia.descricao)
+        self.assertIn("• Remoção: Não; Transporte: Não;", ocorrencia.descricao)
+        self.assertIn("• Hospital: Não;", ocorrencia.descricao)
+        self.assertIn("• Recusou atendimento: Não;", ocorrencia.descricao)
+        self.assertIn(f"• Responsável pelo atendimento: {bc_label};", ocorrencia.descricao)
+        self.assertIn("• Descrição: Visitante tropeçou e caiu na região do mirante.", ocorrencia.descricao)
+
     def test_manejo_sync_cria_ocorrencia_siop_ao_salvar(self):
         """Verificar que salvar Manejo cria Ocorrência SIOP."""
         from sesmt.sesmt_to_siop_sync import _marker_manejo
@@ -858,6 +996,13 @@ class SesmtToSiopSyncTests(TestCase):
         self.assertEqual(ocorrencia.tipo, "animal_manejo")
         self.assertTrue(ocorrencia.bombeiro_civil)
         self.assertIn(f"[SESMT_MANEJO_SYNC:{manejo.pk}]", ocorrencia.descricao)
+        self.assertTrue(
+            Notificacao.objects.filter(
+                titulo="Ocorrência | Novo Registrado",
+                modulo=Notificacao.MODULO_SIOP,
+                link=ocorrencia.get_absolute_url(),
+            ).exists()
+        )
 
     def test_manejo_sync_atualiza_ocorrencia_ao_modificar(self):
         """Verificar que modificar Manejo atualiza a mesma Ocorrência SIOP (idempotência)."""
@@ -906,6 +1051,15 @@ class SesmtToSiopSyncTests(TestCase):
         self.assertEqual(ocorrencia.tipo, "especie_invasora")
         self.assertTrue(ocorrencia.bombeiro_civil)
         self.assertIn(f"[SESMT_FLORA_SYNC:{flora.pk}]", ocorrencia.descricao)
+        self.assertNotIn("especie_invasora", ocorrencia.descricao)
+        self.assertNotIn("entrada_de_pedestres", ocorrencia.descricao)
+        self.assertTrue(
+            Notificacao.objects.filter(
+                titulo="Ocorrência | Novo Registrado",
+                modulo=Notificacao.MODULO_SIOP,
+                link=ocorrencia.get_absolute_url(),
+            ).exists()
+        )
 
     def test_flora_sync_atualiza_ocorrencia_ao_modificar(self):
         """Verificar que modificar Flora atualiza a mesma Ocorrência SIOP (idempotência)."""
@@ -958,6 +1112,16 @@ class SesmtToSiopSyncTests(TestCase):
         self.assertEqual(ocorrencia.tipo, "evento_himenoptero")
         self.assertTrue(ocorrencia.bombeiro_civil)
         self.assertIn(f"[SESMT_HIMENOPTERO_SYNC:{himenoptero.pk}]", ocorrencia.descricao)
+        self.assertNotIn("ninho_ativo", ocorrencia.descricao)
+        self.assertNotIn("proxima", ocorrencia.descricao)
+        self.assertNotIn("vespa", ocorrencia.descricao)
+        self.assertTrue(
+            Notificacao.objects.filter(
+                titulo="Ocorrência | Novo Registrado",
+                modulo=Notificacao.MODULO_SIOP,
+                link=ocorrencia.get_absolute_url(),
+            ).exists()
+        )
 
     def test_himenoptero_sync_atualiza_ocorrencia_ao_modificar(self):
         """Verificar que modificar Himenoptero atualiza a mesma Ocorrência SIOP (idempotência)."""

@@ -48,6 +48,12 @@ Catálogos auxiliares expostos por API:
 
 ## 5. Regras operacionais relevantes
 
+### 5.0 Ocorrências (integração e listagem)
+
+- listagem principal prioriza `data_ocorrencia` para exibição de data/hora
+- ocorrências criadas por sincronização SESMT usam descrição em múltiplas linhas com marcador técnico na primeira linha
+- notificações e textos de apoio foram padronizados para o termo "módulo" (substituindo "contexto")
+
 ### 5.1 Controle de Ativos
 
 - ativo não pode ser retirado novamente sem devolução
@@ -114,6 +120,7 @@ Mudanças recentes aplicadas no módulo:
 - adoção do seletor de temas com opções `light`, `dark`, `forest` e `aqua` no topo do módulo
 - adequação da paleta do tema claro para CTAs principais e variações label em azul `#0e75eb`
 - manutenção de variações próprias para `forest` e `aqua`, com sidebar, hero e botões coerentes por tema
+- ajuste visual da descrição de ocorrência para destacar a primeira linha quando houver marcador de sincronização
 
 ## 9. Próximos passos
 

@@ -19,12 +19,12 @@
 
 {% block hero %}
 <div class="card page-hero mb-4">
-  <div class="card-body py-4">
-    <div class="row align-items-center g-3">
+  <div class="card-body py-4 d">
+    <div class="row align-items-center g-3">''
       <div class="col-lg-8">
         <h1 class="h3 mb-2">Notificações dos últimos 7 dias</h1>
         <p class="mb-0 text-muted">
-          Acompanhe tudo o que aconteceu no contexto
+          Acompanhe tudo o que aconteceu no módulo
           <strong>{{ notifications_module_label }}</strong>,
           com leitura individual e histórico recente.
         </p>
@@ -49,7 +49,7 @@
 
         <div class="notification-stat-list">
           <div class="notification-stat-item">
-            <span class="notification-stat-label">Contexto</span>
+            <span class="notification-stat-label">Módulo</span>
             <strong>{{ notifications_module_label }}</strong>
           </div>
           <div class="notification-stat-item">
@@ -128,8 +128,8 @@
         <div class="notification-empty-state">
           <i class="fa fa-bell-slash"></i>
           <h5>Nenhuma notificação recente</h5>
-          <p class="text-muted mb-0">
-            Não houve eventos visíveis para este contexto nos últimos 7 dias.
+          <p class="mb-0 text-muted d">
+            Não houve eventos visíveis para este módulo nos últimos 7 dias.
           </p>
         </div>
         {% endif %}

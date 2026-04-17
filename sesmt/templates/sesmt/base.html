@@ -143,6 +143,60 @@
                 </li>
                 {% endif %}
                 <li class="nav-item topbar-icon dropdown hidden-caret">
+                  <a class="nav-link dropdown-toggle" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-bell"></i>
+                    {% if top_notifications_unread_count > 0 %}
+                    <span class="notification">{{ top_notifications_unread_count }}</span>
+                    {% endif %}
+                  </a>
+                  <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
+                    <li>
+                      <div class="dropdown-title notification-dropdown-title">
+                        {% if top_notifications %}
+                        Histórico recente
+                        <span class="notification-dropdown-subtitle">
+                          {% if top_notifications_unread_count > 0 %}
+                          {{ top_notifications_unread_count }} não lida{{ top_notifications_unread_count|pluralize }}
+                          {% else %}
+                          Últimas notificações visíveis para você
+                          {% endif %}
+                        </span>
+                        {% else %}
+                        Sem notificações recentes
+                        {% endif %}
+                      </div>
+                    </li>
+                    <li>
+                      <div class="notif-scroll scrollbar-outer">
+                        <div class="notif-center">
+                          {% for notif in top_notifications %}
+                          <a href="{% url 'sigo:notification_open' notif.id %}?modulo={{ top_notifications_module }}&next={{ request.get_full_path|urlencode }}" class="notification-item {% if not notif.lida_por_usuario %}fw-semibold{% endif %}">
+                            <div class="notif-content">
+                              <span class="block notification-item-title">{{ notif.titulo }}</span>
+                              <span class="block notification-item-text">{{ notif.mensagem }}</span>
+                              <span class="time notification-item-time">{{ notif.criado_em|date:'d/m H:i' }}</span>
+                            </div>
+                          </a>
+                          {% empty %}
+                          <div class="notification-empty">Nenhuma notificação para este módulo.</div>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <div class="notification-dropdown-footer">
+                        <a
+                          href="{% url 'sesmt:notifications_list' %}"
+                          class="btn btn-xs btn-label-info w-100"
+                        >
+                          Ver todas
+                        </a>
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item topbar-icon dropdown hidden-caret">
                   <button
                     type="button"
                     class="theme-toggle-btn me-2"
@@ -181,60 +235,6 @@
                         <span class="theme-option-swatch theme-option-swatch-aqua"></span>
                         Tema Aqua
                       </a>
-                    </li>
-                  </ul>
-                </li>
-                <li class="nav-item topbar-icon dropdown hidden-caret">
-                  <a class="nav-link dropdown-toggle" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-bell"></i>
-                    {% if top_notifications_unread_count > 0 %}
-                    <span class="notification">{{ top_notifications_unread_count }}</span>
-                    {% endif %}
-                  </a>
-                  <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
-                    <li>
-                      <div class="dropdown-title notification-dropdown-title">
-                        {% if top_notifications %}
-                        Histórico recente
-                        <span class="notification-dropdown-subtitle">
-                          {% if top_notifications_unread_count > 0 %}
-                          {{ top_notifications_unread_count }} não lida{{ top_notifications_unread_count|pluralize }}
-                          {% else %}
-                          Últimas notificações visíveis para você
-                          {% endif %}
-                        </span>
-                        {% else %}
-                        Sem notificações recentes
-                        {% endif %}
-                      </div>
-                    </li>
-                    <li>
-                      <div class="notif-scroll scrollbar-outer">
-                        <div class="notif-center">
-                          {% for notif in top_notifications %}
-                          <a href="{% url 'sigo:notification_open' notif.id %}?modulo={{ top_notifications_module }}&next={{ request.get_full_path|urlencode }}" class="notification-item {% if not notif.lida_por_usuario %}fw-semibold{% endif %}">
-                            <div class="notif-content">
-                              <span class="block notification-item-title">{{ notif.titulo }}</span>
-                              <span class="block notification-item-text">{{ notif.mensagem }}</span>
-                              <span class="time notification-item-time">{{ notif.criado_em|date:'d/m H:i' }}</span>
-                            </div>
-                          </a>
-                          {% empty %}
-                          <div class="notification-empty">Nenhuma notificação para este contexto.</div>
-                          {% endfor %}
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <div class="notification-dropdown-footer">
-                        <a
-                          href="{% url 'sesmt:notifications_list' %}"
-                          class="btn btn-xs btn-label-info w-100"
-                        >
-                          Ver todas
-                        </a>
-                      </div>
                     </li>
                   </ul>
                 </li>
@@ -318,6 +318,8 @@
     <script src="{% static 'sigo/assets/js/sigo/sigo.min.js' %}"></script>
     <script src="{% static 'sigo/assets/js/sigo/sigo-app.js' %}"></script>
     <script src="{% static 'sigo/assets/js/sigo/csrf.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sesmt/core/photo-manager.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sesmt/core/geolocation.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
   </body>
