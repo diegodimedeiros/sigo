@@ -5,7 +5,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Unidade
+from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Pessoa, Unidade
 from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero
 from sesmt.notificacoes import _publicar_notificacao
 
@@ -768,3 +768,222 @@ class HimenopterosFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/csv", response["Content-Type"])
         self.assertIn("attachment;", response["Content-Disposition"])
+
+
+class SesmtToSiopSyncTests(TestCase):
+    """Testa integração automática SESMT -> SIOP via signal receivers."""
+
+    def setUp(self):
+        from siop.models import Ocorrencia
+        self.Ocorrencia = Ocorrencia
+        self.unidade = Unidade.objects.create(nome="Parque do Caracol", sigla="PC")
+
+    def test_atendimento_sync_cria_ocorrencia_siop_ao_salvar(self):
+        """Verificar que salvar ControleAtendimento cria Ocorrência SIOP."""
+        from sesmt.sesmt_to_siop_sync import _marker
+        
+        pessoa = Pessoa.objects.create(nome="Paciente Teste", documento="12345678900")
+        atendimento = ControleAtendimento.objects.create(
+            unidade=self.unidade,
+            tipo_pessoa="colaborador",
+            pessoa=pessoa,
+            area_atendimento="entrada",
+            local="entrada_de_pedestres",
+            data_atendimento=timezone.now(),
+            tipo_ocorrencia="mal_subito",
+            responsavel_atendimento="Técnico Teste",
+            descricao="Atendimento teste",
+        )
+
+        ocorrencia = self.Ocorrencia.objects.filter(descricao__startswith=_marker(atendimento.pk)).first()
+        
+        self.assertIsNotNone(ocorrencia, "Ocorrência SIOP não foi criada")
+        self.assertEqual(ocorrencia.unidade, self.unidade)
+        self.assertEqual(ocorrencia.tipo_pessoa, "colaborador")
+        self.assertEqual(ocorrencia.natureza, "assistencial")
+        self.assertEqual(ocorrencia.tipo, "atendimento_bombeiro_civil")
+        self.assertTrue(ocorrencia.bombeiro_civil)
+        self.assertTrue(ocorrencia.status)
+        self.assertIn(f"[SESMT_ATENDIMENTO_SYNC:{atendimento.pk}]", ocorrencia.descricao)
+
+    def test_atendimento_sync_atualiza_ocorrencia_ao_modificar(self):
+        """Verificar que modificar ControleAtendimento atualiza a mesma Ocorrência SIOP (idempotência)."""
+        from sesmt.sesmt_to_siop_sync import _marker
+        
+        pessoa = Pessoa.objects.create(nome="Paciente Teste", documento="12345678900")
+        atendimento = ControleAtendimento.objects.create(
+            unidade=self.unidade,
+            tipo_pessoa="colaborador",
+            pessoa=pessoa,
+            area_atendimento="entrada",
+            local="entrada_de_pedestres",
+            data_atendimento=timezone.now(),
+            tipo_ocorrencia="mal_subito",
+            responsavel_atendimento="Técnico 1",
+            descricao="Descrição original",
+        )
+
+        ocorrencia_1 = self.Ocorrencia.objects.filter(descricao__startswith=_marker(atendimento.pk)).first()
+        ocorrencia_1_id = ocorrencia_1.id
+
+        # Modificar atendimento
+        atendimento.responsavel_atendimento = "Técnico 2"
+        atendimento.descricao = "Descrição modificada"
+        atendimento.save()
+
+        ocorrencia_2 = self.Ocorrencia.objects.filter(descricao__startswith=_marker(atendimento.pk)).first()
+
+        self.assertEqual(ocorrencia_2.id, ocorrencia_1_id, "Uma nova Ocorrência foi criada ao invés de atualizar a existente")
+        self.assertEqual(self.Ocorrencia.objects.filter(descricao__startswith=_marker(atendimento.pk)).count(), 1)
+        self.assertIn("Descrição modificada", ocorrencia_2.descricao)
+
+    def test_manejo_sync_cria_ocorrencia_siop_ao_salvar(self):
+        """Verificar que salvar Manejo cria Ocorrência SIOP."""
+        from sesmt.sesmt_to_siop_sync import _marker_manejo
+        
+        manejo = Manejo.objects.create(
+            unidade=self.unidade,
+            area_captura="entrada",
+            local_captura="entrada_de_pedestres",
+            data_hora=timezone.now(),
+            classe="aves",
+            responsavel_manejo="Técnico Teste",
+        )
+
+        ocorrencia = self.Ocorrencia.objects.filter(descricao__startswith=_marker_manejo(manejo.pk)).first()
+        
+        self.assertIsNotNone(ocorrencia, "Ocorrência SIOP não foi criada para Manejo")
+        self.assertEqual(ocorrencia.tipo_pessoa, "bombeiro_civil")
+        self.assertEqual(ocorrencia.natureza, "ambiental")
+        self.assertEqual(ocorrencia.tipo, "animal_manejo")
+        self.assertTrue(ocorrencia.bombeiro_civil)
+        self.assertIn(f"[SESMT_MANEJO_SYNC:{manejo.pk}]", ocorrencia.descricao)
+
+    def test_manejo_sync_atualiza_ocorrencia_ao_modificar(self):
+        """Verificar que modificar Manejo atualiza a mesma Ocorrência SIOP (idempotência)."""
+        from sesmt.sesmt_to_siop_sync import _marker_manejo
+        
+        manejo = Manejo.objects.create(
+            unidade=self.unidade,
+            area_captura="entrada",
+            local_captura="entrada_de_pedestres",
+            data_hora=timezone.now(),
+            classe="aves",
+            responsavel_manejo="Técnico 1",
+        )
+
+        ocorrencia_1 = self.Ocorrencia.objects.filter(descricao__startswith=_marker_manejo(manejo.pk)).first()
+        ocorrencia_1_id = ocorrencia_1.id
+
+        # Modificar manejo
+        manejo.responsavel_manejo = "Técnico 2"
+        manejo.save()
+
+        ocorrencia_2 = self.Ocorrencia.objects.filter(descricao__startswith=_marker_manejo(manejo.pk)).first()
+
+        self.assertEqual(ocorrencia_2.id, ocorrencia_1_id)
+        self.assertEqual(self.Ocorrencia.objects.filter(descricao__startswith=_marker_manejo(manejo.pk)).count(), 1)
+
+    def test_flora_sync_cria_ocorrencia_siop_ao_salvar(self):
+        """Verificar que salvar Flora cria Ocorrência SIOP."""
+        from sesmt.sesmt_to_siop_sync import _marker_flora
+        
+        flora = Flora.objects.create(
+            unidade=self.unidade,
+            area="entrada",
+            local="entrada_de_pedestres",
+            data_hora_inicio=timezone.now(),
+            responsavel_registro="Técnico Teste",
+            condicao="especie_invasora",
+            justificativa="Teste de integração",
+        )
+
+        ocorrencia = self.Ocorrencia.objects.filter(descricao__startswith=_marker_flora(flora.pk)).first()
+        
+        self.assertIsNotNone(ocorrencia, "Ocorrência SIOP não foi criada para Flora")
+        self.assertEqual(ocorrencia.tipo_pessoa, "bombeiro_civil")
+        self.assertEqual(ocorrencia.natureza, "ambiental")
+        self.assertEqual(ocorrencia.tipo, "especie_invasora")
+        self.assertTrue(ocorrencia.bombeiro_civil)
+        self.assertIn(f"[SESMT_FLORA_SYNC:{flora.pk}]", ocorrencia.descricao)
+
+    def test_flora_sync_atualiza_ocorrencia_ao_modificar(self):
+        """Verificar que modificar Flora atualiza a mesma Ocorrência SIOP (idempotência)."""
+        from sesmt.sesmt_to_siop_sync import _marker_flora
+        
+        flora = Flora.objects.create(
+            unidade=self.unidade,
+            area="entrada",
+            local="entrada_de_pedestres",
+            data_hora_inicio=timezone.now(),
+            responsavel_registro="Técnico 1",
+            condicao="especie_invasora",
+            justificativa="Teste de integração",
+        )
+
+        ocorrencia_1 = self.Ocorrencia.objects.filter(descricao__startswith=_marker_flora(flora.pk)).first()
+        ocorrencia_1_id = ocorrencia_1.id
+
+        # Modificar flora
+        flora.responsavel_registro = "Técnico 2"
+        flora.save()
+
+        ocorrencia_2 = self.Ocorrencia.objects.filter(descricao__startswith=_marker_flora(flora.pk)).first()
+
+        self.assertEqual(ocorrencia_2.id, ocorrencia_1_id)
+        self.assertEqual(self.Ocorrencia.objects.filter(descricao__startswith=_marker_flora(flora.pk)).count(), 1)
+
+    def test_himenoptero_sync_cria_ocorrencia_siop_ao_salvar(self):
+        """Verificar que salvar Himenoptero cria Ocorrência SIOP."""
+        from sesmt.sesmt_to_siop_sync import _marker_himenoptero
+        
+        himenoptero = Himenoptero.objects.create(
+            unidade=self.unidade,
+            area="entrada",
+            local="entrada_de_pedestres",
+            data_hora_inicio=timezone.now(),
+            responsavel_registro="Técnico Teste",
+            condicao="ninho_ativo",
+            hipomenoptero="vespa",
+            proximidade_pessoas="proxima",
+            classificacao_risco="alto",
+            descricao_local="Local de teste com ninho de vespas",
+        )
+
+        ocorrencia = self.Ocorrencia.objects.filter(descricao__startswith=_marker_himenoptero(himenoptero.pk)).first()
+        
+        self.assertIsNotNone(ocorrencia, "Ocorrência SIOP não foi criada para Himenoptero")
+        self.assertEqual(ocorrencia.tipo_pessoa, "bombeiro_civil")
+        self.assertEqual(ocorrencia.natureza, "ambiental")
+        self.assertEqual(ocorrencia.tipo, "evento_himenoptero")
+        self.assertTrue(ocorrencia.bombeiro_civil)
+        self.assertIn(f"[SESMT_HIMENOPTERO_SYNC:{himenoptero.pk}]", ocorrencia.descricao)
+
+    def test_himenoptero_sync_atualiza_ocorrencia_ao_modificar(self):
+        """Verificar que modificar Himenoptero atualiza a mesma Ocorrência SIOP (idempotência)."""
+        from sesmt.sesmt_to_siop_sync import _marker_himenoptero
+        
+        himenoptero = Himenoptero.objects.create(
+            unidade=self.unidade,
+            area="entrada",
+            local="entrada_de_pedestres",
+            data_hora_inicio=timezone.now(),
+            responsavel_registro="Técnico 1",
+            condicao="ninho_ativo",
+            hipomenoptero="vespa",
+            proximidade_pessoas="proxima",
+            classificacao_risco="alto",
+            descricao_local="Local de teste com ninho de vespas",
+        )
+
+        ocorrencia_1 = self.Ocorrencia.objects.filter(descricao__startswith=_marker_himenoptero(himenoptero.pk)).first()
+        ocorrencia_1_id = ocorrencia_1.id
+
+        # Modificar himenoptero
+        himenoptero.responsavel_registro = "Técnico 2"
+        himenoptero.save()
+
+        ocorrencia_2 = self.Ocorrencia.objects.filter(descricao__startswith=_marker_himenoptero(himenoptero.pk)).first()
+
+        self.assertEqual(ocorrencia_2.id, ocorrencia_1_id)
+        self.assertEqual(self.Ocorrencia.objects.filter(descricao__startswith=_marker_himenoptero(himenoptero.pk)).count(), 1)
