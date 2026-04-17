@@ -43,3 +43,24 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.kdbx
+
+# Local databases and backups
+*.sqlite3
+*.sqlite3-journal
+*.db
+*.bak
+*.backup
