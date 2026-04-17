@@ -124,6 +124,15 @@
           <option value="true" {% if request_data.importancia_medica %}selected{% endif %}>Sim</option>
         </select>
       </div>
+      <div class="col-md-4">
+        <label class="form-label">Responsável pelo manejo</label>
+        <select name="responsavel_manejo" class="form-select">
+          <option value="">Selecione</option>
+          {% for item in bc_options %}
+          <option value="{{ item.chave }}" {% if request_data.responsavel_manejo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="col-12 pt-3">
         <h5 class="mb-1">Observações</h5>
         <p class="text-muted mb-0">Informações complementares do manejo.</p>

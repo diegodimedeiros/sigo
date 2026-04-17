@@ -3,15 +3,26 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.models import Group
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+from django.db import transaction
 
-from .forms import OperadorPhotoForm, SigoPasswordChangeForm
+from .forms import OperadorPhotoForm, SigoPasswordChangeForm, SigoUserAdminCreateForm
+from .access import (
+    GROUP_REPORTOS,
+    GROUP_SESMT,
+    GROUP_SIOP,
+    post_login_route_name,
+    user_group_names,
+)
 from .models import Notificacao, Operador, get_unidade_ativa
 from .notifications import (
     VALID_MODULES,
@@ -20,8 +31,26 @@ from .notifications import (
     notificacoes_recentes_para_request,
     notificacoes_visiveis_para_request,
 )
+
+User = get_user_model()
+
+
+class SigoLoginView(LoginView):
+    template_name = "sigo/login.html"
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        return reverse(post_login_route_name(self.request.user))
+
+
 @login_required
 def home(request):
+    if not request.user.is_superuser:
+        groups = user_group_names(request.user)
+        module_groups = {GROUP_SIOP, GROUP_SESMT, GROUP_REPORTOS}
+        if groups.intersection(module_groups):
+            return redirect(post_login_route_name(request.user))
+
     return render(request, 'sigo/index.html')
 
 
@@ -208,3 +237,70 @@ def notifications_mark_all_read(request):
         next_url = "/"
 
     return redirect(next_url)
+
+
+@login_required
+def users_admin(request):
+    if not request.user.is_superuser:
+        return redirect("sigo:home")
+
+    form = SigoUserAdminCreateForm()
+
+    if request.method == "POST":
+        form = SigoUserAdminCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=form.cleaned_data["username"],
+                    password=form.cleaned_data["password1"],
+                    email=form.cleaned_data.get("email", ""),
+                    first_name=form.cleaned_data.get("first_name", ""),
+                    last_name=form.cleaned_data.get("last_name", ""),
+                    is_active=form.cleaned_data.get("is_active", True),
+                )
+
+                group = form.cleaned_data.get("group")
+                if isinstance(group, Group):
+                    user.groups.add(group)
+
+                foto = form.cleaned_data.get("foto")
+                if foto:
+                    conteudo = foto.read()
+                    Operador.objects.update_or_create(
+                        user=user,
+                        defaults={
+                            "foto": conteudo,
+                            "foto_nome_arquivo": foto.name,
+                            "foto_mime_type": getattr(foto, "content_type", "") or "application/octet-stream",
+                            "foto_tamanho": len(conteudo),
+                        },
+                    )
+
+            messages.success(request, "Usuário criado com sucesso.")
+            return redirect("sigo:users_admin")
+
+    users = (
+        User.objects.all()
+        .prefetch_related("groups")
+        .order_by("username")
+    )
+
+    users_view = []
+    for user in users:
+        operador = getattr(user, "operador", None)
+        users_view.append(
+            {
+                "obj": user,
+                "groups": [group.name for group in user.groups.all()],
+                "has_photo": bool(getattr(operador, "foto", None)),
+            }
+        )
+
+    return render(
+        request,
+        "sigo/users_admin.html",
+        {
+            "form": form,
+            "users": users_view,
+        },
+    )

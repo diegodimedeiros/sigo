@@ -1,0 +1,151 @@
+{% extends 'sigo/base.html' %}
+
+{% block title %}Usuários | SIGO{% endblock %}
+
+{% block content %}
+<div class="mb-4 page-hero p-4">
+  <h3 class="mb-2">Administração de usuários</h3>
+  <p class="text-muted mb-0">Cadastre usuários e vincule cada conta ao grupo operacional desejado.</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-title">Novo usuário</div>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for err in form.non_field_errors %}
+            <div>{{ err }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+            {{ form.username }}
+            {% for err in form.username.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="form-check mb-3">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+            {% for err in form.is_active.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+            {{ form.password1 }}
+            {% for err in form.password1.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+            {{ form.password2 }}
+            {% for err in form.password2.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% for err in form.email.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+              {% for err in form.first_name.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+              {% for err in form.last_name.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="mt-3 mb-3">
+            <label class="form-label" for="{{ form.group.id_for_label }}">{{ form.group.label }}</label>
+            {{ form.group }}
+            {% for err in form.group.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.foto.id_for_label }}">{{ form.foto.label }}</label>
+            {{ form.foto }}
+            {% for err in form.foto.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Criar usuário</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-title mb-0">Usuários cadastrados</div>
+        <span class="badge badge-info">{{ users|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Nome de usuário</th>
+                <th>Habilitado</th>
+                <th>Email</th>
+                <th>Primeiro nome</th>
+                <th>Último nome</th>
+                <th>Grupo</th>
+                <th>Foto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in users %}
+              <tr>
+                <td>{{ row.obj.username }}</td>
+                <td>
+                  {% if row.obj.is_active %}
+                  <span class="badge badge-success">Sim</span>
+                  {% else %}
+                  <span class="badge badge-danger">Não</span>
+                  {% endif %}
+                </td>
+                <td>{{ row.obj.email|default:"-" }}</td>
+                <td>{{ row.obj.first_name|default:"-" }}</td>
+                <td>{{ row.obj.last_name|default:"-" }}</td>
+                <td>
+                  {% if row.groups %}
+                    {{ row.groups|join:", " }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if row.has_photo %}
+                  <span class="badge badge-success">Sim</span>
+                  {% else %}
+                  <span class="badge badge-secondary">Não</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">Nenhum usuário encontrado.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

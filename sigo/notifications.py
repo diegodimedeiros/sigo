@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from urllib.parse import urlparse
 
+from .access import allowed_notification_modules
 from .models import Notificacao, Unidade, get_unidade_ativa
 
 User = get_user_model()
@@ -50,16 +51,25 @@ def modulo_por_path(path):
 
 
 def modulo_contexto_notificacao(request, *, prefer_explicit=False):
+    allowed_modules = allowed_notification_modules(getattr(request, "user", None))
+
+    def _normalize(modulo):
+        if modulo in VALID_MODULES and modulo in allowed_modules:
+            return modulo
+        return ""
+
     requested_modulo = (request.GET.get("modulo") or request.POST.get("modulo") or "").strip()
-    if prefer_explicit and requested_modulo and requested_modulo in VALID_MODULES:
-        return requested_modulo
+    if prefer_explicit and requested_modulo:
+        modulo = _normalize(requested_modulo)
+        if modulo:
+            return modulo
 
     next_url = request.GET.get("next") or request.POST.get("next") or ""
-    modulo = modulo_por_path(next_url)
+    modulo = _normalize(modulo_por_path(next_url))
     if modulo:
         return modulo
 
-    modulo = modulo_atual_request(request)
+    modulo = _normalize(modulo_atual_request(request))
     if modulo:
         return modulo
 
@@ -69,12 +79,20 @@ def modulo_contexto_notificacao(request, *, prefer_explicit=False):
         allowed_hosts={request.get_host()},
         require_https=request.is_secure(),
     ):
-        modulo = modulo_por_path(referer)
+        modulo = _normalize(modulo_por_path(referer))
         if modulo:
             return modulo
 
-    if requested_modulo in VALID_MODULES:
-        return requested_modulo
+    modulo = _normalize(requested_modulo)
+    if modulo:
+        return modulo
+
+    if "siop" in allowed_modules:
+        return "siop"
+    if "sesmt" in allowed_modules:
+        return "sesmt"
+    if "sigo" in allowed_modules:
+        return "sigo"
     return ""
 
 

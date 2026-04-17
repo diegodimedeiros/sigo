@@ -134,12 +134,14 @@
           <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
             <div class="container-fluid">
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                {% if request.user.is_superuser %}
                 <li class="nav-item me-2">
                   <a href="/" class="btn btn-label-primary btn-round btn-sm">
                     <i class="fas fa-arrow-left me-1"></i>
                     Voltar ao SIGO
                   </a>
                 </li>
+                {% endif %}
                 <li class="nav-item topbar-icon dropdown hidden-caret">
                   <button type="button" class="theme-toggle-btn me-2" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">
                     <i class="fas fa-moon theme-icon-light"></i>

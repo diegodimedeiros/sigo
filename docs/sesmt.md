@@ -121,3 +121,70 @@ Base de evolução do módulo:
 - continuar extração de regra pesada de views para services/query
 - ampliar cobertura de testes de cenários de borda
 - manter isonomia estrutural com o padrão oficial em docs/padrao_create_module_project.md
+
+## 8. Integração SESMT -> SIOP (finalizada)
+
+Implementação consolidada para replicação automática de registros SESMT em Ocorrências SIOP.
+
+Arquivo central:
+
+- sesmt/sesmt_to_siop_sync.py
+
+Bootstrap dos signals:
+
+- sesmt/apps.py (método ready)
+
+Padrão técnico aplicado em todas as áreas:
+
+- receiver post_save por modelo
+- criação/uso de usuário técnico `sigo_sistema`
+- idempotência por marcador em `descricao` com prefixo por área + ID SESMT
+- create/update da mesma Ocorrência SIOP quando o mesmo registro SESMT é alterado
+- campos fixos de integração: `bombeiro_civil=True` e `status=True`
+
+Mapeamento por área:
+
+1. Atendimento
+
+- origem: ControleAtendimento
+- tipo_pessoa: valor do próprio atendimento
+- data_ocorrencia: data_atendimento
+- natureza: assistencial
+- tipo: atendimento_bombeiro_civil
+- area/local: area_atendimento/local
+- descricao: resumo do atendimento com ID e responsável pelo atendimento
+
+2. Manejo
+
+- origem: Manejo
+- tipo_pessoa: bombeiro_civil
+- data_ocorrencia: data_hora
+- natureza: ambiental
+- tipo: animal_manejo
+- area/local: area_captura/local_captura
+- descricao: resumo do manejo com ID e responsável pelo manejo
+
+3. Flora
+
+- origem: Flora
+- tipo_pessoa: bombeiro_civil
+- data_ocorrencia: data_hora_inicio
+- natureza: ambiental
+- tipo: condicao
+- area/local: area/local
+- descricao: resumo de flora com ID e responsável pelo registro
+
+4. Himenóptero
+
+- origem: Himenoptero
+- tipo_pessoa: bombeiro_civil
+- data_ocorrencia: data_hora_inicio
+- natureza: ambiental
+- tipo: evento_himenoptero
+- area/local: area/local
+- descricao: resumo de himenóptero com ID e responsável pelo registro
+
+Catálogos alinhados para o fluxo:
+
+- sigo_core/catalogos/catalogos/catalogo_natureza.json
+- sigo_core/catalogos/catalogos/catalogo_tipo_pessoa.json

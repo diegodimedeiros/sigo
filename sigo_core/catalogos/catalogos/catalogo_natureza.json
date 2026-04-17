@@ -6,46 +6,94 @@
       "chave": "ambiental",
       "valor": "Ambiental",
       "itens": [
-        {
-          "chave": "alagamento",
-          "valor": "Alagamento"
-        },
-        {
-          "chave": "animal_ferido",
-          "valor": "Animal ferido"
-        },
-        {
-          "chave": "animal_silvestre",
-          "valor": "Animal silvestre"
-        },
-        {
-          "chave": "animal_solto",
-          "valor": "Animal solto"
-        },
-        {
-          "chave": "arvore_caida",
-          "valor": "Árvore caída"
-        },
-        {
-          "chave": "arvore_com_risco_de_queda",
-          "valor": "Árvore com risco de queda"
-        },
-        {
-          "chave": "dano_a_vegetacao",
-          "valor": "Dano à vegetação"
-        },
-        {
-          "chave": "descarte_irregular_de_lixo",
-          "valor": "Descarte irregular de lixo"
-        },
-        {
-          "chave": "galho_com_risco_de_queda",
-          "valor": "Galho com risco de queda"
-        },
-        {
-          "chave": "incendio_foco_de_incendio",
-          "valor": "Incêndio / Foco de incêndio"
-        }
+          {
+            "chave": "situacao_emergencial",
+            "valor": "Situação emergencial"
+          },
+          {
+            "chave": "sem_necessidade_de_intervencao",
+            "valor": "Sem necessidade de intervenção"
+          },
+          {
+            "chave": "arvore_caida",
+            "valor": "Árvore caída"
+          },
+          {
+            "chave": "arvore_com_risco_de_queda",
+            "valor": "Árvore com risco de queda"
+          },
+          {
+            "chave": "arvore_com_inclinacao",
+            "valor": "Árvore com inclinação"
+          },
+          {
+            "chave": "arvore_comprometida_doenca_praga",
+            "valor": "Árvore comprometida (doença/praga)"
+          },
+          {
+            "chave": "galho_com_risco_de_queda",
+            "valor": "Galho com risco de queda"
+          },
+          {
+            "chave": "risco_de_queda_de_galhos",
+            "valor": "Risco de queda de galhos"
+          },
+          {
+            "chave": "presenca_de_galhos_secos",
+            "valor": "Presença de galhos secos"
+          },
+          {
+            "chave": "galhos_em_conflito_com_fiacao",
+            "valor": "Galhos em conflito com fiação"
+          },
+          {
+            "chave": "copa_desbalanceada",
+            "valor": "Copa desbalanceada"
+          },
+          {
+            "chave": "excesso_de_densidade_na_copa",
+            "valor": "Excesso de densidade na copa"
+          },
+          {
+            "chave": "dano_a_vegetacao",
+            "valor": "Dano à vegetação"
+          },
+          {
+            "chave": "animal_ferido",
+            "valor": "Animal ferido"
+          },
+          {
+            "chave": "animal_silvestre",
+            "valor": "Animal silvestre"
+          },
+          {
+            "chave": "animal_solto",
+            "valor": "Animal solto"
+          },
+          {
+            "chave": "animal_manejo",
+            "valor": "Manejo de animal"
+          },
+          {
+            "chave": "evento_himenoptero",
+            "valor": "Evento com Himenóptero"
+          },
+          {
+            "chave": "alagamento",
+            "valor": "Alagamento"
+          },
+          {
+            "chave": "incendio_foco_de_incendio",
+            "valor": "Incêndio / Foco de incêndio"
+          },
+          {
+            "chave": "descarte_irregular_de_lixo",
+            "valor": "Descarte irregular de lixo"
+          },
+          {
+            "chave": "obstrucao_de_via_passeio",
+            "valor": "Obstrução de via/passeio"
+          }
       ]
     },
     {

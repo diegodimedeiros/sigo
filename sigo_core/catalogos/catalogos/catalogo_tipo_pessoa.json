@@ -31,6 +31,10 @@
       "valor": "Ronda"
     },
     {
+      "chave": "bombeiro_civil",
+      "valor": "Bombeiro Civil"
+    },
+    {
       "chave": "outro",
       "valor": "Outro"
     }

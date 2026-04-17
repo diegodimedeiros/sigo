@@ -1,0 +1,22 @@
+{% extends 'sigo/base.html' %}
+
+{% block title %}Acesso Bloqueado | SIGO{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-body text-center py-5 px-4">
+        <div class="display-3 text-danger mb-3" aria-hidden="true">:(</div>
+        <h2 class="fw-bold mb-2">Acesso bloqueado ao módulo {{ blocked_module }}</h2>
+        <p class="text-muted mb-4">
+          Seu usuário não possui permissão para acessar esta área no momento.
+        </p>
+        <a href="{{ back_url }}" class="btn btn-primary">
+          <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
