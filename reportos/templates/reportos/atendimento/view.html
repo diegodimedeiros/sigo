@@ -1,0 +1,56 @@
+{% extends 'reportos/atendimento/base.html' %}
+{% load static %}
+
+{% block title %}Atendimento #{{ atendimento.id }} | ReportOS{% endblock %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Atendimento #{{ atendimento.id }}</h1>
+        <p class="mb-0 text-muted">Leitura completa do caso, pessoa atendida, conduta aplicada, destino e evidências vinculadas ao atendimento.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Resumo do atendimento</div></div>
+      <div class="card-body" id="atendimento-view-content" data-api-url="{% url 'reportos:api_atendimento_detail' atendimento.id %}">
+        <div class="text-muted">Carregando resumo do atendimento...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Anexos e Evidências</div></div>
+      <div class="card-body" id="atendimento-evidence-content">
+        <div class="text-muted">Carregando evidências...</div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Auditoria</div></div>
+      <div class="card-body" id="atendimento-audit-content">
+        <div class="text-muted">Carregando auditoria...</div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Ações rápidas</div></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'reportos:atendimento_edit' atendimento.id %}" class="btn btn-primary">Editar</a>
+        <a href="{% url 'reportos:atendimento_list' %}" class="btn btn-label-info">Voltar</a>
+        <a href="{% url 'reportos:atendimento_index' %}" class="btn btn-label-secondary">Início do módulo</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/atendimento-view.js' %}"></script>
+{% endblock %}

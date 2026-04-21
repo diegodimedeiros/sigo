@@ -1,0 +1,90 @@
+{% extends 'reportos/himenopteros/base.html' %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Central de Monitor Himenóptero</h1>
+        <p class="mb-0 text-muted">Área voltada ao registro técnico, avaliação de risco e condução operacional de ocorrências com abelhas, vespas e marimbondos.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Acesso rápido</div></div>
+      <div class="card-body">
+        <div class="row g-3 quick-access-grid">
+          <div class="col-md-4"><a href="{% url 'reportos:himenopteros_list' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-list me-2"></i>Listagem</a></div>
+          <div class="col-md-4"><a href="{% url 'reportos:himenopteros_new' %}" class="btn btn-primary quick-access-btn w-100"><i class="fas fa-plus-circle me-2"></i>Novo</a></div>
+          <div class="col-md-4"><a href="{% url 'reportos:home' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-arrow-left me-2"></i>Voltar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Notificações da área</div></div>
+      <div class="card-body">
+        <div class="alert alert-warning mb-3" role="alert">{{ dashboard.alto_risco }} {% if dashboard.alto_risco == 1 %}registro de alto risco.{% else %}registros de alto risco.{% endif %}</div>
+        <div class="alert alert-info mb-3" role="alert">{{ dashboard.registros_hoje }} {% if dashboard.registros_hoje == 1 %}registro lançado hoje.{% else %}registros lançados hoje.{% endif %}</div>
+        <div class="alert alert-success mb-0" role="alert">{{ dashboard.isolamentos }} {% if dashboard.isolamentos == 1 %}registro com isolamento de área.{% else %}registros com isolamento de área.{% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Últimos registros</div></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Área</th>
+                <th>Risco</th>
+                <th>Status</th>
+                <th class="text-end">Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in registros_recentes %}
+              <tr>
+                <td>#{{ item.id }}</td>
+                <td>{{ item.tipo_himenoptero_label }}</td>
+                <td>{{ item.area_label }}</td>
+                <td>{{ item.classificacao_risco_label }}</td>
+                <td><span class="badge badge-{{ item.status_badge }}">{{ item.status_label }}</span></td>
+                <td class="text-end"><a href="{% url 'reportos:himenopteros_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fila operacional</div></div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Registrar tipo e área da ocorrência</li>
+          <li class="mb-3">Anexar evidências fotográficas</li>
+          <li class="mb-3">Avaliar risco e geolocalização</li>
+          <li>Definir ação realizada e finalizar</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -46,6 +46,21 @@ Catálogos auxiliares expostos por API:
 - /siop/api/catalogos/tipos-pessoa/
 - /siop/api/catalogos/tipos-ocorrencia/
 
+## 4.1 Controle de acesso por grupo
+
+Para o controle de acesso por namespace funcionar corretamente, os grupos abaixo devem existir no Django com nomenclatura exata:
+
+- `group_siop`
+- `group_sesmt`
+- `group_reportos`
+
+Comportamento atual:
+
+- usuários com `group_siop` acessam SIOP
+- usuários com `group_sesmt` acessam SESMT
+- superusuário acessa todos os módulos
+- `group_reportos` é utilizado no roteamento pós-login e organização de acesso
+
 ## 5. Regras operacionais relevantes
 
 ### 5.0 Ocorrências (integração e listagem)
@@ -89,12 +104,27 @@ Exportação por registro (PDF) disponível nas áreas operacionais principais.
 
 Exportação geral (XLSX e CSV) consolidada nas áreas:
 
+- Ocorrências
+- Acesso de Terceiros
 - Acesso de Colaboradores
+- Achados e Perdidos
 - Controle de Ativos
 - Controle de Chaves
 - Crachás Provisórios
 - Efetivo
 - Liberação de Acesso
+
+Filtros disponíveis na Exportação Geral por área:
+
+- Ocorrências: período, natureza, área e status
+- Acesso de Terceiros: período, status, P1, empresa, nome, documento e placa
+- Acesso de Colaboradores: período, status, P1, nome, documento e placa
+- Achados e Perdidos: período, tipo, situação, status e área
+- Controle de Ativos: período, status, ativo, destino, responsável e documento
+- Controle de Chaves: período, status, área, chave, responsável e documento
+- Crachás Provisórios: período, status, crachá, nome e documento
+- Efetivo: período, plantão, posto, responsável e observação
+- Liberação de Acesso: período, empresa e solicitante
 
 Uso de anexos documentais nas áreas com necessidade operacional relevante, incluindo ocorrências e fluxos de acesso.
 

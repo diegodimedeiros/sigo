@@ -28,6 +28,40 @@
             <label class="form-label">Data final</label>
             <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}">
           </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="">Todos</option>
+              <option value="em_uso" {% if request_data.status == "em_uso" %}selected{% endif %}>Em uso</option>
+              <option value="devolvida" {% if request_data.status == "devolvida" %}selected{% endif %}>Devolvida</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Área</label>
+            <select name="area" class="form-select">
+              <option value="">Todas</option>
+              {% for item in areas_chaves %}
+              <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Chave</label>
+            <select name="chave" class="form-select">
+              <option value="">Todas</option>
+              {% for item in chave_options %}
+              <option value="{{ item.chave }}" {% if request_data.chave == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Responsável</label>
+            <input type="text" name="nome" class="form-control" value="{{ request_data.nome }}" placeholder="Filtrar por nome...">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Documento</label>
+            <input type="text" name="documento" class="form-control" value="{{ request_data.documento }}" placeholder="Filtrar por documento...">
+          </div>
           <div class="col-md-6">
             <div class="fw-semibold mb-2">Identificação</div>
             <ul class="mb-0 ps-3">

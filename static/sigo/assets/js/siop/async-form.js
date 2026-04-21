@@ -112,10 +112,18 @@
       hideFormFeedback(form);
       clearFieldErrors(form);
 
+      // Se houver campos inválidos após validação customizada, não prosseguir
+      if (form.querySelectorAll('.is-invalid').length > 0) {
+        showFormFeedback(form, "Preencha todos os campos obrigatórios destacados.", "danger");
+        return;
+      }
+
       var requestTarget = resolveRequestTarget(form, options);
 
       var submitButton = form.querySelector('[type="submit"]');
       var originalLabel = submitButton ? submitButton.textContent : "";
+      var queuedForSync = false;
+
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.textContent = "Salvando...";
@@ -146,11 +154,42 @@
           renderFieldErrors(form, error.details || {});
           showFormFeedback(form, error.message || "Não foi possível salvar o formulário.", "danger");
         })
-        .catch(function () {
-          showFormFeedback(form, "Erro ao enviar o formulário. Tente novamente.", "danger");
+        .catch(function (err) {
+          // Cobre casos onde navigator.onLine=true mas rede falha (SW Offline no DevTools Application)
+          var isNetworkError = !navigator.onLine ||
+            (err && (err.name === "TypeError" || (err.message && err.message.toLowerCase().indexOf("network") !== -1)));
+          if (isNetworkError) {
+            // Se houver campos inválidos, não redireciona nem enfileira
+            if (form.querySelectorAll('.is-invalid').length > 0) {
+              showFormFeedback(form, "Preencha todos os campos obrigatórios destacados.", "danger");
+              if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = originalLabel;
+              }
+              return;
+            }
+            queuedForSync = true;
+            if (submitButton) {
+              submitButton.disabled = true;
+              submitButton.textContent = "Aguardando conexão...";
+            }
+            showFormFeedback(
+              form,
+              "Sem conexão. Registro enfileirado — será enviado automaticamente ao reconectar.",
+              "info"
+            );
+            var offlineRedirect =
+              form.dataset.offlineRedirect ||
+              window.location.pathname.split("/").slice(0, -2).join("/") + "/";
+            setTimeout(function () {
+              window.location.href = offlineRedirect;
+            }, 2000);
+          } else {
+            showFormFeedback(form, "Erro ao enviar o formulário. Tente novamente.", "danger");
+          }
         })
         .finally(function () {
-          if (submitButton) {
+          if (submitButton && !queuedForSync) {
             submitButton.disabled = false;
             submitButton.textContent = originalLabel;
           }

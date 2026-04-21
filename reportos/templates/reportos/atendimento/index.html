@@ -1,10 +1,81 @@
 {% extends "reportos/atendimento/base.html" %}
 
 {% block reportos_content %}
-<div class="card">
-  <div class="card-body">
-    <h4 class="mb-2">Atendimento</h4>
-    <p class="text-muted mb-0">Area inicial pronta para receber o fluxo PWA de atendimento em campo.</p>
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Central de Atendimento</h1>
+        <p class="mb-0 text-muted">Área preparada para triagem, primeiros socorros, acompanhamento assistencial e registro visual do fluxo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Acesso rápido</div></div>
+      <div class="card-body">
+        <div class="row g-3 quick-access-grid">
+          <div class="col-md-4"><a href="{% url 'reportos:atendimento_list' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-list me-2"></i>Listagem</a></div>
+          <div class="col-md-4"><a href="{% url 'reportos:atendimento_new' %}" class="btn btn-primary quick-access-btn w-100"><i class="fas fa-plus-circle me-2"></i>Novo</a></div>
+          <div class="col-md-4"><a href="{% url 'reportos:home' %}" class="btn btn-label-info quick-access-btn w-100"><i class="fas fa-arrow-left me-2"></i>Voltar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Notificações da área</div></div>
+      <div class="card-body">
+        <div class="alert alert-warning mb-3" role="alert">{{ dashboard.com_remocao }} {% if dashboard.com_remocao == 1 %}atendimento com remoção.{% else %}atendimentos com remoção.{% endif %}</div>
+        <div class="alert alert-info mb-3" role="alert">{{ dashboard.registros_hoje }} {% if dashboard.registros_hoje == 1 %}atendimento registrado hoje.{% else %}atendimentos registrados hoje.{% endif %}</div>
+        <div class="alert alert-success mb-0" role="alert">{{ dashboard.com_anexos }} {% if dashboard.com_anexos == 1 %}atendimento com anexo assistencial.{% else %}atendimentos com anexo assistencial.{% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Últimos registros</div></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>ID</th><th>Registro</th><th>Pessoa</th><th>Tipo</th><th>Atendimento</th><th class="text-end">Ação</th></tr></thead>
+            <tbody>
+              {% for atendimento in registros_recentes %}
+              <tr>
+                <td>#{{ atendimento.id }}</td>
+                <td>{{ atendimento.data_atendimento|date:"d/m/Y H:i" }}</td>
+                <td>{{ atendimento.pessoa.nome }}</td>
+                <td>{{ atendimento.tipo_ocorrencia_label }}</td>
+                <td><span class="badge badge-{% if atendimento.recusa_atendimento %}danger{% else %}success{% endif %}">{{ atendimento.recusa_atendimento|yesno:"Não,Sim" }}</span></td>
+                <td class="text-end"><a href="{% url 'reportos:atendimento_view' atendimento.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fila operacional</div></div>
+      <div class="card-body">
+        <ol class="ps-3 mb-0">
+          <li class="mb-3">Registrar pessoa e tipo de ocorrência</li>
+          <li class="mb-3">Anexar evidências do atendimento</li>
+          <li class="mb-3">Atualizar status assistencial</li>
+          <li>Finalizar caso e concluir fluxo</li>
+        </ol>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

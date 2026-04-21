@@ -34,6 +34,32 @@ Painel visual para definição de filtros, formato de saída e composição do r
             <label class="form-label">Período final</label>
             <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}" />
           </div>
+          <div class="col-md-4">
+            <label class="form-label">Natureza</label>
+            <select name="natureza" class="form-select">
+              <option value="">Todas</option>
+              {% for item in naturezas %}
+              <option value="{{ item.chave }}" {% if request_data.natureza == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Área</label>
+            <select name="area" class="form-select">
+              <option value="">Todas</option>
+              {% for item in areas %}
+              <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="">Todos</option>
+              <option value="ativa" {% if request_data.status == "ativa" %}selected{% endif %}>Ativa</option>
+              <option value="finalizada" {% if request_data.status == "finalizada" %}selected{% endif %}>Finalizada</option>
+            </select>
+          </div>
           <div class="col-md-6">
             <div class="fw-semibold mb-2">Identificação</div>
             <ul class="mb-0 ps-3">

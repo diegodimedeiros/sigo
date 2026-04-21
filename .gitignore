@@ -1,5 +1,5 @@
 # Python
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
 
@@ -23,7 +23,7 @@ staticfiles/
 **/migrations/*.pyc
 
 # Catalogos
-sigo_core/catalogos/catalogos/*
+sigo_core/catalogos/catalogos/*.json
 
 # Test and tooling caches
 .pytest_cache/
@@ -64,3 +64,4 @@ Thumbs.db
 *.db
 *.bak
 *.backup
+

@@ -1,0 +1,129 @@
+{% extends 'reportos/flora/base.html' %}
+{% load static %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Novo Registro de Flora</h1>
+        <p class="mb-0 text-muted">Cadastro operacional para registro, monitoramento e evidências da flora.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-title">Formulário de registro</div></div>
+  <div class="card-body">
+    <form id="flora-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'reportos:api_flora' %}" class="row g-4">
+      {% csrf_token %}
+      <div class="alert alert-danger d-none js-form-feedback"></div>
+
+      <div class="col-12">
+        <h5 class="mb-1">Dados de Registro</h5>
+        <p class="text-muted mb-0">Informações principais de abertura e localização do registro.</p>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Data e Hora do Registro</label>
+        <input type="datetime-local" id="flora-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Responsável pelo Registro</label>
+        <select name="responsavel_registro" class="form-select" required>
+          <option value="">Selecione</option>
+          {% for item in responsavel_registro_options %}
+          <option value="{{ item.chave }}" {% if request_data.responsavel_registro == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Condição</label>
+        <select name="condicao" class="form-select" required>
+          <option value="">Selecione</option>
+          {% for item in condicao_options %}
+          <option value="{{ item.chave }}" {% if request_data.condicao == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Área</label>
+        <select id="flora-area" name="area" class="form-select" data-locais-url="{% url 'reportos:flora_api_locais' %}" required>
+          <option value="">Selecione</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Localização</label>
+        <select id="flora-local" name="local" class="form-select" data-selected-value="{{ request_data.local }}" required>
+          <option value="">Selecione</option>
+          {% for item in local_options %}
+          <option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Isolamento de Área</label>
+        <select name="isolamento_area" class="form-select" required>
+          <option value="" {% if request_data.isolamento_area == '' %}selected{% endif %}>Selecione</option>
+          <option value="false" {% if request_data.isolamento_area == 'false' or request_data.isolamento_area is False %}selected{% endif %}>Não</option>
+          <option value="true" {% if request_data.isolamento_area == 'true' or request_data.isolamento_area is True %}selected{% endif %}>Sim</option>
+        </select>
+        <div class="invalid-feedback d-block field-error d-none" data-field-error="isolamento_area"></div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Justificativa para Registro</label>
+        <textarea name="justificativa" class="form-control" rows="3" required>{{ request_data.justificativa }}</textarea>
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Anexos e Evidências</h5>
+        <p class="text-muted mb-0">Foto de abertura e geolocalização do registro.</p>
+      </div>
+      <div class="col-12">
+        <div id="foto_antes_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Foto Antes</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="file" id="foto_antes" name="foto_antes" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_antes_panel" required>
+              <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="foto_antes"><i class="fas fa-camera me-2"></i>Abrir câmera</button>
+              <div class="small text-muted mt-2" id="foto_antes_status">Nenhum ficheiro selecionado</div>
+              <div class="invalid-feedback d-block field-error d-none" data-field-error="foto_antes"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Novas fotos</div>
+              <div id="lista_foto_antes_vazia" class="detail-note-box">Nenhuma foto capturada ainda.</div>
+              <div id="lista_foto_antes" class="d-grid gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div id="geolocalizacao_flora_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Geolocalização do Registro</div>
+          <input type="hidden" id="flora-latitude" name="latitude" value="{{ request_data.latitude }}" data-invalid-target="#geolocalizacao_flora_panel" required>
+          <input type="hidden" id="flora-longitude" name="longitude" value="{{ request_data.longitude }}" data-invalid-target="#geolocalizacao_flora_panel" required>
+          <div id="geolocalizacao_flora_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
+          <div id="geolocalizacao_flora" class="d-grid gap-2"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="latitude"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="longitude"></div>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+        <button type="submit" class="btn btn-primary" id="flora-submit-btn">Salvar registro</button>
+        <a href="{% url 'reportos:flora_index' %}" class="btn btn-label-info">Voltar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/flora-form.js' %}"></script>
+{% endblock %}

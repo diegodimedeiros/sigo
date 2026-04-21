@@ -1,8 +1,32 @@
 (function () {
   function requestCatalog(url, queryParam, queryValue) {
+    if (window.ReportosCatalogos && queryParam === "area") {
+      return window.ReportosCatalogos.getLocaisAsync(queryValue).then(function (cached) {
+        if (cached !== null) {
+          return { ok: true, data: { locais: cached } };
+        }
+
+        var fullUrl = new URL(url, window.location.origin);
+        fullUrl.searchParams.set(queryParam, queryValue);
+        fullUrl.searchParams.set("area_atendimento", queryValue);
+        var fetchFn = (window.SigoCsrf && typeof window.SigoCsrf.fetch === "function")
+          ? window.SigoCsrf.fetch.bind(window.SigoCsrf)
+          : window.fetch.bind(window);
+        return fetchFn(fullUrl.toString(), {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        }).then(function (response) {
+          if (!response.ok) {
+            throw new Error("Falha ao carregar catálogo.");
+          }
+          return response.json();
+        });
+      });
+    }
+
     var fullUrl = new URL(url, window.location.origin);
     fullUrl.searchParams.set(queryParam, queryValue);
-    // Compatibilidade com versões antigas do endpoint/cliente.
     if (queryParam === "area") {
       fullUrl.searchParams.set("area_atendimento", queryValue);
     }
@@ -546,13 +570,92 @@
     });
   }
 
+
   function initAtendimentoForm() {
+    var form = document.getElementById("atendimento-form");
     var areaField = document.getElementById("area_atendimento");
     var localField = document.getElementById("local");
 
     if (areaField && localField) {
       syncLocais(areaField, localField);
     }
+
+    // Validação required frontend (espelha regra de negócio backend)
+    form.addEventListener("submit", function (event) {
+      var errors = [];
+      var firstInvalid = null;
+      function markInvalidByName(name, msg) {
+        var el = form.querySelector('[name="' + name + '"]');
+        if (!el) return;
+        el.classList.add("is-invalid");
+        var msgNode = document.createElement("div");
+        msgNode.className = "invalid-feedback";
+        msgNode.textContent = msg;
+        if (el.nextSibling) el.parentNode.insertBefore(msgNode, el.nextSibling);
+        else el.parentNode.appendChild(msgNode);
+        if (!firstInvalid) firstInvalid = el;
+      }
+      function val(name) {
+        var el = form.querySelector('[name="' + name + '"]');
+        return el && el.value ? el.value.trim() : "";
+      }
+      // Limpa marcações antigas
+      form.querySelectorAll(".is-invalid").forEach(function (el) { el.classList.remove("is-invalid"); });
+      form.querySelectorAll(".invalid-feedback").forEach(function (el) { el.remove(); });
+
+      // Regras obrigatórias principais
+      if (!val("tipo_pessoa")) { errors.push("Selecione o tipo de pessoa."); markInvalidByName("tipo_pessoa", "Campo obrigatório"); }
+      if (!val("area_atendimento")) { errors.push("Selecione a área de atendimento."); markInvalidByName("area_atendimento", "Campo obrigatório"); }
+      if (!val("local")) { errors.push("Selecione o local."); markInvalidByName("local", "Campo obrigatório"); }
+      if (!val("tipo_ocorrencia")) { errors.push("Selecione o tipo de ocorrência."); markInvalidByName("tipo_ocorrencia", "Campo obrigatório"); }
+      if (!val("descricao")) { errors.push("Preencha a descrição do atendimento."); markInvalidByName("descricao", "Campo obrigatório"); }
+      if (!val("responsavel_atendimento")) { errors.push("Selecione o responsável pelo atendimento."); markInvalidByName("responsavel_atendimento", "Campo obrigatório"); }
+      if (!val("data_atendimento")) { errors.push("Informe a data e hora do atendimento."); markInvalidByName("data_atendimento", "Campo obrigatório"); }
+
+      // Pessoa obrigatória (nome/documento)
+      if (!val("pessoa_nome")) { errors.push("Informe o nome da pessoa."); markInvalidByName("pessoa_nome", "Campo obrigatório"); }
+      if (!val("pessoa_documento")) { errors.push("Informe o documento da pessoa."); markInvalidByName("pessoa_documento", "Campo obrigatório"); }
+
+      // Condicionais
+      var recusa = val("recusa_atendimento") === "true";
+      var possuiAcomp = val("possui_acompanhante") === "true";
+      var houveRemocao = val("houve_remocao") === "true";
+      var doencaPre = val("doenca_preexistente") === "true";
+      var alergia = val("alergia") === "true";
+      var planoSaude = val("plano_saude") === "true";
+
+      if (!recusa) {
+        if (possuiAcomp) {
+          if (!val("acompanhante_nome")) { errors.push("Informe o nome do acompanhante."); markInvalidByName("acompanhante_nome", "Campo obrigatório"); }
+          if (!val("grau_parentesco")) { errors.push("Informe o grau de parentesco."); markInvalidByName("grau_parentesco", "Campo obrigatório"); }
+        }
+        if (houveRemocao) {
+          if (!val("transporte")) { errors.push("Informe o transporte."); markInvalidByName("transporte", "Campo obrigatório"); }
+          if (!val("encaminhamento")) { errors.push("Informe o encaminhamento."); markInvalidByName("encaminhamento", "Campo obrigatório"); }
+          if (!val("hospital")) { errors.push("Informe o hospital."); markInvalidByName("hospital", "Campo obrigatório"); }
+        }
+        if (doencaPre && !val("descricao_doenca")) { errors.push("Informe a descrição da doença preexistente."); markInvalidByName("descricao_doenca", "Campo obrigatório"); }
+        if (alergia && !val("descricao_alergia")) { errors.push("Informe a descrição da alergia."); markInvalidByName("descricao_alergia", "Campo obrigatório"); }
+        if (planoSaude && !val("nome_plano_saude")) { errors.push("Informe o nome do plano de saúde."); markInvalidByName("nome_plano_saude", "Campo obrigatório"); }
+      }
+
+      if (errors.length) {
+        event.preventDefault();
+        if (firstInvalid && typeof firstInvalid.focus === "function") firstInvalid.focus();
+        return false;
+      }
+    });
+
+    // Remove marcação ao corrigir
+    form.querySelectorAll("input, select, textarea").forEach(function (el) {
+      el.addEventListener("input", function () {
+        if (el.classList.contains("is-invalid")) {
+          el.classList.remove("is-invalid");
+          var next = el.nextSibling;
+          if (next && next.classList && next.classList.contains("invalid-feedback")) next.remove();
+        }
+      });
+    });
 
     initToggleBindings();
     syncContactRegionFields();

@@ -7,6 +7,7 @@ from ..view_shared import (
     _serialize_cracha_detail,
     _serialize_cracha_list_item,
 )
+from sigo_core.catalogos import catalogo_cracha_provisorio_data
 
 
 @login_required
@@ -149,9 +150,24 @@ def crachas_provisorios_export(request):
     if unidade:
         queryset = queryset.filter(unidade=unidade)
     queryset, data_inicio, data_fim = _filter_export_period(queryset, "entrega", request)
+    params = request.POST if request.method == "POST" else request.GET
+    status = (params.get("status") or "").strip()
+    cracha = (params.get("cracha") or "").strip()
+    nome = (params.get("nome") or "").strip()
+    documento = (params.get("documento") or "").strip()
+    if status == "em_uso":
+        queryset = queryset.filter(devolucao__isnull=True)
+    elif status == "devolvido":
+        queryset = queryset.filter(devolucao__isnull=False)
+    if cracha:
+        queryset = queryset.filter(cracha=cracha)
+    if nome:
+        queryset = queryset.filter(pessoa__nome__icontains=nome)
+    if documento:
+        queryset = queryset.filter(Q(documento__icontains=documento) | Q(pessoa__documento__icontains=documento))
     if request.method == "POST":
         return _export_queryset_response(request, queryset, formato=_normalize_export_formato(request.POST.get("formato")), filename_prefix="crachas_provisorios", sheet_title="Crachas Provisorios", document_title="Relatório de Crachás Provisórios", document_subject="Exportação geral de Crachás Provisórios", headers=["ID", "Entrega", "Devolução", "Crachá", "Pessoa", "Documento", "Unidade", "Status", "Observação", "Criado em", "Criado por", "Modificado em", "Modificado por"], row_getters=[lambda item: item.id, lambda item: fmt_dt(item.entrega), lambda item: fmt_dt(item.devolucao), lambda item: item.cracha_label, lambda item: item.pessoa.nome if item.pessoa_id else "-", lambda item: item.documento or (item.pessoa.documento if item.pessoa_id else "-"), lambda item: item.unidade_sigla, lambda item: cracha_status_label(item), lambda item: item.observacao, lambda item: fmt_dt(item.criado_em), lambda item: user_display(getattr(item, "criado_por", None)), lambda item: fmt_dt(item.modificado_em), lambda item: user_display(getattr(item, "modificado_por", None))], base_col_widths=[32, 58, 58, 80, 90, 70, 40, 45, 58, 70, 58, 70, 110], nowrap_indices={0, 1, 2, 5, 6, 7, 8, 10})
-    return _render_export_page(request, "siop/crachas_provisorios/export.html", {"area_title": "Exportação de Crachás Provisórios", "area_description": "Gere a exportação consolidada das entregas e devoluções dos crachás temporários.", "total_crachas": queryset.count(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}})
+    return _render_export_page(request, "siop/crachas_provisorios/export.html", {"area_title": "Exportação de Crachás Provisórios", "area_description": "Gere a exportação consolidada das entregas e devoluções dos crachás temporários.", "total_crachas": queryset.count(), "cracha_options": catalogo_cracha_provisorio_data(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "status": status, "cracha": cracha, "nome": nome, "documento": documento}})
 
 
 @login_required

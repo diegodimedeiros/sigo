@@ -709,8 +709,9 @@ def manejo_edit(request, pk):
 
 @login_required
 def manejo_export(request):
+    params = request.POST if request.method == "POST" else request.GET
     queryset = _sesmt_base_qs(Manejo).select_related("criado_por", "modificado_por").order_by("-data_hora", "-id")
-    queryset, data_inicio, data_fim = _filter_export_period(queryset, "data_hora", request)
+    queryset, filters = _apply_manejo_filters(queryset, params)
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
         formato = formato if formato in {"xlsx", "csv"} else "xlsx"
@@ -720,7 +721,9 @@ def manejo_export(request):
         'sesmt/manejo/export.html',
         {
             "total_manejos": queryset.count(),
-            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+            "request_data": {"formato": "xlsx", **filters},
+            "classe_options": MANEJO_CLASSE_OPTIONS,
+            "area_options": AREA_OPTIONS,
         },
     )
 
@@ -730,7 +733,7 @@ def api_manejo_export(request):
     if request.method != "POST":
         return api_method_not_allowed()
     queryset = _sesmt_base_qs(Manejo).select_related("criado_por", "modificado_por").order_by("-data_hora", "-id")
-    queryset, _, _ = _filter_export_period(queryset, "data_hora", request)
+    queryset, _ = _apply_manejo_filters(queryset, request.POST)
     formato = (request.POST.get("formato") or "").strip().lower()
     formato = formato if formato in {"xlsx", "csv"} else "xlsx"
     return _build_manejo_export_response(request, queryset, formato)

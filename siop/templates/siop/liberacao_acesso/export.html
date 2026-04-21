@@ -21,6 +21,14 @@
           <div class="col-md-4"><label class="form-label">Início</label><input type="date" name="data_inicio" class="form-control" value="{{ request_data.data_inicio }}"></div>
           <div class="col-md-4"><label class="form-label">Fim</label><input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}"></div>
           <div class="col-md-6">
+            <label class="form-label">Empresa</label>
+            <input type="text" name="empresa" class="form-control" value="{{ request_data.empresa }}" placeholder="Filtrar por empresa...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Solicitante</label>
+            <input type="text" name="solicitante" class="form-control" value="{{ request_data.solicitante }}" placeholder="Filtrar por solicitante...">
+          </div>
+          <div class="col-md-6">
             <div class="fw-semibold mb-2">Identificação</div>
             <ul class="mb-0 ps-3">
               <li>ID do registro</li>

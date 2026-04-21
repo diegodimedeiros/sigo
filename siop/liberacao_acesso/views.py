@@ -150,6 +150,12 @@ def liberacao_acesso_edit(request, pk):
 def liberacao_acesso_export(request):
     queryset = LiberacaoAcesso.objects.prefetch_related("pessoas").order_by("-data_liberacao", "-id")
     queryset, data_inicio, data_fim = _filter_export_period(queryset, "data_liberacao", request)
+    empresa = (request.POST.get("empresa") or request.GET.get("empresa") or "").strip()
+    solicitante = (request.POST.get("solicitante") or request.GET.get("solicitante") or "").strip()
+    if empresa:
+        queryset = queryset.filter(empresa__icontains=empresa)
+    if solicitante:
+        queryset = queryset.filter(solicitante__icontains=solicitante)
     if request.method == "POST":
         formato = _normalize_export_formato(request.POST.get("formato"))
         rows = _build_liberacao_export_rows(queryset)
@@ -158,7 +164,7 @@ def liberacao_acesso_export(request):
         if formato == "csv":
             return export_generic_csv(request, rows, filename_prefix="liberacao_acesso", headers=headers, row_getters=row_getters)
         return export_generic_excel(request, rows, filename_prefix="liberacao_acesso", sheet_title="Liberacao de Acesso", document_title="Relatório de Liberação de Acesso", document_subject="Exportação geral de Liberação de Acesso", headers=headers, row_getters=row_getters)
-    return _render_export_page(request, "siop/liberacao_acesso/export.html", {"area_title": "Exportação de Liberações de Acesso", "area_description": "Gere a exportação consolidada das liberações emitidas no período.", "total_liberacoes": queryset.count(), "ultimas_liberacoes": queryset[:10], "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}})
+    return _render_export_page(request, "siop/liberacao_acesso/export.html", {"area_title": "Exportação de Liberações de Acesso", "area_description": "Gere a exportação consolidada das liberações emitidas no período.", "total_liberacoes": queryset.count(), "ultimas_liberacoes": queryset[:10], "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "empresa": empresa, "solicitante": solicitante}})
 
 
 @login_required

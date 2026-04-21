@@ -170,12 +170,24 @@ def ocorrencias_new(request):
 @login_required
 def ocorrencias_export(request):
     queryset = Ocorrencia.objects.order_by("-data_ocorrencia", "-id")
-    data_inicio = (request.POST.get("data_inicio") or request.GET.get("data_inicio") or "").strip()
-    data_fim = (request.POST.get("data_fim") or request.GET.get("data_fim") or "").strip()
+    params = request.POST if request.method == "POST" else request.GET
+    data_inicio = (params.get("data_inicio") or "").strip()
+    data_fim = (params.get("data_fim") or "").strip()
+    natureza = (params.get("natureza") or "").strip()
+    area = (params.get("area") or "").strip()
+    status = (params.get("status") or "").strip()
     if data_inicio:
         queryset = queryset.filter(data_ocorrencia__date__gte=data_inicio)
     if data_fim:
         queryset = queryset.filter(data_ocorrencia__date__lte=data_fim)
+    if natureza:
+        queryset = queryset.filter(natureza=natureza)
+    if area:
+        queryset = queryset.filter(area=area)
+    if status == "ativa":
+        queryset = queryset.filter(status="ativa")
+    elif status == "finalizada":
+        queryset = queryset.filter(status="finalizada")
 
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
@@ -221,8 +233,10 @@ def ocorrencias_export(request):
         request,
         "siop/ocorrencias/export.html",
         {
-            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "natureza": natureza, "area": area, "status": status},
             "total_ocorrencias": queryset.count(),
+            "naturezas": catalogo_naturezas_data(),
+            "areas": catalogo_areas_data(),
         },
     )
 

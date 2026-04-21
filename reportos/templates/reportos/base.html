@@ -1,9 +1,24 @@
 {% extends "sigo/base.html" %}
+{% load static %}
 
 {% block title %}ReportOS | SIGO{% endblock %}
 {% block page_title %}ReportOS{% endblock %}
 {% block topbar_search %}{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<link rel="manifest" href="{% static 'sigo/assets/pwa/reportos-manifest.json' %}">
+<meta name="theme-color" content="#0e75eb">
+{% endblock %}
+
 {% block content %}
 {% block reportos_content %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/core/photo-manager.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/core/geolocation.js' %}"></script>
+<script src="{% static 'sigo/assets/js/reportos/catalogos.js' %}"></script>
+<script src="{% static 'sigo/assets/js/reportos/pwa-register.js' %}"></script>
 {% endblock %}

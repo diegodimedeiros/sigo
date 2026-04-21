@@ -2,6 +2,7 @@ from .notifications import (
     modulo_contexto_notificacao,
     notificacoes_anotadas_para_request,
 )
+from .access import can_access_namespace
 
 
 def notifications_context(request):
@@ -23,4 +24,20 @@ def notifications_context(request):
         "top_notifications": top_notifications,
         "top_notifications_unread_count": unread_count,
         "top_notifications_module": modulo,
+    }
+
+
+def module_visibility_context(request):
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
+        return {
+            "show_module_siop": False,
+            "show_module_sesmt": False,
+            "show_module_reportos": False,
+        }
+
+    return {
+        "show_module_siop": can_access_namespace(user, "siop"),
+        "show_module_sesmt": can_access_namespace(user, "sesmt"),
+        "show_module_reportos": can_access_namespace(user, "reportos"),
     }

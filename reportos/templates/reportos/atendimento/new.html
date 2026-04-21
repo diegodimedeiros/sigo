@@ -1,0 +1,474 @@
+{% extends 'reportos/atendimento/base.html' %}
+{% load static %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Novo Registro de Atendimento</h1>
+        <p class="mb-0 text-muted">Cadastro operacional para registro, triagem, atendimento assistencial, remoção e evidências do caso.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-title">Formulário de registro</div></div>
+  <div class="card-body">
+    <form id="atendimento-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'reportos:api_atendimento' %}">
+      {% csrf_token %}
+      <div class="alert alert-danger d-none js-form-feedback"></div>
+
+      <div class="row g-4">
+        <div class="col-12">
+          <h5 class="mb-1">Dados da Pessoa</h5>
+          <p class="text-muted mb-0">Identificação principal da pessoa atendida.</p>
+        </div>
+        <div class="col-12">
+          <div class="row g-4">
+            <div class="col-md-3">
+              <label class="form-label">Data e Hora do Registro</label>
+              <input type="datetime-local" id="atendimento-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}" required>
+            <div class="col-md-3">
+              <label class="form-label" for="recusa_atendimento">Recusa de atendimento</label>
+              <select name="recusa_atendimento" id="recusa_atendimento" class="form-select">
+                <option value="false" {% if not request_data.recusa_atendimento %}selected{% endif %}>Não</option>
+                <option value="true" {% if request_data.recusa_atendimento %}selected{% endif %}>Sim</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 js-toggle-field" data-toggle-source="recusa_atendimento">
+          <div class="alert alert-warning mb-0 py-2">
+            Recusa dispensa a assinatura do atendido.
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label">Nome completo</label>
+              <input type="text" name="pessoa_nome" class="form-control" value="{{ request_data.pessoa_nome }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Documento</label>
+              <input type="text" name="pessoa_documento" class="form-control" value="{{ request_data.pessoa_documento }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Órgão emissor</label>
+              <input type="text" name="pessoa_orgao_emissor" class="form-control" value="{{ request_data.pessoa_orgao_emissor }}">
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="row g-4">
+            <div class="col-md-3">
+              <label class="form-label">Sexo</label>
+              <select name="pessoa_sexo" class="form-select" required>
+                <option value="">Selecione</option>
+                {% for item in sexo_options %}
+                <option value="{{ item.chave }}" {% if request_data.pessoa_sexo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Data de nascimento</label>
+              <input type="date" name="pessoa_data_nascimento" class="form-control" value="{{ request_data.pessoa_data_nascimento }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Nacionalidade</label>
+              <input type="text" name="pessoa_nacionalidade" class="form-control" value="{{ request_data.pessoa_nacionalidade }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Contato</h5>
+          <p class="text-muted mb-0">Dados de contato e endereço vinculados ao atendimento.</p>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Endereço</label>
+          <input type="text" name="contato_endereco" class="form-control" value="{{ request_data.contato_endereco }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Bairro</label>
+          <input type="text" name="contato_bairro" class="form-control" value="{{ request_data.contato_bairro }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Cidade</label>
+          <input type="text" name="contato_cidade" class="form-control" value="{{ request_data.contato_cidade }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado</label>
+          <select id="contato_estado" name="contato_estado" class="form-select">
+            <option value="">Selecione</option>
+            {% for item in uf_options %}
+            <option value="{{ item.chave }}" {% if request_data.contato_estado == item.chave %}selected{% endif %}>{{ item.chave }} - {{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Província</label>
+          <input type="text" id="contato_provincia" name="contato_provincia" class="form-control" value="{{ request_data.contato_provincia }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">País</label>
+          <input type="text" id="contato_pais" name="contato_pais" class="form-control" value="{{ request_data.contato_pais }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Telefone</label>
+          <input type="text" name="telefone" class="form-control" value="{{ request_data.telefone }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">E-mail</label>
+          <input type="email" name="email" class="form-control" value="{{ request_data.email }}">
+        </div>
+
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Dados do Atendimento</h5>
+          <p class="text-muted mb-0">Contexto operacional, tipo e responsável assistencial.</p>
+        </div>
+        <div class="col-12">
+          <div class="row g-4">
+            <div class="col-md-4">
+              <label class="form-label">Data e hora</label>
+              <input type="datetime-local" name="data_atendimento" class="form-control" value="{{ request_data.data_atendimento }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Área de atendimento</label>
+              <select id="area_atendimento" name="area_atendimento" class="form-select" data-locais-url="{% url 'reportos:atendimento_api_locais' %}" required>
+                <option value="">Selecione</option>
+                {% for item in area_options %}
+                <option value="{{ item.chave }}" {% if request_data.area_atendimento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Local</label>
+              <select id="local" name="local" class="form-select" data-selected-value="{{ request_data.local }}" required>
+                <option value="">Selecione</option>
+                {% for item in local_options %}
+                <option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo de ocorrência</label>
+          <select name="tipo_ocorrencia" class="form-select" required>
+            <option value="">Selecione</option>
+            {% for item in tipo_ocorrencia_options %}
+            <option value="{{ item.chave }}" {% if request_data.tipo_ocorrencia == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Responsável pelo atendimento</label>
+          <select name="responsavel_atendimento" class="form-select" required>
+            <option value="">Selecione</option>
+            {% for item in bc_options %}
+            <option value="{{ item.chave }}" {% if request_data.responsavel_atendimento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="atendimentos">Atendimento realizado</label>
+          <select name="atendimentos" id="atendimentos" class="form-select">
+            <option value="false" {% if not request_data.atendimentos %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.atendimentos %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Primeiros socorros</label>
+          <select name="primeiros_socorros" id="primeiros_socorros" class="form-select">
+            <option value="">Selecione</option>
+            {% for item in primeiros_socorros_options %}
+            <option value="{{ item.chave }}" {% if request_data.primeiros_socorros == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Saúde</h5>
+          <p class="text-muted mb-0">Informações clínicas e de plano de saúde.</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="doenca_preexistente">Doença preexistente?</label>
+          <select name="doenca_preexistente" id="doenca_preexistente" class="form-select">
+            <option value="false" {% if not request_data.doenca_preexistente %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.doenca_preexistente %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-12 js-toggle-field" data-toggle-source="doenca_preexistente">
+          <label class="form-label">Descrição da doença</label>
+          <textarea name="descricao_doenca" class="form-control" rows="3">{{ request_data.descricao_doenca }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="alergia">Alergia?</label>
+          <select name="alergia" id="alergia" class="form-select">
+            <option value="false" {% if not request_data.alergia %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.alergia %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-12 js-toggle-field" data-toggle-source="alergia">
+          <label class="form-label">Descrição da alergia</label>
+          <textarea name="descricao_alergia" class="form-control" rows="3">{{ request_data.descricao_alergia }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="plano_saude">Possui plano de saúde?</label>
+          <select name="plano_saude" id="plano_saude" class="form-select">
+            <option value="false" {% if not request_data.plano_saude %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.plano_saude %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-12 js-toggle-field" data-toggle-source="plano_saude">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label">Nome do plano de saúde</label>
+              <input type="text" name="nome_plano_saude" class="form-control" value="{{ request_data.nome_plano_saude }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Número da carteirinha</label>
+              <input type="text" name="numero_carteirinha" class="form-control" value="{{ request_data.numero_carteirinha }}">
+            </div>
+          </div>
+        </div>
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Destino</h5>
+          <p class="text-muted mb-0">Informações sobre o destino ou remoção do atendimento.</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="seguiu_passeio">Seguiu para o passeio</label>
+          <select name="seguiu_passeio" id="seguiu_passeio" class="form-select">
+            <option value="false" {% if not request_data.seguiu_passeio %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.seguiu_passeio %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="houve_remocao">Houve remoção</label>
+          <select name="houve_remocao" id="houve_remocao" class="form-select">
+            <option value="false" {% if not request_data.houve_remocao %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.houve_remocao %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-md-4 js-toggle-field" data-toggle-source="houve_remocao">
+          <label class="form-label">Transporte</label>
+          <select name="transporte" class="form-select">
+            <option value="">Selecione</option>
+            {% for item in transporte_options %}
+            <option value="{{ item.chave }}" {% if request_data.transporte == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4 js-toggle-field" data-toggle-source="houve_remocao">
+          <label class="form-label">Encaminhamento</label>
+          <select name="encaminhamento" class="form-select">
+            <option value="">Selecione</option>
+            {% for item in encaminhamento_options %}
+            <option value="{{ item.chave }}" {% if request_data.encaminhamento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4 js-toggle-field" data-toggle-source="houve_remocao">
+          <label class="form-label">Hospital</label>
+          <input type="text" name="hospital" class="form-control" value="{{ request_data.hospital }}">
+        </div>
+        <div class="col-md-6 js-toggle-field" data-toggle-source="houve_remocao">
+          <label class="form-label">Médico responsável</label>
+          <input type="text" name="medico_responsavel" class="form-control" value="{{ request_data.medico_responsavel }}">
+        </div>
+        <div class="col-md-6 js-toggle-field" data-toggle-source="houve_remocao">
+          <label class="form-label">CRM</label>
+          <input type="text" name="crm" class="form-control" value="{{ request_data.crm }}">
+        </div>
+
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Acompanhante</h5>
+          <p class="text-muted mb-0">Dados do acompanhante, quando houver.</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="possui_acompanhante">Possui acompanhante</label>
+          <select name="possui_acompanhante" id="possui_acompanhante" class="form-select">
+            <option value="false" {% if not request_data.possui_acompanhante %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.possui_acompanhante %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-md-8 js-toggle-field" data-toggle-source="possui_acompanhante">
+          <label class="form-label">Nome do acompanhante</label>
+          <input type="text" name="acompanhante_nome" class="form-control" value="{{ request_data.acompanhante_nome }}">
+        </div>
+        <div class="col-md-3 js-toggle-field" data-toggle-source="possui_acompanhante">
+          <label class="form-label">Documento</label>
+          <input type="text" name="acompanhante_documento" class="form-control" value="{{ request_data.acompanhante_documento }}">
+        </div>
+        <div class="col-md-3 js-toggle-field" data-toggle-source="possui_acompanhante">
+          <label class="form-label">Órgão emissor</label>
+          <input type="text" name="acompanhante_orgao_emissor" class="form-control" value="{{ request_data.acompanhante_orgao_emissor }}">
+        </div>
+        <div class="col-md-2 js-toggle-field" data-toggle-source="possui_acompanhante">
+          <label class="form-label">Sexo</label>
+          <select name="acompanhante_sexo" class="form-select">
+            <option value="">Selecione</option>
+            {% for item in sexo_options %}
+            <option value="{{ item.chave }}" {% if request_data.acompanhante_sexo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2 js-toggle-field" data-toggle-source="possui_acompanhante">
+          <label class="form-label">Nascimento</label>
+          <input type="date" name="acompanhante_data_nascimento" class="form-control" value="{{ request_data.acompanhante_data_nascimento }}">
+        </div>
+        <div class="col-md-2 js-toggle-field" data-toggle-source="possui_acompanhante">
+          <label class="form-label">Parentesco</label>
+          <input type="text" name="grau_parentesco" class="form-control" value="{{ request_data.grau_parentesco }}">
+        </div>
+
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Testemunhas</h5>
+          <p class="text-muted mb-0">Preencha apenas as testemunhas necessárias, com no máximo 2 registros.</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="testemunha">Testemunhas?</label>
+          <select name="testemunha" id="testemunha" class="form-select">
+            <option value="false" {% if not request_data.testemunha %}selected{% endif %}>Não</option>
+            <option value="true" {% if request_data.testemunha %}selected{% endif %}>Sim</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end" id="add_testemunha_wrapper">
+          <button class="btn btn-label-info" type="button" id="add_testemunha_btn">Adicionar testemunha</button>
+        </div>
+        <div class="col-12" id="testemunhas_group_wrapper">
+          <div id="testemunhas_group" class="d-grid gap-3">
+            {% for testemunha in request_data.testemunhas %}
+            <div id="testemunha_bloco_{{ forloop.counter0 }}" class="card border-0 shadow-sm" {% if forloop.counter0 > 0 and not testemunha.nome and not testemunha.documento and not testemunha.telefone and not testemunha.data_nascimento %}hidden{% endif %}>
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-title mb-0">Testemunha {{ forloop.counter }}</div>
+                {% if forloop.counter0 > 0 %}
+                <button class="btn btn-sm btn-label-danger remove_testemunha_btn" type="button" data-target="testemunha_bloco_{{ forloop.counter0 }}">Remover</button>
+                {% endif %}
+              </div>
+              <div class="card-body">
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <label class="form-label" for="testemunha_nome_{{ forloop.counter0 }}">Nome</label>
+                    <input type="text" id="testemunha_nome_{{ forloop.counter0 }}" name="testemunhas[{{ forloop.counter0 }}][nome]" class="form-control" value="{{ testemunha.nome }}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="testemunha_documento_{{ forloop.counter0 }}">Documento</label>
+                    <input type="text" id="testemunha_documento_{{ forloop.counter0 }}" name="testemunhas[{{ forloop.counter0 }}][documento]" class="form-control" value="{{ testemunha.documento }}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="testemunha_telefone_{{ forloop.counter0 }}">Telefone</label>
+                    <input type="text" id="testemunha_telefone_{{ forloop.counter0 }}" name="testemunhas[{{ forloop.counter0 }}][telefone]" class="form-control" value="{{ testemunha.telefone }}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="testemunha_data_{{ forloop.counter0 }}">Data de nascimento</label>
+                    <input type="date" id="testemunha_data_{{ forloop.counter0 }}" name="testemunhas[{{ forloop.counter0 }}][data_nascimento]" class="form-control" value="{{ testemunha.data_nascimento }}">
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Anexos e Evidências</h5>
+          <p class="text-muted mb-0">Arquivos e informações complementares do atendimento.</p>
+        </div>
+        <div class="col-12">
+          <div class="border rounded-3 p-3 atendimento-evidence-panel">
+            <h6 class="mb-3">Fotos e Lista de Imagens do Atendimento</h6>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-6">
+                <input type="file" id="fotos_camera" name="fotos" accept="image/*" capture="environment" multiple class="d-none">
+                <label for="fotos_camera" class="btn btn-label-info w-100 d-flex align-items-center justify-content-center gap-2 py-3 atendimento-evidence-trigger">
+                  <i class="fas fa-camera"></i>
+                  <span>Abrir câmera</span>
+                </label>
+                <div class="form-text" id="fotos_camera_status">Nenhum ficheiro selecionado</div>
+              </div>
+              <div class="col-md-6">
+                <input type="file" id="fotos_dispositivo" name="fotos" accept="image/*" multiple class="d-none">
+                <label for="fotos_dispositivo" class="btn btn-label-info w-100 d-flex align-items-center justify-content-center gap-2 py-3 atendimento-evidence-trigger">
+                  <i class="fas fa-file-upload"></i>
+                  <span>Foto do dispositivo</span>
+                </label>
+                <div class="form-text" id="fotos_dispositivo_status">Nenhum ficheiro selecionado</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="small text-muted mb-1" id="quantidade_fotos_atendimento">Nenhuma foto capturada</div>
+              <div class="border rounded-3 p-3 atendimento-evidence-surface">
+                <div id="lista_fotos_atendimento_vazia" class="text-muted small">Nenhuma foto capturada ainda.</div>
+                <div id="lista_fotos_atendimento" class="d-grid gap-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="border rounded-3 p-3 atendimento-evidence-panel">
+            <h6 class="mb-3">Geolocalização do Atendimento</h6>
+            <input type="hidden" id="geo_latitude" name="geo_latitude">
+            <input type="hidden" id="geo_longitude" name="geo_longitude">
+            <div class="border rounded-3 p-3 atendimento-evidence-surface">
+              <div id="geolocalizacao_atendimento_vazia" class="text-muted small">Nenhuma geolocalização registrada ainda.</div>
+              <div id="geolocalizacao_atendimento" class="d-grid gap-2"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="border rounded-3 p-3 atendimento-evidence-panel">
+            <h6 class="mb-3">Assinatura do Atendido</h6>
+            <input type="hidden" id="assinatura_atendido" name="assinatura_atendido">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <button type="button" id="btn-assinatura-modal" class="btn btn-label-primary">Coletar assinatura</button>
+              <span id="assinatura-status" class="text-muted small">Sem assinatura</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 pt-3">
+          <h5 class="mb-1">Descrição</h5>
+          <p class="text-muted mb-0">Relato assistencial e contexto do atendimento.</p>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descrição do atendimento</label>
+          <textarea name="descricao" class="form-control" rows="6">{{ request_data.descricao }}</textarea>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Salvar atendimento</button>
+        <a href="{% url 'reportos:atendimento_index' %}" class="btn btn-label-info">Voltar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="atendimentoSignatureModal" tabindex="-1" aria-labelledby="atendimentoSignatureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="atendimentoSignatureModalLabel">Coletar assinatura</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Assine dentro da área abaixo.</p>
+        <canvas id="atendimentoSignatureCanvas" class="w-100 border rounded-3" width="900" height="280"></canvas>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-label-danger" id="atendimentoSignatureClear">Limpar</button>
+        <button type="button" class="btn btn-label-info" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="atendimentoSignatureSave">Confirmar assinatura</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/atendimento-form.js' %}"></script>
+{% endblock %}

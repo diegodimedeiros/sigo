@@ -1,0 +1,18 @@
+{
+  "name": "ReportOS | SIGO",
+  "short_name": "ReportOS",
+  "description": "Módulo para operacao de campo ReportOS/SESMT, com sincronização offline-first.",
+  "start_url": "/reportos/",
+  "scope": "/reportos/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0e75eb",
+  "icons": [
+    {
+      "src": "/static/sigo/assets/img/sigo/avatar_default.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

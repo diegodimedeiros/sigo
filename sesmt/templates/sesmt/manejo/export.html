@@ -28,6 +28,32 @@
             <label class="form-label">Período final</label>
             <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}" />
           </div>
+          <div class="col-md-4">
+            <label class="form-label">Classe</label>
+            <select name="classe" class="form-select">
+              <option value="">Todas</option>
+              {% for opt in classe_options %}
+              <option value="{{ opt.chave }}" {% if request_data.classe == opt.chave %}selected{% endif %}>{{ opt.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Área de captura</label>
+            <select name="area_captura" class="form-select">
+              <option value="">Todas</option>
+              {% for opt in area_options %}
+              <option value="{{ opt.chave }}" {% if request_data.area_captura == opt.chave %}selected{% endif %}>{{ opt.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="">Todos</option>
+              <option value="realizado" {% if request_data.status == "realizado" %}selected{% endif %}>Realizado</option>
+              <option value="pendente" {% if request_data.status == "pendente" %}selected{% endif %}>Pendente</option>
+            </select>
+          </div>
           <div class="col-md-6">
             <div class="fw-semibold mb-2">Identificação</div>
             <ul class="mb-0 ps-3">

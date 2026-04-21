@@ -162,9 +162,27 @@ def controle_chaves_export(request):
     if unidade:
         queryset = queryset.filter(unidade=unidade)
     queryset, data_inicio, data_fim = _filter_export_period(queryset, "retirada", request)
+    params = request.POST if request.method == "POST" else request.GET
+    status = (params.get("status") or "").strip()
+    area = (params.get("area") or "").strip()
+    chave = (params.get("chave") or "").strip()
+    nome = (params.get("nome") or "").strip()
+    documento = (params.get("documento") or "").strip()
+    if status == "em_uso":
+        queryset = queryset.filter(devolucao__isnull=True)
+    elif status == "devolvida":
+        queryset = queryset.filter(devolucao__isnull=False)
+    if area:
+        queryset = queryset.filter(chave__in=[item["chave"] for item in catalogo_chaves_items() if item.get("area") == area])
+    if chave:
+        queryset = queryset.filter(chave=chave)
+    if nome:
+        queryset = queryset.filter(pessoa__nome__icontains=nome)
+    if documento:
+        queryset = queryset.filter(pessoa__documento__icontains=documento)
     if request.method == "POST":
         return _export_queryset_response(request, queryset, formato=_normalize_export_formato(request.POST.get("formato")), filename_prefix="controle_chaves", sheet_title="Controle de Chaves", document_title="Relatório de Controle de Chaves", document_subject="Exportação geral de Controle de Chaves", headers=["ID", "Retirada", "Devolução", "Área", "Número", "Chave", "Pessoa", "Documento", "Unidade", "Status", "Observação", "Criado em", "Criado por", "Modificado em", "Modificado por"], row_getters=[lambda item: item.id, lambda item: fmt_dt(item.retirada), lambda item: fmt_dt(item.devolucao), lambda item: item.chave_area, lambda item: item.chave_numero, lambda item: item.chave_label, lambda item: item.pessoa.nome if item.pessoa_id else "-", lambda item: item.pessoa.documento if item.pessoa_id else "-", lambda item: item.unidade_sigla, lambda item: chave_status_label(item), lambda item: item.observacao, lambda item: fmt_dt(item.criado_em), lambda item: user_display(getattr(item, "criado_por", None)), lambda item: fmt_dt(item.modificado_em), lambda item: user_display(getattr(item, "modificado_por", None))], base_col_widths=[32, 58, 58, 55, 36, 80, 90, 70, 40, 45, 58, 70, 58, 70, 100], nowrap_indices={0, 1, 2, 3, 4, 7, 8, 9, 10, 12})
-    return _render_export_page(request, "siop/controle_chaves/export.html", {"area_title": "Exportação de Chaves", "area_description": "Gere a exportação consolidada das retiradas, devoluções e responsáveis das chaves.", "total_chaves": queryset.count(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}})
+    return _render_export_page(request, "siop/controle_chaves/export.html", {"area_title": "Exportação de Chaves", "area_description": "Gere a exportação consolidada das retiradas, devoluções e responsáveis das chaves.", "total_chaves": queryset.count(), "areas_chaves": catalogo_chaves_areas(), "chave_options": catalogo_chaves_items(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "status": status, "area": area, "chave": chave, "nome": nome, "documento": documento}})
 
 
 @login_required

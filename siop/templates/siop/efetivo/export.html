@@ -27,6 +27,31 @@
             <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}">
           </div>
           <div class="col-md-6">
+            <label class="form-label">Plantão</label>
+            <input type="text" name="plantao" class="form-control" value="{{ request_data.plantao }}" placeholder="Filtrar por responsável de plantão...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Posto</label>
+            <select name="posto" class="form-select">
+              <option value="">Todos</option>
+              {% for value, label in posto_options %}
+              <option value="{{ value }}" {% if request_data.posto == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Responsável</label>
+            <input type="text" name="responsavel" class="form-control" value="{{ request_data.responsavel }}" placeholder="Filtrar por nome do responsável...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Observação</label>
+            <select name="observacao" class="form-select">
+              <option value="" {% if not request_data.observacao %}selected{% endif %}>Todos</option>
+              <option value="com" {% if request_data.observacao == "com" %}selected{% endif %}>Com observação</option>
+              <option value="sem" {% if request_data.observacao == "sem" %}selected{% endif %}>Sem observação</option>
+            </select>
+          </div>
+          <div class="col-md-6">
             <div class="fw-semibold mb-2">Identificação</div>
             <ul class="mb-0 ps-3">
               <li>ID do registro</li>

@@ -1,8 +1,31 @@
 (function () {
   function requestCatalog(url, queryParam, queryValue) {
+    if (window.ReportosCatalogos && queryParam === "area") {
+      return window.ReportosCatalogos.getLocaisAsync(queryValue).then(function (cached) {
+        if (cached !== null) {
+          return { ok: true, data: { locais: cached } };
+        }
+
+        var fullUrl = new URL(url, window.location.origin);
+        fullUrl.searchParams.set(queryParam, queryValue);
+        var fetchFn = (window.SigoCsrf && typeof window.SigoCsrf.fetch === "function")
+          ? window.SigoCsrf.fetch.bind(window.SigoCsrf)
+          : window.fetch.bind(window);
+        return fetchFn(fullUrl.toString(), {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function (response) {
+          if (!response.ok) throw new Error("Falha ao carregar catálogo.");
+          return response.json();
+        });
+      });
+    }
+
     var fullUrl = new URL(url, window.location.origin);
     fullUrl.searchParams.set(queryParam, queryValue);
-    return window.SigoCsrf.fetch(fullUrl.toString(), {
+    var fetchFn = (window.SigoCsrf && typeof window.SigoCsrf.fetch === "function")
+      ? window.SigoCsrf.fetch.bind(window.SigoCsrf)
+      : window.fetch.bind(window);
+    return fetchFn(fullUrl.toString(), {
       headers: { "X-Requested-With": "XMLHttpRequest" }
     }).then(function (response) {
       if (!response.ok) throw new Error("Falha ao carregar catálogo.");
@@ -45,7 +68,14 @@
         buildOptions(local, [], "Selecione");
         return;
       }
-      requestCatalog(area.dataset.locaisUrl, "area", areaValue)
+      var catalogPromise;
+      try {
+        catalogPromise = requestCatalog(area.dataset.locaisUrl, "area", areaValue);
+      } catch (_err) {
+        buildOptions(local, [], "Selecione");
+        return;
+      }
+      catalogPromise
         .then(function (payload) {
           var values = (((payload || {}).data || {}).locais) || [];
           buildOptions(local, values, "Selecione");
@@ -131,19 +161,77 @@
     syncAreaLocais();
     initExistingPhotoRemoval(form);
 
-    window.SesmtPhotoManager.init({
-      inputId: "himenopteros_fotos",
-      statusId: "himenopteros_fotos_status",
-      listId: "lista_himenopteros_fotos",
-      emptyId: "lista_himenopteros_fotos_vazia"
-    });
+    if (window.SesmtPhotoManager && typeof window.SesmtPhotoManager.init === "function") {
+      window.SesmtPhotoManager.init({
+        inputId: "himenopteros_fotos",
+        statusId: "himenopteros_fotos_status",
+        listId: "lista_himenopteros_fotos",
+        emptyId: "lista_himenopteros_fotos_vazia"
+      });
+    }
 
-    window.SesmtGeolocation.initCapture({
-      latitudeId: "himenopteros-latitude",
-      longitudeId: "himenopteros-longitude",
-      containerId: "geolocalizacao_himenopteros",
-      emptyNodeId: "geolocalizacao_himenopteros_vazia"
-    });
+    if (window.SesmtGeolocation && typeof window.SesmtGeolocation.initCapture === "function") {
+      window.SesmtGeolocation.initCapture({
+        latitudeId: "himenopteros-latitude",
+        longitudeId: "himenopteros-longitude",
+        containerId: "geolocalizacao_himenopteros",
+        emptyNodeId: "geolocalizacao_himenopteros_vazia"
+      });
+    }
+
+      // Validação required frontend
+      form.addEventListener("submit", function (event) {
+        var errors = [];
+        var firstInvalid = null;
+        function markInvalid(id, msg) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.classList.add("is-invalid");
+          var msgNode = document.createElement("div");
+          msgNode.className = "invalid-feedback";
+          msgNode.textContent = msg;
+          if (el.nextSibling) el.parentNode.insertBefore(msgNode, el.nextSibling);
+          else el.parentNode.appendChild(msgNode);
+          if (!firstInvalid) firstInvalid = el;
+        }
+        function val(id) {
+          var el = document.getElementById(id);
+          return el && el.value ? el.value.trim() : "";
+        }
+        // Limpa marcações antigas
+        form.querySelectorAll(".is-invalid").forEach(function (el) { el.classList.remove("is-invalid"); });
+        form.querySelectorAll(".invalid-feedback").forEach(function (el) { el.remove(); });
+        // Latitude e longitude obrigatórios
+        if (!val("himenopteros-latitude")) { errors.push("Informe a latitude."); markInvalid("himenopteros-latitude", "Campo obrigatório"); }
+        if (!val("himenopteros-longitude")) { errors.push("Informe a longitude."); markInvalid("himenopteros-longitude", "Campo obrigatório"); }
+        // Data/hora início obrigatória
+        if (!val("himenopteros-data_hora_inicio")) { errors.push("Informe a data/hora de início."); markInvalid("himenopteros-data_hora_inicio", "Campo obrigatório"); }
+        // Pelo menos uma foto obrigatória
+        var fotosInput = document.getElementById("himenopteros_fotos");
+        var fotosList = document.querySelectorAll(".js-existing-photo-row");
+        if ((!fotosInput || !fotosInput.files || fotosInput.files.length === 0) && fotosList.length === 0) {
+          errors.push("Adicione ao menos uma foto do registro.");
+          markInvalid("himenopteros_fotos", "Adicione ao menos uma foto");
+        }
+        // Isolamento de área obrigatório na criação
+        var isCreate = !val("himenopteros-id");
+        if (isCreate && !val("himenopteros-isolamento_area")) { errors.push("Informe se houve isolamento de área."); markInvalid("himenopteros-isolamento_area", "Campo obrigatório"); }
+        if (errors.length) {
+          event.preventDefault();
+          if (firstInvalid && typeof firstInvalid.focus === "function") firstInvalid.focus();
+          return false;
+        }
+      });
+      // Remove marcação ao corrigir
+      form.querySelectorAll("input, select, textarea").forEach(function (el) {
+        el.addEventListener("input", function () {
+          if (el.classList.contains("is-invalid")) {
+            el.classList.remove("is-invalid");
+            var next = el.nextSibling;
+            if (next && next.classList && next.classList.contains("invalid-feedback")) next.remove();
+          }
+        });
+      });
   }
 
   document.addEventListener("DOMContentLoaded", function () {

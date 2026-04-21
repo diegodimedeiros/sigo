@@ -1,0 +1,117 @@
+{% extends 'reportos/atendimento/base.html' %}
+{% load static %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Listagem de Atendimentos</h1>
+        <p class="mb-0 text-muted">Consulta operacional com filtros, período e acesso ao detalhamento de cada atendimento registrado.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card listing-filter-card mb-4">
+  <div class="card-body">
+    <form method="get" class="filter-panel-grid" id="atendimento-list-form" data-api-url="{% url 'reportos:api_atendimento' %}" data-page-size="20">
+      <div class="filter-span-6">
+        <label class="form-label" for="filtro-q">Busca rápida</label>
+        <input id="filtro-q" type="text" name="q" class="form-control" placeholder="Nome, documento, descrição..." value="{{ filters.q }}">
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-tipo">Tipo de ocorrência</label>
+        <select id="filtro-tipo" name="tipo_ocorrencia" class="form-select">
+          <option value="">Todos</option>
+          {% for item in tipo_ocorrencia_options %}
+          <option value="{{ item.chave }}" {% if filters.tipo_ocorrencia == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-area">Área</label>
+        <select id="filtro-area" name="area_atendimento" class="form-select">
+          <option value="">Todas</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if filters.area_atendimento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-status">Atendimento</label>
+        <select id="filtro-status" name="status" class="form-select">
+          <option value="" {% if not filters.status %}selected{% endif %}>Todos</option>
+          <option value="atendimento" {% if filters.status == 'atendimento' %}selected{% endif %}>Atendimento</option>
+          <option value="recusa" {% if filters.status == 'recusa' %}selected{% endif %}>Recusa</option>
+        </select>
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-data-inicio">Início</label>
+        <input id="filtro-data-inicio" type="date" name="data_inicio" class="form-control" value="{{ filters.data_inicio }}">
+      </div>
+      <div class="filter-span-3">
+        <label class="form-label" for="filtro-data-fim">Fim</label>
+        <input id="filtro-data-fim" type="date" name="data_fim" class="form-control" value="{{ filters.data_fim }}">
+      </div>
+      <div class="filter-span-6 filter-actions">
+        <button class="btn btn-label-info">Aplicar filtros</button>
+        <a href="{% url 'reportos:atendimento_index' %}" class="btn btn-label-info">Voltar</a>
+        <a href="{% url 'reportos:atendimento_list' %}" class="btn btn-label-secondary" data-reset-filters>Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card listing-table-card">
+  <div class="card-header">
+    <div class="listing-table-header">
+      <div>
+        <div class="card-title mb-1">Resultado da listagem</div>
+        <div class="listing-table-meta" id="atendimento-list-meta">{{ total_count }} atendimento{{ total_count|pluralize:'s' }} encontrado{{ total_count|pluralize:'s' }}.</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive listing-table-wrapper">
+      <table class="table table-striped table-hover listing-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <th>Pessoa</th>
+            <th>Tipo</th>
+            <th>Área</th>
+            <th>Atendimento</th>
+            <th class="text-end">Ação</th>
+          </tr>
+        </thead>
+        <tbody id="atendimento-list-body">
+          {% for item in registros %}
+          <tr>
+            <td>#{{ item.id }}</td>
+            <td>{{ item.data_atendimento|date:"d/m/Y H:i" }}</td>
+            <td>{{ item.pessoa.nome }}</td>
+            <td>{{ item.tipo_ocorrencia_label }}</td>
+            <td>{{ item.area_atendimento_label }}</td>
+            <td><span class="badge badge-{% if item.recusa_atendimento %}danger{% else %}success{% endif %}">{{ item.recusa_atendimento|yesno:"Não,Sim" }}</span></td>
+            <td class="text-end"><a href="{% url 'reportos:atendimento_view' item.id %}" class="btn btn-sm btn-label-info">Ver</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="atendimento-list-pagination">
+    {% include 'sigo/includes/pagination.html' with page_obj=page_obj pagination_query=pagination_query total_count=total_count %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-list.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/atendimento-form.js' %}"></script>
+{% endblock %}

@@ -7,6 +7,9 @@ from ..view_shared import (
     _serialize_controle_ativo_detail,
     _serialize_controle_ativo_list_item,
 )
+from sigo_core.catalogos import catalogo_ativos_data
+
+from .support import catalogo_destinos_ativos
 
 
 @login_required
@@ -150,9 +153,27 @@ def controle_ativos_export(request):
     if unidade:
         queryset = queryset.filter(unidade=unidade)
     queryset, data_inicio, data_fim = _filter_export_period(queryset, "retirada", request)
+    params = request.POST if request.method == "POST" else request.GET
+    status = (params.get("status") or "").strip()
+    equipamento = (params.get("equipamento") or "").strip()
+    destino = (params.get("destino") or "").strip()
+    nome = (params.get("nome") or "").strip()
+    documento = (params.get("documento") or "").strip()
+    if status == "em_uso":
+        queryset = queryset.filter(devolucao__isnull=True)
+    elif status == "devolvido":
+        queryset = queryset.filter(devolucao__isnull=False)
+    if equipamento:
+        queryset = queryset.filter(equipamento=equipamento)
+    if destino:
+        queryset = queryset.filter(destino=destino)
+    if nome:
+        queryset = queryset.filter(pessoa__nome__icontains=nome)
+    if documento:
+        queryset = queryset.filter(pessoa__documento__icontains=documento)
     if request.method == "POST":
         return _export_queryset_response(request, queryset, formato=_normalize_export_formato(request.POST.get("formato")), filename_prefix="controle_ativos", sheet_title="Controle de Ativos", document_title="Relatório de Controle de Ativos", document_subject="Exportação geral de Controle de Ativos", headers=["ID", "Retirada", "Devolução", "Ativo", "Destino", "Pessoa", "Documento", "Unidade", "Status", "Observação", "Criado em", "Criado por", "Modificado em", "Modificado por"], row_getters=[lambda item: item.id, lambda item: fmt_dt(item.retirada), lambda item: fmt_dt(item.devolucao), lambda item: item.equipamento_label, lambda item: item.destino_label, lambda item: item.pessoa.nome if item.pessoa_id else "-", lambda item: item.pessoa.documento if item.pessoa_id else "-", lambda item: item.unidade_sigla, lambda item: ativo_status_label(item), lambda item: item.observacao, lambda item: fmt_dt(item.criado_em), lambda item: user_display(getattr(item, "criado_por", None)), lambda item: fmt_dt(item.modificado_em), lambda item: user_display(getattr(item, "modificado_por", None))], base_col_widths=[32, 58, 58, 85, 70, 90, 70, 40, 45, 58, 70, 58, 70, 110], nowrap_indices={0, 1, 2, 6, 7, 8, 9, 11})
-    return _render_export_page(request, "siop/controle_ativos/export.html", {"area_title": "Exportação de Ativos", "area_description": "Gere a exportação consolidada das retiradas, devoluções e destinos dos ativos.", "total_ativos": queryset.count(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}})
+    return _render_export_page(request, "siop/controle_ativos/export.html", {"area_title": "Exportação de Ativos", "area_description": "Gere a exportação consolidada das retiradas, devoluções e destinos dos ativos.", "total_ativos": queryset.count(), "ativo_options": catalogo_ativos_data(), "destino_options": catalogo_destinos_ativos(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "status": status, "equipamento": equipamento, "destino": destino, "nome": nome, "documento": documento}})
 
 
 @login_required

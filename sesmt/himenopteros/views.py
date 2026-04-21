@@ -122,10 +122,7 @@ def _build_himenopteros_request_data(payload=None, registro=None):
             else (registro.isolamento_area if registro else "")
         ),
         "observacao": payload.get("observacao", registro.observacao if registro else "") or "",
-        "justificativa_tecnica": payload.get("justificativa_tecnica", registro.justificativa_tecnica if registro else "") or "",
         "condicao": payload.get("condicao", registro.condicao if registro else "") or "",
-        "acao_realizada": payload.get("acao_realizada", registro.acao_realizada if registro else "") or "",
-        "responsavel_tecnico": payload.get("responsavel_tecnico", registro.responsavel_tecnico if registro else "") or "",
         "latitude": payload.get("latitude", str(registro.geolocalizacao.latitude) if registro and registro.geolocalizacao else "") or "",
         "longitude": payload.get("longitude", str(registro.geolocalizacao.longitude) if registro and registro.geolocalizacao else "") or "",
     }
@@ -475,8 +472,9 @@ def himenopteros_edit(request, pk):
 
 @login_required
 def himenopteros_export(request):
+    params = request.POST if request.method == "POST" else request.GET
     queryset = _sesmt_base_qs(HipomenopteroModel).select_related("criado_por", "modificado_por").order_by("-data_hora_inicio", "-id")
-    queryset, data_inicio, data_fim = _filter_export_period(queryset, "data_hora_inicio", request)
+    queryset, filters = _apply_himenopteros_filters(queryset, params)
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
         formato = formato if formato in {"xlsx", "csv"} else "xlsx"
@@ -484,7 +482,7 @@ def himenopteros_export(request):
     return render(
         request,
         "sesmt/himenopteros/export.html",
-        {"total_registros": queryset.count(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}},
+        {"total_registros": queryset.count(), "request_data": {"formato": "xlsx", **filters}, "area_options": AREA_OPTIONS},
     )
 
 
@@ -549,7 +547,7 @@ def api_himenopteros_export(request):
     if request.method != "POST":
         return api_method_not_allowed()
     queryset = _sesmt_base_qs(HipomenopteroModel).select_related("criado_por", "modificado_por").order_by("-data_hora_inicio", "-id")
-    queryset, _, _ = _filter_export_period(queryset, "data_hora_inicio", request)
+    queryset, _ = _apply_himenopteros_filters(queryset, request.POST)
     formato = (request.POST.get("formato") or "").strip().lower()
     formato = formato if formato in {"xlsx", "csv"} else "xlsx"
     return _build_himenopteros_export_response(request, queryset, formato)

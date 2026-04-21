@@ -10,6 +10,7 @@ O projeto reúne módulos internos com interface administrativa em Django, layou
 - `SIOP`: operação, portaria, controle e auditoria
 - `SESMT`: saúde, segurança do trabalho e meio ambiente
 
+
 ## Áreas disponíveis
 
 **SIOP**
@@ -26,10 +27,15 @@ O projeto reúne módulos internos com interface administrativa em Django, layou
 
 **SESMT**
 
-- `Atendimento`
-- `Manejo`
-- `Flora`
-- `Monitor Himenóptero`
+- `Atendimento` (formulário padronizado: required HTML + validação JS)
+- `Manejo` (formulário padronizado: required HTML + validação JS)
+- `Flora` (formulário padronizado: required HTML + validação JS)
+- `Monitor Himenóptero` (formulário padronizado: required HTML + validação JS)
+
+
+## Validação de formulários
+
+Todos os formulários das áreas SESMT/ReportOS possuem validação nativa (atributo required nos campos obrigatórios) e validação JavaScript, garantindo bloqueio de envio e integridade dos dados, mesmo offline.
 
 ## Stack
 
@@ -113,6 +119,31 @@ sesmt/
   - título de dashboard unificado em `Últimos registros`
   - cards de dashboard `Últimos registros` alinhados para 6 colunas visíveis (incluindo `Ação`)
   - card `Fila operacional` com estrutura isonômica de 4 passos por área
+
+  ## Controle de acesso por grupos
+
+  Para a separação de acesso por módulo funcionar corretamente, os grupos abaixo devem existir no Django com esta nomenclatura exata:
+
+  - `group_siop`
+  - `group_sesmt`
+  - `group_reportos`
+
+  Regras atuais:
+
+  - usuários com `group_siop` acessam o namespace SIOP
+  - usuários com `group_sesmt` acessam o namespace SESMT
+  - superusuário acessa todos os namespaces
+
+  Observação:
+
+  - neste estágio, o bloqueio por grupo está aplicado de forma estrita para SIOP e SESMT
+  - `group_reportos` é usado para roteamento pós-login e organização operacional
+
+  Exemplo para criar os grupos em ambiente novo:
+
+  ```bash
+  ./.venv/bin/python manage.py shell -c "from django.contrib.auth.models import Group; [Group.objects.get_or_create(name=n) for n in ['group_siop','group_sesmt','group_reportos']]"
+  ```
 
 ## Fluxos já consolidados no SIOP
 

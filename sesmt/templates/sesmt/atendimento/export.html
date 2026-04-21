@@ -28,6 +28,32 @@
             <label class="form-label">Período final</label>
             <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}" />
           </div>
+          <div class="col-md-4">
+            <label class="form-label">Tipo de ocorrência</label>
+            <select name="tipo_ocorrencia" class="form-select">
+              <option value="">Todos</option>
+              {% for opt in tipo_ocorrencia_options %}
+              <option value="{{ opt.chave }}" {% if request_data.tipo_ocorrencia == opt.chave %}selected{% endif %}>{{ opt.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Área</label>
+            <select name="area_atendimento" class="form-select">
+              <option value="">Todas</option>
+              {% for opt in area_options %}
+              <option value="{{ opt.chave }}" {% if request_data.area_atendimento == opt.chave %}selected{% endif %}>{{ opt.valor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="">Todos</option>
+              <option value="atendimento" {% if request_data.status == "atendimento" %}selected{% endif %}>Atendimento</option>
+              <option value="recusa" {% if request_data.status == "recusa" %}selected{% endif %}>Recusa</option>
+            </select>
+          </div>
           <div class="col-md-6">
             <div class="fw-semibold mb-2">Identificação</div>
             <ul class="mb-0 ps-3">

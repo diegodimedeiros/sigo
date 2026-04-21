@@ -30,7 +30,7 @@ from sigo_core.shared.xlsx_export import export_generic_excel
 from siop.models import AcessoTerceiros
 
 from .common import extract_request_payload, service_error_response, unexpected_error_response
-from .query import build_acesso_filtered_qs
+from .query import apply_acesso_filters, build_acesso_filtered_qs
 from .services import (
     build_acesso_dashboard,
     create_acesso_terceiros,
@@ -371,12 +371,34 @@ def acesso_terceiros_edit(request, pk):
 @login_required
 def acesso_terceiros_export(request):
     queryset = AcessoTerceiros.objects.select_related("pessoa").order_by("-entrada", "-id")
-    data_inicio = (request.POST.get("data_inicio") or request.GET.get("data_inicio") or "").strip()
-    data_fim = (request.POST.get("data_fim") or request.GET.get("data_fim") or "").strip()
-    if data_inicio:
-        queryset = queryset.filter(entrada__date__gte=data_inicio)
-    if data_fim:
-        queryset = queryset.filter(entrada__date__lte=data_fim)
+    params = request.POST if request.method == "POST" else request.GET
+    data_inicio = (params.get("data_inicio") or "").strip()
+    data_fim = (params.get("data_fim") or "").strip()
+    status = (params.get("status") or "").strip()
+    nome = (params.get("nome") or "").strip()
+    documento = (params.get("documento") or "").strip()
+    empresa = (params.get("empresa") or "").strip()
+    placa_veiculo = (params.get("placa_veiculo") or "").strip()
+    p1 = (params.get("p1") or "").strip()
+
+    # Compatibilidade com valores de status antigos do formulário de exportação.
+    status_normalized = status
+    if status == "em_andamento":
+        status_normalized = "em_aberto"
+    elif status == "finalizado":
+        status_normalized = "finalizada"
+
+    filter_params = {
+        "data_inicio": data_inicio,
+        "data_fim": data_fim,
+        "status": status_normalized,
+        "nome": nome,
+        "documento": documento,
+        "empresa": empresa,
+        "placa_veiculo": placa_veiculo,
+        "p1": p1,
+    }
+    queryset = apply_acesso_filters(queryset, filter_params)
 
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
@@ -421,7 +443,18 @@ def acesso_terceiros_export(request):
         request,
         "siop/acesso_terceiros/export.html",
         {
-            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+            "request_data": {
+                "formato": "xlsx",
+                "data_inicio": data_inicio,
+                "data_fim": data_fim,
+                "status": status_normalized,
+                "nome": nome,
+                "documento": documento,
+                "empresa": empresa,
+                "placa_veiculo": placa_veiculo,
+                "p1": p1,
+            },
+            "p1_responsaveis": catalogo_p1_data(),
             "total_acessos": queryset.count(),
         },
     )

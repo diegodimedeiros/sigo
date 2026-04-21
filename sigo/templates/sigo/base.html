@@ -51,7 +51,7 @@
         <div class="sidebar-wrapper scrollbar scrollbar-inner">
           <div class="sidebar-content">
             <ul class="nav nav-secondary">
-              <li class="nav-item active">
+              <li class="nav-item {% if request.resolver_match.namespace != 'siop' and request.resolver_match.namespace != 'sesmt' and request.resolver_match.namespace != 'reportos' %}active{% endif %}">
                 <a href="/">
                   <i class="fas fa-home"></i>
                   <p>Painel Principal</p>
@@ -65,24 +65,30 @@
                 <h4 class="text-section">Módulos</h4>
               </li>
 
-              <li class="nav-item">
+              {% if show_module_siop %}
+              <li class="nav-item {% if request.resolver_match.namespace == 'siop' %}active{% endif %}">
                 <a href="{% url 'siop:home' %}">
                   <i class="fas fa-shield-alt"></i>
                   <p>SIOP</p>
                 </a>
               </li>
-              <li class="nav-item">
+              {% endif %}
+              {% if show_module_sesmt %}
+              <li class="nav-item {% if request.resolver_match.namespace == 'sesmt' %}active{% endif %}">
                 <a href="{% url 'sesmt:home' %}">
                   <i class="fas fa-user-shield"></i>
                   <p>SESMT</p>
                 </a>
               </li>
-              <li class="nav-item">
+              {% endif %}
+              {% if show_module_reportos %}
+              <li class="nav-item {% if request.resolver_match.namespace == 'reportos' %}active{% endif %}">
                 <a href="{% url 'reportos:home' %}">
                   <i class="fas fa-cubes"></i>
                   <p>ReportOS</p>
                 </a>
               </li>
+              {% endif %}
             </ul>
             <div class="sidebar-copyright">
               <div class="sidebar-footer-brand">

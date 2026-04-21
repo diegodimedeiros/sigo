@@ -350,12 +350,25 @@ def achados_perdidos_edit(request, pk):
 @login_required
 def achados_perdidos_export(request):
     queryset = AchadosPerdidos.objects.select_related("pessoa").order_by("-criado_em", "-id")
-    data_inicio = (request.POST.get("data_inicio") or request.GET.get("data_inicio") or "").strip()
-    data_fim = (request.POST.get("data_fim") or request.GET.get("data_fim") or "").strip()
+    params = request.POST if request.method == "POST" else request.GET
+    data_inicio = (params.get("data_inicio") or "").strip()
+    data_fim = (params.get("data_fim") or "").strip()
+    tipo = (params.get("tipo") or "").strip()
+    situacao = (params.get("situacao") or "").strip()
+    status = (params.get("status") or "").strip()
+    area = (params.get("area") or "").strip()
     if data_inicio:
         queryset = queryset.filter(criado_em__date__gte=data_inicio)
     if data_fim:
         queryset = queryset.filter(criado_em__date__lte=data_fim)
+    if tipo:
+        queryset = queryset.filter(tipo=tipo)
+    if situacao:
+        queryset = queryset.filter(situacao=situacao)
+    if status:
+        queryset = queryset.filter(status=status)
+    if area:
+        queryset = queryset.filter(area=area)
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
         formato = formato if formato in {"xlsx", "csv"} else "xlsx"
@@ -401,7 +414,7 @@ def achados_perdidos_export(request):
         "catalogo_achados_status": catalogo_achado_status_items(),
         "areas": catalogo_areas_data(),
         "locais": catalogo_locais_por_area_data(request.GET.get("area")),
-        "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+        "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "tipo": tipo, "situacao": situacao, "status": status, "area": area},
         "total_itens": queryset.count(),
     }
     return render(request, "siop/achados_perdidos/export.html", context)

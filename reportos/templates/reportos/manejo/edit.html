@@ -1,0 +1,283 @@
+{% extends 'reportos/manejo/base.html' %}
+{% load static %}
+
+{% block title %}Manejo #{{ manejo.id }} | ReportOS{% endblock %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Editar Manejo #{{ manejo.id }}</h1>
+        <p class="mb-0 text-muted">Atualize dados do resgate, soltura, evidências e acionamentos do registro de manejo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-title">Formulário de edição</div></div>
+  <div class="card-body">
+    <form
+      id="manejo-form"
+      method="post"
+      enctype="multipart/form-data"
+      data-async-form="true"
+      data-api-url="{% url 'reportos:api_manejo_detail' manejo.id %}"
+      class="row g-4"
+    >
+      {% csrf_token %}
+      <div class="alert alert-danger d-none js-form-feedback"></div>
+
+      <div class="col-12">
+        <h5 class="mb-1">Dados do Manejo</h5>
+        <p class="text-muted mb-0">Identificação da fauna, data do registro e contexto inicial do manejo.</p>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Data e hora do manejo</label>
+        <input type="datetime-local" name="data_hora" class="form-control" value="{{ request_data.data_hora }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Classe</label>
+        <select id="classe" name="classe" class="form-select" data-especies-url="{% url 'reportos:manejo_api_especies' %}">
+          <option value="">Selecione</option>
+          {% for item in classe_options %}
+          <option value="{{ item.chave }}" {% if request_data.classe == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Nome popular</label>
+        <select id="nome_popular" name="nome_popular" class="form-select" data-selected-value="{{ request_data.nome_popular }}">
+          <option value="">Selecione</option>
+          {% for item in nome_popular_options %}
+          <option value="{{ item.chave }}" {% if request_data.nome_popular == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nome científico</label>
+        <input type="text" name="nome_cientifico" class="form-control" value="{{ request_data.nome_cientifico }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Estágio de desenvolvimento</label>
+        <input type="text" name="estagio_desenvolvimento" class="form-control" value="{{ request_data.estagio_desenvolvimento }}">
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Captura</h5>
+        <p class="text-muted mb-0">Área, local, fotos e geolocalização do ponto de captura.</p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Área de captura</label>
+        <select id="area_captura" name="area_captura" class="form-select" data-locais-url="{% url 'reportos:manejo_api_locais' %}">
+          <option value="">Selecione</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if request_data.area_captura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Local de captura</label>
+        <select id="local_captura" name="local_captura" class="form-select" data-selected-value="{{ request_data.local_captura }}">
+          <option value="">Selecione</option>
+          {% for item in local_captura_options %}
+          <option value="{{ item.chave }}" {% if request_data.local_captura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descrição do local</label>
+        <textarea name="descricao_local" class="form-control" rows="3">{{ request_data.descricao_local }}</textarea>
+      </div>
+      <div class="col-12">
+        <div id="foto_captura_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Fotos e Lista de Imagens da Captura</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="file" id="foto_captura" name="foto_captura" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_captura_panel">
+              <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="foto_captura">
+                <i class="fas fa-camera me-2"></i>Abrir câmera
+              </button>
+              <div class="small text-muted mt-2" id="foto_captura_status">Nenhum ficheiro selecionado</div>
+              <div class="invalid-feedback d-block field-error d-none" data-field-error="foto_captura"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Fotos de captura</div>
+              {% if manejo.fotos_captura %}
+              <div class="small text-muted mb-2">Já registradas</div>
+              <div class="d-grid gap-2 mb-3 js-existing-photo-list">
+                {% for foto in manejo.fotos_captura %}
+                <div class="small border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-3 js-existing-photo-row" data-photo-id="{{ foto.id }}">
+                  <a href="{% url 'reportos:manejo_foto_view' manejo.id foto.id %}" target="_blank" rel="noopener" class="text-truncate text-decoration-none d-block flex-grow-1">
+                    {{ foto.nome_arquivo }}
+                  </a>
+                  <button type="button" class="btn btn-sm btn-label-danger" data-remove-existing-photo="true" data-hidden-name="foto_captura_delete" data-photo-id="{{ foto.id }}">X</button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <div class="small text-muted mb-2">Novas fotos</div>
+              <div id="lista_fotos_captura_vazia" class="detail-note-box">Nenhuma foto capturada ainda.</div>
+              <div id="lista_fotos_captura" class="d-grid gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div id="geolocalizacao_captura_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Geolocalização da Captura</div>
+          <input type="hidden" id="latitude_captura" name="latitude_captura" value="{{ request_data.latitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel">
+          <input type="hidden" id="longitude_captura" name="longitude_captura" value="{{ request_data.longitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel">
+          <div id="geolocalizacao_captura_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
+          <div id="geolocalizacao_captura" class="d-grid gap-2"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="latitude_captura"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="longitude_captura"></div>
+        </div>
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Situação Operacional</h5>
+        <p class="text-muted mb-0">Indicadores clínicos e execução do manejo.</p>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Importância médica?</label>
+        <select name="importancia_medica" class="form-select">
+          <option value="false" {% if not request_data.importancia_medica %}selected{% endif %}>Não</option>
+          <option value="true" {% if request_data.importancia_medica %}selected{% endif %}>Sim</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="realizado_manejo">Manejo realizado?</label>
+        <select id="realizado_manejo" name="realizado_manejo" class="form-select">
+          <option value="false" {% if not request_data.realizado_manejo %}selected{% endif %}>Não</option>
+          <option value="true" {% if request_data.realizado_manejo %}selected{% endif %}>Sim</option>
+        </select>
+      </div>
+      <div class="col-md-4 js-toggle-field" data-toggle-source="realizado_manejo">
+        <label class="form-label">Responsável pelo manejo</label>
+        <select name="responsavel_manejo" class="form-select">
+          <option value="">Selecione</option>
+          {% for item in bc_options %}
+          <option value="{{ item.chave }}" {% if request_data.responsavel_manejo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12 pt-3 js-toggle-field" data-toggle-source="realizado_manejo">
+        <h5 class="mb-1">Soltura</h5>
+        <p class="text-muted mb-0">Destino, imagens e geolocalização quando o manejo foi realizado.</p>
+      </div>
+      <div class="col-md-6 js-toggle-field" data-toggle-source="realizado_manejo">
+        <label class="form-label">Área de soltura</label>
+        <select id="area_soltura" name="area_soltura" class="form-select" data-locais-url="{% url 'reportos:manejo_api_locais' %}">
+          <option value="">Selecione</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if request_data.area_soltura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6 js-toggle-field" data-toggle-source="realizado_manejo">
+        <label class="form-label">Local de soltura</label>
+        <select id="local_soltura" name="local_soltura" class="form-select" data-selected-value="{{ request_data.local_soltura }}">
+          <option value="">Selecione</option>
+          {% for item in local_soltura_options %}
+          <option value="{{ item.chave }}" {% if request_data.local_soltura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 js-toggle-field" data-toggle-source="realizado_manejo">
+        <label class="form-label">Descrição do local de soltura</label>
+        <textarea name="descricao_local_soltura" class="form-control" rows="3">{{ request_data.descricao_local_soltura }}</textarea>
+      </div>
+      <div class="col-12 js-toggle-field" data-toggle-source="realizado_manejo">
+        <div id="foto_soltura_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Fotos e Lista de Imagens da Soltura</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="file" id="foto_soltura" name="foto_soltura" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_soltura_panel">
+              <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="foto_soltura">
+                <i class="fas fa-camera me-2"></i>Abrir câmera
+              </button>
+              <div class="small text-muted mt-2" id="foto_soltura_status">Nenhum ficheiro selecionado</div>
+              <div class="invalid-feedback d-block field-error d-none" data-field-error="foto_soltura"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Fotos de soltura</div>
+              {% if manejo.fotos_soltura %}
+              <div class="small text-muted mb-2">Já registradas</div>
+              <div class="d-grid gap-2 mb-3 js-existing-photo-list">
+                {% for foto in manejo.fotos_soltura %}
+                <div class="small border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-3 js-existing-photo-row" data-photo-id="{{ foto.id }}">
+                  <a href="{% url 'reportos:manejo_foto_view' manejo.id foto.id %}" target="_blank" rel="noopener" class="text-truncate text-decoration-none d-block flex-grow-1">
+                    {{ foto.nome_arquivo }}
+                  </a>
+                  <button type="button" class="btn btn-sm btn-label-danger" data-remove-existing-photo="true" data-hidden-name="foto_soltura_delete" data-photo-id="{{ foto.id }}">X</button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <div class="small text-muted mb-2">Novas fotos</div>
+              <div id="lista_fotos_soltura_vazia" class="detail-note-box">Nenhuma foto capturada ainda.</div>
+              <div id="lista_fotos_soltura" class="d-grid gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 js-toggle-field" data-toggle-source="realizado_manejo">
+        <div class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Geolocalização da Soltura</div>
+          <input type="hidden" id="latitude_soltura" name="latitude_soltura" value="{{ request_data.latitude_soltura }}">
+          <input type="hidden" id="longitude_soltura" name="longitude_soltura" value="{{ request_data.longitude_soltura }}">
+          <div id="geolocalizacao_soltura_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
+          <div id="geolocalizacao_soltura" class="d-grid gap-2"></div>
+        </div>
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Órgão Público</h5>
+        <p class="text-muted mb-0">Acionamento institucional vinculado ao manejo.</p>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="acionado_orgao_publico">Acionou órgão público?</label>
+        <select id="acionado_orgao_publico" name="acionado_orgao_publico" class="form-select">
+          <option value="false" {% if not request_data.acionado_orgao_publico %}selected{% endif %}>Não</option>
+          <option value="true" {% if request_data.acionado_orgao_publico %}selected{% endif %}>Sim</option>
+        </select>
+      </div>
+      <div class="col-md-4 js-toggle-field" data-toggle-source="acionado_orgao_publico">
+        <label class="form-label">Órgão público</label>
+        <input type="text" name="orgao_publico" class="form-control" value="{{ request_data.orgao_publico }}">
+      </div>
+      <div class="col-md-4 js-toggle-field" data-toggle-source="acionado_orgao_publico">
+        <label class="form-label">Número do boletim de ocorrência</label>
+        <input type="text" name="numero_boletim_ocorrencia" class="form-control" value="{{ request_data.numero_boletim_ocorrencia }}">
+      </div>
+      <div class="col-12 js-toggle-field" data-toggle-source="acionado_orgao_publico">
+        <label class="form-label">Motivo do acionamento</label>
+        <textarea name="motivo_acionamento" class="form-control" rows="3">{{ request_data.motivo_acionamento }}</textarea>
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Observações</h5>
+        <p class="text-muted mb-0">Informações complementares do manejo.</p>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observações</label>
+        <textarea name="observacoes" class="form-control" rows="4">{{ request_data.observacoes }}</textarea>
+      </div>
+
+      <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <a href="{% url 'reportos:manejo_view' manejo.id %}" class="btn btn-label-info">Voltar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/manejo-form.js' %}"></script>
+{% endblock %}

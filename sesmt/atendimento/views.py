@@ -923,8 +923,9 @@ def atendimento_edit(request, pk):
 
 @login_required
 def atendimento_export(request):
+    params = request.POST if request.method == "POST" else request.GET
     queryset = _sesmt_base_qs(ControleAtendimento).select_related("pessoa", "contato", "acompanhante_pessoa", "criado_por", "modificado_por").order_by("-data_atendimento", "-id")
-    queryset, data_inicio, data_fim = _filter_export_period(queryset, "data_atendimento", request)
+    queryset, filters = _apply_atendimento_filters(queryset, params)
 
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
@@ -936,7 +937,9 @@ def atendimento_export(request):
         'sesmt/atendimento/export.html',
         {
             "total_atendimentos": queryset.count(),
-            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+            "request_data": {"formato": "xlsx", **filters},
+            "tipo_ocorrencia_options": TIPO_OCORRENCIA_OPTIONS,
+            "area_options": AREA_OPTIONS,
         },
     )
 
@@ -946,7 +949,7 @@ def api_atendimento_export(request):
     if request.method != "POST":
         return api_method_not_allowed()
     queryset = _sesmt_base_qs(ControleAtendimento).select_related("pessoa", "contato", "acompanhante_pessoa", "criado_por", "modificado_por").order_by("-data_atendimento", "-id")
-    queryset, _, _ = _filter_export_period(queryset, "data_atendimento", request)
+    queryset, _ = _apply_atendimento_filters(queryset, request.POST)
     formato = (request.POST.get("formato") or "").strip().lower()
     formato = formato if formato in {"xlsx", "csv"} else "xlsx"
     return _build_atendimento_export_response(request, queryset, formato)

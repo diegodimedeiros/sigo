@@ -25,15 +25,18 @@ def can_access_namespace(user: User, namespace: str) -> bool:
     if user.is_superuser:
         return True
 
-    # Access policy is active only for SIOP and SESMT at this stage.
+    # Access policy is active for SIOP, SESMT and ReportOS.
     groups = user_group_names(user)
     has_siop = GROUP_SIOP in groups
     has_sesmt = GROUP_SESMT in groups
+    has_reportos = GROUP_REPORTOS in groups
 
     if namespace == "siop":
         return has_siop
     if namespace == "sesmt":
         return has_sesmt
+    if namespace == "reportos":
+        return has_reportos
 
     # Keep other namespaces unrestricted for now.
     return True

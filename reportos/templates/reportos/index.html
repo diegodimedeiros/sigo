@@ -1,33 +1,165 @@
 {% extends "reportos/base.html" %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .reportos-overview-card {
+    border: 0;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.09);
+  }
+
+  .reportos-module-card {
+    border: 0;
+    border-radius: 20px;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .reportos-module-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 44px rgba(15, 23, 42, 0.12);
+  }
+
+  .reportos-module-link {
+    color: inherit;
+  }
+
+  .reportos-module-link:hover {
+    color: inherit;
+  }
+
+  .reportos-module-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+
+  .reportos-module-icon.is-atendimento {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+
+  .reportos-module-icon.is-manejo {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  .reportos-module-icon.is-flora {
+    background: #fef3c7;
+    color: #f59e0b;
+  }
+
+  .reportos-module-icon.is-himenopteros {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  .reportos-module-kicker {
+    color: #475569;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .reportos-module-title {
+    color: #0f172a;
+    font-weight: 700;
+    font-size: clamp(1.6rem, 1.2rem + 0.9vw, 1.85rem);
+    line-height: 1.1;
+  }
+
+  .reportos-status-card {
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+  }
+
+  .reportos-status-label {
+    color: #475569;
+    font-weight: 500;
+  }
+
+  .reportos-overview-subtitle {
+    color: #475569;
+    font-size: 1.15rem;
+  }
+</style>
+{% endblock %}
+
 {% block reportos_content %}
+<div class="card reportos-overview-card mb-4">
+  <div class="card-body p-4 p-lg-5">
+    <h4 class="mb-2">Operação em campo</h4>
+    <p class="reportos-overview-subtitle mb-4">Experiência preparada para uso online e offline, com sincronização automática quando a conexão retorna.</p>
+    <div class="row g-3">
+      <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Conectividade</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-connection-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-connection-status>Verificando...</span></div></div></div>
+      <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Worker de sincronização</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-sw-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-sw-status>Verificando...</span></div></div></div>
+      <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Fila offline</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-sync-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-sync-status>Aguardando</span></div></div></div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-4 mt-1">
-  <div class="col-md-4">
-    <a href="{% url 'reportos:atendimento_home' %}" class="text-decoration-none d-block h-100">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="mb-2">Atendimento</h5>
-          <p class="text-muted mb-0">Pasta de templates aberta para o fluxo de atendimento em campo.</p>
+  <div class="col-xl-3 col-md-6">
+    <a href="{% url 'reportos:atendimento_index' %}" class="text-decoration-none d-block h-100 reportos-module-link">
+      <div class="card reportos-module-card h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+            <div class="reportos-module-kicker">Atendimento Assistencial</div>
+            <span class="reportos-module-icon is-atendimento"><i class="fas fa-heartbeat"></i></span>
+          </div>
+          <h3 class="reportos-module-title mb-3">Triagem e assistência</h3>
+          <p class="text-muted mb-4">Registro rápido de ocorrências, primeiros socorros e evolução do atendimento.</p>
+          <span class="btn btn-label-info mt-auto align-self-start">Acessar área</span>
         </div>
       </div>
     </a>
   </div>
-  <div class="col-md-4">
-    <a href="{% url 'reportos:manejo_home' %}" class="text-decoration-none d-block h-100">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="mb-2">Manejo</h5>
-          <p class="text-muted mb-0">Pasta de templates aberta para o fluxo de fauna e manejo operacional.</p>
+  <div class="col-xl-3 col-md-6">
+    <a href="{% url 'reportos:manejo_index' %}" class="text-decoration-none d-block h-100 reportos-module-link">
+      <div class="card reportos-module-card h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+            <div class="reportos-module-kicker">Manejo de Fauna</div>
+            <span class="reportos-module-icon is-manejo"><i class="fas fa-paw"></i></span>
+          </div>
+          <h3 class="reportos-module-title mb-3">Resgate e soltura</h3>
+          <p class="text-muted mb-4">Controle de captura, transporte, soltura e evidências operacionais em campo.</p>
+          <span class="btn btn-label-info mt-auto align-self-start">Acessar área</span>
         </div>
       </div>
     </a>
   </div>
-  <div class="col-md-4">
-    <a href="{% url 'reportos:flora_home' %}" class="text-decoration-none d-block h-100">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="mb-2">Flora</h5>
-          <p class="text-muted mb-0">Pasta de templates aberta para o fluxo de registro ambiental de flora.</p>
+  <div class="col-xl-3 col-md-6">
+    <a href="{% url 'reportos:flora_index' %}" class="text-decoration-none d-block h-100 reportos-module-link">
+      <div class="card reportos-module-card h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+            <div class="reportos-module-kicker">Gestão de Flora</div>
+            <span class="reportos-module-icon is-flora"><i class="fas fa-leaf"></i></span>
+          </div>
+          <h3 class="reportos-module-title mb-3">Monitoramento vegetal</h3>
+          <p class="text-muted mb-4">Cadastros e acompanhamento das rotinas de inspeção e manutenção ambiental.</p>
+          <span class="btn btn-label-info mt-auto align-self-start">Acessar área</span>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <a href="{% url 'reportos:himenopteros_index' %}" class="text-decoration-none d-block h-100 reportos-module-link">
+      <div class="card reportos-module-card h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+            <div class="reportos-module-kicker">Monitor de Himenópteros</div>
+            <span class="reportos-module-icon is-himenopteros"><i class="fas fa-bug"></i></span>
+          </div>
+          <h3 class="reportos-module-title mb-3">Risco e inspeção</h3>
+          <p class="text-muted mb-4">Avaliação de risco, registro de evidências e encaminhamento técnico da ocorrência.</p>
+          <span class="btn btn-label-info mt-auto align-self-start">Acessar área</span>
         </div>
       </div>
     </a>

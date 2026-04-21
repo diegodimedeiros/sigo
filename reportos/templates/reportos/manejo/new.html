@@ -1,0 +1,165 @@
+{% extends 'reportos/manejo/base.html' %}
+{% load static %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Novo Registro de Manejo</h1>
+        <p class="mb-0 text-muted">Cadastro operacional para registro da captura inicial, geolocalização e evidências do manejo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-title">Formulário de registro</div></div>
+  <div class="card-body">
+    <form
+      id="manejo-form"
+      method="post"
+      enctype="multipart/form-data"
+      data-async-form="true"
+      data-api-url="{% url 'reportos:api_manejo' %}"
+      class="row g-4"
+    >
+      {% csrf_token %}
+      <div class="alert alert-danger d-none js-form-feedback"></div>
+
+      <div class="col-12">
+        <h5 class="mb-1">Dados do Manejo</h5>
+        <p class="text-muted mb-0">Identificação da fauna, data do registro e contexto inicial do manejo.</p>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Data e Hora do Registro</label>
+        <input type="datetime-local" id="manejo-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Classe</label>
+        <select id="classe" name="classe" class="form-select" data-especies-url="{% url 'reportos:manejo_api_especies' %}" required>
+          <option value="">Selecione</option>
+          {% for item in classe_options %}
+          <option value="{{ item.chave }}" {% if request_data.classe == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Nome popular</label>
+        <select id="nome_popular" name="nome_popular" class="form-select" data-selected-value="{{ request_data.nome_popular }}" required>
+          <option value="">Selecione</option>
+          {% for item in nome_popular_options %}
+          <option value="{{ item.chave }}" {% if request_data.nome_popular == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nome científico</label>
+        <input type="text" name="nome_cientifico" class="form-control" value="{{ request_data.nome_cientifico }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Estágio de desenvolvimento</label>
+        <input type="text" name="estagio_desenvolvimento" class="form-control" value="{{ request_data.estagio_desenvolvimento }}">
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Captura</h5>
+        <p class="text-muted mb-0">Área, local, fotos e geolocalização do ponto de captura.</p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Área de captura</label>
+        <select id="area_captura" name="area_captura" class="form-select" data-locais-url="{% url 'reportos:manejo_api_locais' %}" required>
+          <option value="">Selecione</option>
+          {% for item in area_options %}
+          <option value="{{ item.chave }}" {% if request_data.area_captura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Local de captura</label>
+        <select id="local_captura" name="local_captura" class="form-select" data-selected-value="{{ request_data.local_captura }}" required>
+          <option value="">Selecione</option>
+          {% for item in local_captura_options %}
+          <option value="{{ item.chave }}" {% if request_data.local_captura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descrição do local</label>
+        <textarea name="descricao_local" class="form-control" rows="3">{{ request_data.descricao_local }}</textarea>
+      </div>
+      <div class="col-12">
+        <div id="foto_captura_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Fotos e Lista de Imagens da Captura</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="file" id="foto_captura" name="foto_captura" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_captura_panel" required>
+              <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="foto_captura">
+                <i class="fas fa-camera me-2"></i>Abrir câmera
+              </button>
+              <div class="small text-muted mt-2" id="foto_captura_status">Nenhum ficheiro selecionado</div>
+              <div class="invalid-feedback d-block field-error d-none" data-field-error="foto_captura"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Fotos de captura</div>
+              <div id="lista_fotos_captura_vazia" class="detail-note-box">Nenhuma foto capturada ainda.</div>
+              <div id="lista_fotos_captura" class="d-grid gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div id="geolocalizacao_captura_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
+          <div class="fw-semibold mb-3">Geolocalização da Captura</div>
+          <input type="hidden" id="latitude_captura" name="latitude_captura" value="{{ request_data.latitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel" required>
+          <input type="hidden" id="longitude_captura" name="longitude_captura" value="{{ request_data.longitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel" required>
+          <div id="geolocalizacao_captura_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
+          <div id="geolocalizacao_captura" class="d-grid gap-2"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="latitude_captura"></div>
+          <div class="invalid-feedback d-block field-error d-none" data-field-error="longitude_captura"></div>
+        </div>
+      </div>
+
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Situação Inicial</h5>
+        <p class="text-muted mb-0">Dados complementares da abertura. A finalização do manejo acontece na edição do chamado.</p>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Importância médica?</label>
+        <select name="importancia_medica" class="form-select">
+          <option value="false" {% if not request_data.importancia_medica %}selected{% endif %}>Não</option>
+          <option value="true" {% if request_data.importancia_medica %}selected{% endif %}>Sim</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Responsável pelo manejo</label>
+        <select name="responsavel_manejo" class="form-select">
+          <option value="">Selecione</option>
+          {% for item in bc_options %}
+          <option value="{{ item.chave }}" {% if request_data.responsavel_manejo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 pt-3">
+        <h5 class="mb-1">Observações</h5>
+        <p class="text-muted mb-0">Informações complementares do manejo.</p>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observações</label>
+        <textarea name="observacoes" class="form-control" rows="4">{{ request_data.observacoes }}</textarea>
+      </div>
+
+      <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+        <button type="submit" class="btn btn-primary">Abrir manejo</button>
+        <a href="{% url 'reportos:manejo_index' %}" class="btn btn-label-info">Voltar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/siop/async-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/manejo-form.js' %}"></script>
+{% endblock %}

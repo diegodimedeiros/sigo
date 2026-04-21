@@ -1,0 +1,55 @@
+{% extends 'reportos/himenopteros/base.html' %}
+{% load static %}
+
+{% block title %}Monitor Himenóptero #{{ registro.id }} | ReportOS{% endblock %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content">
+      <div>
+        <h1 class="h3 mb-2">Registro #{{ registro.id }}</h1>
+        <p class="mb-0 text-muted">Leitura completa do registro, contexto técnico, evidências e auditoria.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Resumo do registro</div></div>
+      <div class="card-body" id="himenopteros-view-content" data-api-url="{% url 'reportos:api_himenopteros_detail' registro.id %}">
+        <div class="text-muted">Carregando resumo do registro...</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fotos</div></div>
+      <div class="card-body" id="himenopteros-evidence-content">
+        <div class="text-muted">Carregando evidências...</div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Auditoria</div></div>
+      <div class="card-body" id="himenopteros-audit-content">
+        <div class="text-muted">Carregando auditoria...</div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-header"><div class="card-title">Ações rápidas</div></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'reportos:himenopteros_edit' registro.id %}" class="btn btn-primary">Editar</a>
+        <a href="{% url 'reportos:himenopteros_list' %}" class="btn btn-label-info">Voltar</a>
+        <a href="{% url 'reportos:himenopteros_index' %}" class="btn btn-label-secondary">Início do módulo</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'sigo/assets/js/sesmt/himenopteros-view.js' %}"></script>
+{% endblock %}

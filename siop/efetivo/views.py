@@ -115,9 +115,33 @@ def efetivo_edit(request, pk):
 def efetivo_export(request):
     queryset = ControleEfetivo.objects.order_by("-modificado_em", "-id")
     queryset, data_inicio, data_fim = _filter_export_period(queryset, "criado_em", request)
+    params = request.POST if request.method == "POST" else request.GET
+    plantao = (params.get("plantao") or "").strip()
+    posto = (params.get("posto") or "").strip()
+    responsavel = (params.get("responsavel") or "").strip()
+    observacao = (params.get("observacao") or "").strip()
+
+    posto_options = [(field_name, label) for field_name, label, _required in EFETIVO_FIELDS if field_name != "plantao"]
+    posto_fields = [field_name for field_name, _label, _required in EFETIVO_FIELDS]
+
+    if plantao:
+        queryset = queryset.filter(plantao__icontains=plantao)
+    if responsavel:
+        if posto and posto in dict(posto_options):
+            queryset = queryset.filter(**{f"{posto}__icontains": responsavel})
+        else:
+            responsavel_filters = Q()
+            for field_name in posto_fields:
+                responsavel_filters |= Q(**{f"{field_name}__icontains": responsavel})
+            queryset = queryset.filter(responsavel_filters)
+    if observacao == "com":
+        queryset = queryset.filter(observacao__isnull=False).exclude(observacao__exact="")
+    elif observacao == "sem":
+        queryset = queryset.filter(Q(observacao__isnull=True) | Q(observacao__exact=""))
+
     if request.method == "POST":
         return _export_queryset_response(request, queryset, formato=_normalize_export_formato(request.POST.get("formato")), filename_prefix="efetivo", sheet_title="Efetivo", document_title="Relatório do Efetivo", document_subject="Exportação geral do Efetivo", headers=["ID", "Criado em", "Plantão", "Atendimento", "Bilheteria", "BC1", "BC2", "CIOP", "Facilities", "Manutenção", "Observação", "Criado por", "Modificado em", "Modificado por"], row_getters=[lambda item: item.id, lambda item: fmt_dt(item.criado_em), lambda item: item.plantao, lambda item: item.atendimento, lambda item: item.bilheteria, lambda item: item.bombeiro_civil, lambda item: item.bombeiro_civil_2, lambda item: item.ciop, lambda item: item.facilities, lambda item: item.manutencao, lambda item: item.observacao, lambda item: user_display(getattr(item, "criado_por", None)), lambda item: fmt_dt(item.modificado_em), lambda item: user_display(getattr(item, "modificado_por", None))], base_col_widths=[28, 58, 55, 70, 70, 70, 70, 65, 65, 70, 70, 58, 70, 90], nowrap_indices={0, 1, 11})
-    return _render_export_page(request, "siop/efetivo/export.html", {"area_title": "Exportação do Efetivo", "area_description": "Gere a exportação consolidada da composição operacional registrada.", "total_registros": queryset.count(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}})
+    return _render_export_page(request, "siop/efetivo/export.html", {"area_title": "Exportação do Efetivo", "area_description": "Gere a exportação consolidada da composição operacional registrada.", "total_registros": queryset.count(), "posto_options": posto_options, "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "plantao": plantao, "posto": posto, "responsavel": responsavel, "observacao": observacao}})
 
 
 @login_required

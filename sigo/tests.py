@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sigo.models import ConfiguracaoSistema, Notificacao, Operador, Unidade
-from sigo.access import allowed_notification_modules
+from sigo.access import allowed_notification_modules, can_access_namespace
 
 
 User = get_user_model()
@@ -135,6 +135,32 @@ class NotificationAccessPolicyTests(TestCase):
         allowed = allowed_notification_modules(user)
 
         self.assertEqual(allowed, {"", "sigo", "siop"})
+
+
+class ModuleNamespaceAccessPolicyTests(TestCase):
+    def test_reportos_group_can_access_reportos_namespace(self):
+        user = User.objects.create_user(username="com_reportos", password="SenhaForte123!")
+        group = Group.objects.create(name="group_reportos")
+        user.groups.add(group)
+
+        self.assertTrue(can_access_namespace(user, "reportos"))
+        self.assertFalse(can_access_namespace(user, "siop"))
+        self.assertFalse(can_access_namespace(user, "sesmt"))
+
+    def test_user_without_reportos_group_is_blocked_in_reportos_namespace(self):
+        user = User.objects.create_user(username="somente_sesmt", password="SenhaForte123!")
+        group = Group.objects.create(name="group_sesmt")
+        user.groups.add(group)
+
+        self.assertFalse(can_access_namespace(user, "reportos"))
+
+    def test_reportos_home_returns_403_without_reportos_group(self):
+        user = User.objects.create_user(username="sem_reportos", password="SenhaForte123!")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("reportos:home"))
+
+        self.assertEqual(response.status_code, 403)
 
 
 class NotificationFlowTests(TestCase):

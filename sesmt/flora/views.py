@@ -537,8 +537,9 @@ def flora_edit(request, pk):
 
 @login_required
 def flora_export(request):
+    params = request.POST if request.method == "POST" else request.GET
     queryset = _sesmt_base_qs(Flora).select_related("criado_por", "modificado_por").order_by("-data_hora_inicio", "-id")
-    queryset, data_inicio, data_fim = _filter_export_period(queryset, "data_hora_inicio", request)
+    queryset, filters = _apply_flora_filters(queryset, params)
     if request.method == "POST":
         formato = (request.POST.get("formato") or "").strip().lower()
         formato = formato if formato in {"xlsx", "csv"} else "xlsx"
@@ -548,7 +549,8 @@ def flora_export(request):
         'sesmt/flora/export.html',
         {
             "total_floras": queryset.count(),
-            "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim},
+            "request_data": {"formato": "xlsx", **filters},
+            "area_options": AREA_OPTIONS,
         },
     )
 
@@ -643,7 +645,7 @@ def api_flora_export(request):
     if request.method != "POST":
         return api_method_not_allowed()
     queryset = _sesmt_base_qs(Flora).select_related("criado_por", "modificado_por").order_by("-data_hora_inicio", "-id")
-    queryset, _, _ = _filter_export_period(queryset, "data_hora_inicio", request)
+    queryset, _ = _apply_flora_filters(queryset, request.POST)
     formato = (request.POST.get("formato") or "").strip().lower()
     formato = formato if formato in {"xlsx", "csv"} else "xlsx"
     return _build_flora_export_response(request, queryset, formato)

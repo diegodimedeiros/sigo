@@ -30,6 +30,23 @@
               <input type="date" name="data_fim" class="form-control" value="{{ request_data.data_fim }}">
             </div>
             <div class="col-md-6">
+              <label class="form-label">Área</label>
+              <select name="area" class="form-select">
+                <option value="">Todas</option>
+                {% for opt in area_options %}
+                <option value="{{ opt.chave }}" {% if request_data.area == opt.chave %}selected{% endif %}>{{ opt.valor }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select">
+                <option value="">Todos</option>
+                <option value="andamento" {% if request_data.status == 'andamento' %}selected{% endif %}>Em andamento</option>
+                <option value="finalizado" {% if request_data.status == 'finalizado' %}selected{% endif %}>Finalizado</option>
+              </select>
+            </div>
+            <div class="col-md-6">
               <div class="fw-semibold mb-2">Identificação</div>
               <ul class="mb-0 ps-3">
                 <li>ID do registro</li>

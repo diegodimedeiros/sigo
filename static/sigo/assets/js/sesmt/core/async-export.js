@@ -47,6 +47,17 @@
 
         var submitButton = resolveSubmitButton(form);
         var originalText = submitButton ? submitButton.textContent : "";
+        var requestPromise = null;
+
+        function restoreButton() {
+          if (!submitButton) {
+            return;
+          }
+          submitButton.disabled = false;
+          if (originalText.trim()) {
+            submitButton.textContent = originalText;
+          }
+        }
 
         if (submitButton) {
           submitButton.disabled = true;
@@ -55,14 +66,27 @@
           }
         }
 
-        window
-          .fetch(apiUrl, {
+        if (typeof window.fetch !== "function") {
+          restoreButton();
+          form.submit();
+          return;
+        }
+
+        try {
+          requestPromise = window.fetch(apiUrl, {
             method: "POST",
             body: new FormData(form),
             headers: {
               "X-Requested-With": "XMLHttpRequest"
             }
-          })
+          });
+        } catch (error) {
+          restoreButton();
+          form.submit();
+          return;
+        }
+
+        requestPromise
           .then(function (response) {
             if (!response.ok) {
               throw new Error("Falha ao exportar.");
@@ -79,12 +103,7 @@
             window.alert("Não foi possível gerar a exportação.");
           })
           .finally(function () {
-            if (submitButton) {
-              submitButton.disabled = false;
-              if (originalText.trim()) {
-                submitButton.textContent = originalText;
-              }
-            }
+            restoreButton();
           });
       });
     }

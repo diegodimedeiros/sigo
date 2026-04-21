@@ -195,6 +195,24 @@ def acesso_colaboradores_export(request):
     if unidade:
         queryset = queryset.filter(unidade=unidade)
     queryset, data_inicio, data_fim = _filter_export_period(queryset, "entrada", request)
+    params = request.POST if request.method == "POST" else request.GET
+    status = (params.get("status") or "").strip()
+    p1 = (params.get("p1") or "").strip()
+    nome = (params.get("nome") or "").strip()
+    documento = (params.get("documento") or "").strip()
+    placa_veiculo = (params.get("placa_veiculo") or "").strip()
+    if status == "em_aberto":
+        queryset = queryset.filter(saida__isnull=True)
+    elif status == "concluido":
+        queryset = queryset.filter(saida__isnull=False)
+    if p1:
+        queryset = queryset.filter(p1=p1)
+    if nome:
+        queryset = queryset.filter(pessoa__nome__icontains=nome)
+    if documento:
+        queryset = queryset.filter(pessoa__documento__icontains=documento)
+    if placa_veiculo:
+        queryset = queryset.filter(placa_veiculo__icontains=placa_veiculo)
     if request.method == "POST":
         headers = ["ID", "Entrada", "Saída", "Pessoa", "Placa", "P1", "Unidade", "Status", "Descrição", "Criado em", "Criado por", "Modificado em", "Modificado por"]
         row_getters = [
@@ -215,7 +233,7 @@ def acesso_colaboradores_export(request):
         if _normalize_export_formato(request.POST.get("formato")) == "csv":
             return export_generic_csv(request, queryset, filename_prefix="acesso_colaboradores", headers=headers, row_getters=row_getters)
         return export_generic_excel(request, queryset, filename_prefix="acesso_colaboradores", sheet_title="Acesso Colaboradores", document_title="Relatório de Acesso de Colaboradores", document_subject="Exportação geral de Acesso de Colaboradores", headers=headers, row_getters=row_getters)
-    return _render_export_page(request, "siop/acesso_colaboradores/export.html", {"area_title": "Exportação de Acesso de Colaboradores", "area_description": "Gere a exportação consolidada das entradas, saídas e vínculos dos colaboradores.", "total_acessos": queryset.count(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim}})
+    return _render_export_page(request, "siop/acesso_colaboradores/export.html", {"area_title": "Exportação de Acesso de Colaboradores", "area_description": "Gere a exportação consolidada das entradas, saídas e vínculos dos colaboradores.", "total_acessos": queryset.count(), "p1_responsaveis": catalogo_p1_data(), "request_data": {"formato": "xlsx", "data_inicio": data_inicio, "data_fim": data_fim, "status": status, "p1": p1, "nome": nome, "documento": documento, "placa_veiculo": placa_veiculo}})
 
 
 @login_required

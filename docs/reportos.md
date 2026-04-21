@@ -2,82 +2,116 @@
 
 ## 1. Visão geral
 
-ReportOS é o módulo planejado para operação de campo, com evolução progressiva para uso em PWA.
+ReportOS é o módulo de operação de campo do SIGO, construído como espelho operacional do SESMT com foco em uso mobile e funcionamento offline-first.
 
-Objetivo principal:
+Objetivos atuais do módulo:
 
-- abrir base funcional do módulo sem acoplamento prematuro
-- preparar estrutura para crescimento por domínio
-- reaproveitar padrões operacionais já consolidados no sistema
+- registrar ocorrências em campo com interface simplificada
+- permitir uso com conectividade intermitente
+- reaproveitar regras de negócio já consolidadas no SESMT
+- sincronizar submissões quando a conexão retornar
 
 ## 2. Estado atual
 
-No momento, o módulo já existe na aplicação com base mínima:
+O módulo já está funcional e exposto em produção de código com:
 
 - rota própria em /reportos/
-- template dedicado
-- card no menu lateral do SIGO
+- home com cards para as áreas operacionais
+- namespace próprio no menu lateral do SIGO
+- controle de acesso por grupo group_reportos
+- Service Worker dedicado em /reportos/sw.js
 
-Situação funcional:
 
-- módulo em fase inicial de estrutura
-- sem acoplamento forte de regra de negócio
-- pronto para evolução incremental por área
+Áreas atualmente disponíveis:
 
-## 3. Base funcional de referência
+- Atendimento (formulário padronizado: required HTML + validação JS)
+- Manejo (formulário padronizado: required HTML + validação JS)
+- Flora (formulário padronizado: required HTML + validação JS)
+- Himenópteros (formulário padronizado: required HTML + validação JS)
 
-O escopo inicial foi consolidado a partir da análise do legado de Controle BC,
-Atendimento, Flora e Manejo/Fauna, já internalizado no repositório atual.
+Cada área já possui fluxo web com:
 
-## 4. Frentes funcionais iniciais
+- index
+- listagem
+- novo registro (com required HTML e validação JS nos campos obrigatórios)
+- edição
+- visualização
+- API JSON correspondente
 
-### 4.1 Atendimento
 
-Escopo inicial previsto:
+## 3. Comportamento operacional
 
-- dados da pessoa
-- contato
-- dados do atendimento
-- saúde
-- remoção e encaminhamento
-- acompanhante
-- testemunhas
-- evidências, geolocalização e assinatura
+O ReportOS reutiliza a lógica de negócio do SESMT, adaptando URLs, templates e comportamento de interface para contexto de campo.
+Todos os formulários bloqueiam o envio caso campos obrigatórios estejam vazios, tanto online quanto offline, via required HTML e validação JS, garantindo isonomia e robustez.
 
-### 4.2 Flora
+Situação das exportações no ReportOS:
 
-Escopo inicial previsto:
+- exportações foram desativadas por decisão funcional
+- botões de exportar foram substituídos por voltar nas telas do módulo
+- endpoints de export API retornam indisponível
+- exportação PDF por registro redireciona para a visualização com aviso
 
-- data e hora do registro
-- área e local
-- ação inicial
-- medição básica
-- descrição
-- foto antes e depois
-- geolocalização
+## 4. Recursos offline/PWA
 
-### 4.3 Fauna
+Recursos já implementados:
 
-Escopo inicial previsto:
+- manifest próprio do ReportOS
+- registro de Service Worker com escopo /reportos/
+- cache de assets estáticos
+- NetworkFirst para navegação nas rotas do módulo
+- fallback offline para páginas não disponíveis em cache
+- warm-up das rotas principais após sessão autenticada
+- background sync para POSTs em /reportos/api/ e /sesmt/api/
+- cache offline dos catálogos consumidos pelos formulários
+- pré-carregamento do endpoint /reportos/api/catalogos/
 
-- classe taxonômica
-- espécie e nome popular
-- área e local de captura
-- soltura
-- acionamento institucional
-- evidências e geolocalização
+Catálogos offline atualmente cobertos:
 
-## 5. Padrão arquitetural alvo
+- locais por área
+- espécies por classe para manejo
 
-A evolução do módulo deve seguir o padrão oficial em docs/padrao_create_module_project.md:
+Os formulários de Atendimento, Flora, Manejo e Himenópteros consultam o cache de catálogos do ReportOS antes de depender de requisições parametrizadas.
 
-- estrutura por área
-- fluxo web index/list/new/edit/view/export
-- APIs com contrato estável para fetch
-- separação em views, services, query, serializers e support
+## 5. Evidências, mídia e geolocalização
 
-## 6. Próximos passos
+O módulo já carrega os scripts compartilhados necessários para operação em campo:
 
-- iniciar primeira área operacional com o padrão oficial completo
-- validar contrato API e fluxo de listagem assíncrona
-- ampliar cobertura de testes a cada área incorporada
+- gerenciamento de fotos
+- captura de geolocalização
+- envio assíncrono de formulários
+
+Cobertura funcional atual:
+
+- upload de fotos em formulários do ReportOS
+- geolocalização em formulários compatíveis
+- tratamento resiliente no formulário de Himenópteros para não abortar inicialização quando catálogo falhar
+
+## 6. Arquitetura adotada
+
+O ReportOS segue o padrão de espelhamento do SESMT:
+
+- views do ReportOS orquestram renderização, rotas e adaptação de URLs
+- regras de domínio continuam concentradas no SESMT
+- serialização de detalhes/listagens é reaproveitada e ajustada para URLs do namespace reportos
+- templates e JavaScript são especializados para uso em campo
+
+## 7. Validação atual
+
+Cobertura mínima automatizada já existente:
+
+- renderização da home do módulo
+- renderização das quatro subáreas
+- renderização dos formulários novos
+- resposta da API agregada de catálogos offline
+
+Observação:
+
+- ainda é recomendável validação manual em navegador para cenários offline reais, especialmente após atualização de Service Worker
+
+## 8. Pendências
+
+Pendências restantes conhecidas:
+
+- versionar melhor os caches do Service Worker para evitar conteúdo obsoleto em rollout futuro
+- ampliar cobertura de testes para cenários offline e fluxo de catálogos em navegador
+- executar validação operacional completa online/offline nas rotas críticas em dispositivo móvel

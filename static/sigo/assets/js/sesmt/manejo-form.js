@@ -1,8 +1,37 @@
 (function () {
   function requestCatalog(url, queryParam, queryValue) {
+    if (window.ReportosCatalogos && (queryParam === "area" || queryParam === "classe")) {
+      var catalogPromise = queryParam === "classe"
+        ? window.ReportosCatalogos.getEspeciesAsync(queryValue)
+        : window.ReportosCatalogos.getLocaisAsync(queryValue);
+      return catalogPromise.then(function (cached) {
+        if (cached !== null) {
+          var dataKey = queryParam === "classe" ? "especies" : "locais";
+          var resData = {};
+          resData[dataKey] = cached;
+          return { ok: true, data: resData };
+        }
+
+        var fetchFn = (window.SigoCsrf && typeof window.SigoCsrf.fetch === "function")
+          ? window.SigoCsrf.fetch.bind(window.SigoCsrf)
+          : window.fetch.bind(window);
+        var fullUrl = new URL(url, window.location.origin);
+        fullUrl.searchParams.set(queryParam, queryValue);
+        return fetchFn(fullUrl.toString(), {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function (response) {
+          if (!response.ok) throw new Error("Falha ao carregar catálogo.");
+          return response.json();
+        });
+      });
+    }
+
+    var fetchFn = (window.SigoCsrf && typeof window.SigoCsrf.fetch === "function")
+      ? window.SigoCsrf.fetch.bind(window.SigoCsrf)
+      : window.fetch.bind(window);
     var fullUrl = new URL(url, window.location.origin);
     fullUrl.searchParams.set(queryParam, queryValue);
-    return window.SigoCsrf.fetch(fullUrl.toString(), {
+    return fetchFn(fullUrl.toString(), {
       headers: { "X-Requested-With": "XMLHttpRequest" }
     }).then(function (response) {
       if (!response.ok) throw new Error("Falha ao carregar catálogo.");
@@ -185,6 +214,97 @@
         syncToggleFields();
       });
     }
+
+    // Validação required frontend (espelhando regras do backend)
+    form.addEventListener("submit", function (event) {
+      var errors = [];
+      var firstInvalid = null;
+      function markInvalidByName(name, msg) {
+        var el = form.querySelector('[name="' + name + '"]');
+        if (!el) return;
+        el.classList.add("is-invalid");
+        var msgNode = document.createElement("div");
+        msgNode.className = "invalid-feedback";
+        msgNode.textContent = msg;
+        if (el.nextSibling) el.parentNode.insertBefore(msgNode, el.nextSibling);
+        else el.parentNode.appendChild(msgNode);
+        if (!firstInvalid) firstInvalid = el;
+      }
+      function valByName(name) {
+        var el = form.querySelector('[name="' + name + '"]');
+        return el && el.value ? el.value.trim() : "";
+      }
+      // Limpa marcações antigas
+      form.querySelectorAll(".is-invalid").forEach(function (el) { el.classList.remove("is-invalid"); });
+      form.querySelectorAll(".invalid-feedback").forEach(function (el) { el.remove(); });
+
+      // Data/hora obrigatória
+      if (!valByName("data_hora")) { errors.push("Informe a data/hora do manejo."); markInvalidByName("data_hora", "Campo obrigatório"); }
+
+      // Classe obrigatória
+      if (!valByName("classe")) { errors.push("Selecione a classe."); markInvalidByName("classe", "Campo obrigatório"); }
+
+      // Nome popular obrigatório
+      if (!valByName("nome_popular")) { errors.push("Selecione o nome popular."); markInvalidByName("nome_popular", "Campo obrigatório"); }
+
+      // Área de captura obrigatória
+      if (!valByName("area_captura")) { errors.push("Selecione a área de captura."); markInvalidByName("area_captura", "Campo obrigatório"); }
+
+      // Local de captura obrigatório
+      if (!valByName("local_captura")) { errors.push("Selecione o local de captura."); markInvalidByName("local_captura", "Campo obrigatório"); }
+
+      // Descrição do local obrigatória
+      if (!valByName("descricao_local")) { errors.push("Informe a descrição do local."); markInvalidByName("descricao_local", "Campo obrigatório"); }
+
+      // Foto de captura obrigatória
+      var fotosInput = document.getElementById("foto_captura");
+      var fotosList = document.querySelectorAll("#lista_fotos_captura .js-existing-photo-row");
+      if ((!fotosInput || !fotosInput.files || fotosInput.files.length === 0) && fotosList.length === 0) {
+        errors.push("Adicione ao menos uma foto de captura.");
+        markInvalidByName("foto_captura", "Adicione ao menos uma foto");
+      }
+
+      // Latitude e longitude de captura obrigatórios
+      if (!valByName("latitude_captura")) { errors.push("Informe a latitude da captura."); markInvalidByName("latitude_captura", "Campo obrigatório"); }
+      if (!valByName("longitude_captura")) { errors.push("Informe a longitude da captura."); markInvalidByName("longitude_captura", "Campo obrigatório"); }
+
+      // Se realizado manejo, validar campos de soltura
+      var realizado = form.querySelector('[name="realizado_manejo"]');
+      if (realizado && (realizado.checked || realizado.value === "true" || realizado.value === "1")) {
+        // Área de soltura obrigatória
+        if (!valByName("area_soltura")) { errors.push("Selecione a área de soltura."); markInvalidByName("area_soltura", "Campo obrigatório"); }
+        // Local de soltura obrigatória
+        if (!valByName("local_soltura")) { errors.push("Selecione o local de soltura."); markInvalidByName("local_soltura", "Campo obrigatório"); }
+        // Descrição do local de soltura obrigatória
+        if (!valByName("descricao_local_soltura")) { errors.push("Informe a descrição do local de soltura."); markInvalidByName("descricao_local_soltura", "Campo obrigatório"); }
+        // Foto de soltura obrigatória
+        var fotosSolturaInput = document.getElementById("foto_soltura");
+        var fotosSolturaList = document.querySelectorAll("#lista_fotos_soltura .js-existing-photo-row");
+        if ((!fotosSolturaInput || !fotosSolturaInput.files || fotosSolturaInput.files.length === 0) && fotosSolturaList.length === 0) {
+          errors.push("Adicione ao menos uma foto de soltura.");
+          markInvalidByName("foto_soltura", "Adicione ao menos uma foto");
+        }
+        // Latitude e longitude de soltura obrigatórios
+        if (!valByName("latitude_soltura")) { errors.push("Informe a latitude da soltura."); markInvalidByName("latitude_soltura", "Campo obrigatório"); }
+        if (!valByName("longitude_soltura")) { errors.push("Informe a longitude da soltura."); markInvalidByName("longitude_soltura", "Campo obrigatório"); }
+      }
+
+      if (errors.length) {
+        event.preventDefault();
+        if (firstInvalid && typeof firstInvalid.focus === "function") firstInvalid.focus();
+        return false;
+      }
+    });
+    // Remove marcação ao corrigir
+    form.querySelectorAll("input, select, textarea").forEach(function (el) {
+      el.addEventListener("input", function () {
+        if (el.classList.contains("is-invalid")) {
+          el.classList.remove("is-invalid");
+          var next = el.nextSibling;
+          if (next && next.classList && next.classList.contains("invalid-feedback")) next.remove();
+        }
+      });
+    });
 
     window.SesmtPhotoManager.init({
       inputId: "foto_captura",
