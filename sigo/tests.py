@@ -163,6 +163,38 @@ class ModuleNamespaceAccessPolicyTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class LogoutCleanupTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="logout_user",
+            password="SenhaForte123!",
+        )
+        self.client.force_login(self.user)
+
+    def test_authenticated_layout_exposes_logout_cleanup_hook(self):
+        response = self.client.get(reverse("sigo:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-sigo-logout="true"')
+        self.assertContains(response, "sigo/assets/js/sigo/logout-cleanup.js")
+
+    def test_login_page_runs_cleanup_on_load(self):
+        self.client.logout()
+
+        response = self.client.get(reverse("sigo:login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-sigo-cleanup-on-load="true"')
+        self.assertContains(response, "sigo/assets/js/sigo/logout-cleanup.js")
+
+    def test_logout_route_redirects_to_login_and_clears_session(self):
+        response = self.client.post(reverse("sigo:logout"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("sigo:login"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+
 class NotificationFlowTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

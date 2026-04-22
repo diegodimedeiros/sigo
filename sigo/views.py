@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.models import Group
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -41,6 +41,10 @@ class SigoLoginView(LoginView):
 
     def get_success_url(self):
         return reverse(post_login_route_name(self.request.user))
+
+
+class SigoLogoutView(LogoutView):
+    next_page = "sigo:login"
 
 
 @login_required

@@ -294,7 +294,7 @@
                         <a class="dropdown-item" href="{% url 'sigo:users_admin' %}">Painel Admin</a>
                         {% endif %}
                         <div class="dropdown-divider"></div>
-                        <form method="post" action="{% url 'sigo:logout' %}" class="m-0">
+                        <form method="post" action="{% url 'sigo:logout' %}" class="m-0" data-sigo-logout="true">
                           {% csrf_token %}
                           <button type="submit" class="dropdown-item">Sair</button>
                         </form>
@@ -332,6 +332,7 @@
     <script src="{% static 'sigo/assets/js/sigo/sigo.min.js' %}"></script>
     <script src="{% static 'sigo/assets/js/sigo/sigo-app.js' %}"></script>
     <script src="{% static 'sigo/assets/js/sigo/csrf.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/logout-cleanup.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
   </body>

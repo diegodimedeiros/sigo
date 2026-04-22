@@ -95,10 +95,22 @@
   <div class="card-body p-4 p-lg-5">
     <h4 class="mb-2">Operação em campo</h4>
     <p class="reportos-overview-subtitle mb-4">Experiência preparada para uso online e offline, com sincronização automática quando a conexão retorna.</p>
+    <div class="d-flex justify-content-end mb-3">
+      <a href="{% url 'reportos:offline_diagnostics' %}" class="btn btn-label-info">Diagnóstico offline</a>
+    </div>
     <div class="row g-3">
       <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Conectividade</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-connection-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-connection-status>Verificando...</span></div></div></div>
       <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Worker de sincronização</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-sw-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-sw-status>Verificando...</span></div></div></div>
-      <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Fila offline</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-sync-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-sync-status>Aguardando</span></div></div></div>
+      <div class="col-md-4">
+        <div class="reportos-status-card p-3 h-100">
+          <div class="small reportos-status-label">Fila offline</div>
+          <div class="fw-semibold d-flex align-items-center gap-2">
+            <i data-pwa-sync-dot class="fas fa-circle text-muted" aria-hidden="true"></i>
+            <span data-pwa-sync-status>Aguardando</span>
+          </div>
+          <div class="small text-muted mt-2" data-pwa-sync-detail>Consultando fila offline...</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

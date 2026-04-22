@@ -1,3 +1,17 @@
+# Backups e dumps de banco de dados
+*.bak
+*.backup
+*.sql
+*.dump
+
+# Configurações locais de ferramentas
+.python-version
+.tool-versions
+.env.local
+
+# Outros arquivos temporários
+*.tmp
+*.temp
 # Python
 __pycache__
 *.py[cod]

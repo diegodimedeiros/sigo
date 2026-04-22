@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from sigo.models import Assinatura, ConfiguracaoSistema, Foto, Geolocalizacao, Notificacao, Pessoa, Unidade
 from sigo_core.catalogos import catalogo_bc_data, catalogo_lista_items
+from sesmt.contracts import atendimento as atendimento_contract, flora as flora_contract, himenopteros as himenopteros_contract, manejo as manejo_contract
 from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero
 from sesmt.notificacoes import _publicar_notificacao
 
@@ -40,6 +41,24 @@ class SesmtNotificationPolicyTests(TestCase):
 
         notification = Notificacao.objects.get(modulo=Notificacao.MODULO_SESMT)
         self.assertEqual(notification.grupo, group)
+
+
+class SesmtContractsSmokeTests(TestCase):
+    def test_public_contracts_expose_expected_surface(self):
+        self.assertTrue(callable(atendimento_contract.queryset))
+        self.assertTrue(callable(atendimento_contract.apply_filters))
+        self.assertTrue(callable(atendimento_contract.save_from_payload))
+        self.assertTrue(callable(atendimento_contract.serialize_detail))
+
+        self.assertTrue(callable(manejo_contract.queryset))
+        self.assertTrue(callable(manejo_contract.build_dashboard))
+        self.assertTrue(callable(manejo_contract.manejo_api_especies))
+
+        self.assertTrue(callable(flora_contract.queryset))
+        self.assertTrue(callable(flora_contract.build_form_context))
+
+        self.assertTrue(callable(himenopteros_contract.queryset))
+        self.assertTrue(callable(himenopteros_contract.build_export_response))
 
 
 class AtendimentoFlowTests(TestCase):

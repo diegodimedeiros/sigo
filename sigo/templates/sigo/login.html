@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo.min.css' %}" />
     <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo-app.css' %}" />
   </head>
-  <body class="login">
+  <body class="login" data-sigo-cleanup-on-load="true">
     <div class="wrapper wrapper-login">
       <div class="container login-shell animated fadeIn">
         <div class="login-showcase">
@@ -115,5 +115,6 @@
     <script src="{% static 'sigo/assets/js/core/bootstrap.min.js' %}"></script>
     <script src="{% static 'sigo/assets/js/sigo/sigo.min.js' %}"></script>
     <script src="{% static 'sigo/assets/js/sigo/login.js' %}"></script>
+    <script src="{% static 'sigo/assets/js/sigo/logout-cleanup.js' %}"></script>
   </body>
 </html>

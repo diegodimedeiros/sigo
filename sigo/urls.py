@@ -1,8 +1,8 @@
-from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from .views import (
     SigoLoginView,
+    SigoLogoutView,
     current_user_avatar,
     home,
     notification_open,
@@ -27,5 +27,5 @@ urlpatterns = [
         SigoLoginView.as_view(),
         name='login',
     ),
-    path('logout/', auth_views.LogoutView.as_view(next_page='sigo:login'), name='logout'),
+    path('logout/', SigoLogoutView.as_view(), name='logout'),
 ]

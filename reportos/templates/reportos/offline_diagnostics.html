@@ -1,0 +1,53 @@
+{% extends "reportos/base.html" %}
+
+{% block reportos_content %}
+<div class="card module-hero mb-4">
+  <div class="card-body py-4">
+    <div class="module-hero-content d-flex flex-column flex-lg-row justify-content-between gap-3">
+      <div>
+        <h1 class="h3 mb-2">Diagnóstico Offline</h1>
+        <p class="mb-0 text-muted">Painel técnico para validar o estado da camada PWA do ReportOS neste navegador.</p>
+      </div>
+      <div class="d-flex align-items-start">
+        <a href="{% url 'reportos:home' %}" class="btn btn-label-info">Voltar para a central</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><div class="card-title">Estado Atual</div></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5">Conectividade</dt>
+          <dd class="col-sm-7" data-pwa-diag-connection>Verificando...</dd>
+          <dt class="col-sm-5">Service worker</dt>
+          <dd class="col-sm-7" data-pwa-diag-sw>Verificando...</dd>
+          <dt class="col-sm-5">Fila pendente</dt>
+          <dd class="col-sm-7" data-pwa-diag-pending>Verificando...</dd>
+          <dt class="col-sm-5">Último envio conhecido</dt>
+          <dd class="col-sm-7" data-pwa-diag-last-sync>Sem registro</dd>
+          <dt class="col-sm-5">Último enfileiramento</dt>
+          <dd class="col-sm-7" data-pwa-diag-last-queue>Sem registro</dd>
+          <dt class="col-sm-5">Suporte IndexedDB</dt>
+          <dd class="col-sm-7" data-pwa-diag-idb>Verificando...</dd>
+          <dt class="col-sm-5">Suporte CacheStorage</dt>
+          <dd class="col-sm-7" data-pwa-diag-cache-api>Verificando...</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><div class="card-title">Caches Ativos</div></div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush" data-pwa-diag-cache-list>
+          <li class="list-group-item px-0 text-muted">Consultando caches...</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
