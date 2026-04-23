@@ -26,11 +26,11 @@
       </div>
       <div class="col-md-3">
         <label class="form-label">Data e Hora do Registro</label>
-        <input type="datetime-local" id="flora-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}" required>
+        <input type="datetime-local" id="flora-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}">
       </div>
       <div class="col-md-6">
         <label class="form-label">Responsável pelo Registro</label>
-        <select name="responsavel_registro" class="form-select" required>
+        <select name="responsavel_registro" class="form-select">
           <option value="">Selecione</option>
           {% for item in responsavel_registro_options %}
           <option value="{{ item.chave }}" {% if request_data.responsavel_registro == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -39,7 +39,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label">Condição</label>
-        <select name="condicao" class="form-select" required>
+        <select name="condicao" class="form-select">
           <option value="">Selecione</option>
           {% for item in condicao_options %}
           <option value="{{ item.chave }}" {% if request_data.condicao == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -48,7 +48,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label">Área</label>
-        <select id="flora-area" name="area" class="form-select" data-locais-url="{% url 'reportos:flora_api_locais' %}" required>
+        <select id="flora-area" name="area" class="form-select" data-locais-url="{% url 'reportos:flora_api_locais' %}">
           <option value="">Selecione</option>
           {% for item in area_options %}
           <option value="{{ item.chave }}" {% if request_data.area == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -57,7 +57,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label">Localização</label>
-        <select id="flora-local" name="local" class="form-select" data-selected-value="{{ request_data.local }}" required>
+        <select id="flora-local" name="local" class="form-select" data-selected-value="{{ request_data.local }}">
           <option value="">Selecione</option>
           {% for item in local_options %}
           <option value="{{ item.chave }}" {% if request_data.local == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -66,7 +66,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label">Isolamento de Área</label>
-        <select name="isolamento_area" class="form-select" required>
+        <select name="isolamento_area" class="form-select">
           <option value="" {% if request_data.isolamento_area == '' %}selected{% endif %}>Selecione</option>
           <option value="false" {% if request_data.isolamento_area == 'false' or request_data.isolamento_area is False %}selected{% endif %}>Não</option>
           <option value="true" {% if request_data.isolamento_area == 'true' or request_data.isolamento_area is True %}selected{% endif %}>Sim</option>
@@ -76,7 +76,7 @@
 
       <div class="col-12">
         <label class="form-label">Justificativa para Registro</label>
-        <textarea name="justificativa" class="form-control" rows="3" required>{{ request_data.justificativa }}</textarea>
+        <textarea name="justificativa" class="form-control" rows="3">{{ request_data.justificativa }}</textarea>
       </div>
 
       <div class="col-12 pt-3">
@@ -88,7 +88,7 @@
           <div class="fw-semibold mb-3">Foto Antes</div>
           <div class="row g-3">
             <div class="col-md-6">
-              <input type="file" id="foto_antes" name="foto_antes" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_antes_panel" required>
+              <input type="file" id="foto_antes" name="foto_antes" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_antes_panel">
               <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="foto_antes"><i class="fas fa-camera me-2"></i>Abrir câmera</button>
               <div class="small text-muted mt-2" id="foto_antes_status">Nenhum ficheiro selecionado</div>
               <div class="invalid-feedback d-block field-error d-none" data-field-error="foto_antes"></div>
@@ -104,8 +104,8 @@
       <div class="col-12">
         <div id="geolocalizacao_flora_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
           <div class="fw-semibold mb-3">Geolocalização do Registro</div>
-          <input type="hidden" id="flora-latitude" name="latitude" value="{{ request_data.latitude }}" data-invalid-target="#geolocalizacao_flora_panel" required>
-          <input type="hidden" id="flora-longitude" name="longitude" value="{{ request_data.longitude }}" data-invalid-target="#geolocalizacao_flora_panel" required>
+          <input type="hidden" id="flora-latitude" name="latitude" value="{{ request_data.latitude }}" data-invalid-target="#geolocalizacao_flora_panel">
+          <input type="hidden" id="flora-longitude" name="longitude" value="{{ request_data.longitude }}" data-invalid-target="#geolocalizacao_flora_panel">
           <div id="geolocalizacao_flora_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
           <div id="geolocalizacao_flora" class="d-grid gap-2"></div>
           <div class="invalid-feedback d-block field-error d-none" data-field-error="latitude"></div>

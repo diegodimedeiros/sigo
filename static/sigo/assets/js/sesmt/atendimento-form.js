@@ -615,6 +615,8 @@
       // Pessoa obrigatória (nome/documento)
       if (!val("pessoa_nome")) { errors.push("Informe o nome da pessoa."); markInvalidByName("pessoa_nome", "Campo obrigatório"); }
       if (!val("pessoa_documento")) { errors.push("Informe o documento da pessoa."); markInvalidByName("pessoa_documento", "Campo obrigatório"); }
+      if (!val("pessoa_sexo")) { errors.push("Selecione o sexo da pessoa."); markInvalidByName("pessoa_sexo", "Campo obrigatório"); }
+      if (!val("pessoa_data_nascimento")) { errors.push("Informe a data de nascimento da pessoa."); markInvalidByName("pessoa_data_nascimento", "Campo obrigatório"); }
 
       // Condicionais
       var recusa = val("recusa_atendimento") === "true";
@@ -648,13 +650,15 @@
 
     // Remove marcação ao corrigir
     form.querySelectorAll("input, select, textarea").forEach(function (el) {
-      el.addEventListener("input", function () {
+      function clearInvalidState() {
         if (el.classList.contains("is-invalid")) {
           el.classList.remove("is-invalid");
           var next = el.nextSibling;
           if (next && next.classList && next.classList.contains("invalid-feedback")) next.remove();
         }
-      });
+      }
+      el.addEventListener("input", clearInvalidState);
+      el.addEventListener("change", clearInvalidState);
     });
 
     initToggleBindings();

@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 
-CATALOGOS_DIR = Path(settings.BASE_DIR) / "sigo_core" / "catalogos" / "catalogos"
+CATALOGOS_DIR = Path(settings.BASE_DIR) / "sigo_core" / "catalogos"
 
 
 def _catalogo_path(nome):

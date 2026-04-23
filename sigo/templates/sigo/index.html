@@ -5,7 +5,7 @@
 {% block topbar_search %}{% endblock %}
 
 {% block hero_actions %}
-<form method="post" action="{% url 'sigo:logout' %}" class="d-inline">
+<form method="post" action="{% url 'sigo:logout' %}" class="d-inline" data-sigo-logout="true">
   {% csrf_token %}
   <button type="submit" class="btn btn-primary btn-round">Sair</button>
 </form>

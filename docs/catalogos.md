@@ -2,7 +2,7 @@
 
 Os catálogos do projeto ficam em:
 
-- `sigo_core/catalogos/catalogos`
+- `sigo_core/catalogos`
 
 Objetivo deste documento:
 

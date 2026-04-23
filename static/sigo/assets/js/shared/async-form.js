@@ -97,6 +97,79 @@
     });
   }
 
+  function clearControlError(control) {
+    if (!control) return;
+
+    control.classList.remove("is-invalid");
+
+    var invalidTargetSelector = control.dataset.invalidTarget;
+    if (invalidTargetSelector) {
+      var invalidTarget = control.form ? control.form.querySelector(invalidTargetSelector) : null;
+      if (invalidTarget) {
+        invalidTarget.classList.remove("field-invalid-surface");
+      }
+    }
+
+    var errorNode = null;
+    var namedErrorNode = control.form
+      ? control.form.querySelector('[data-field-error="' + control.name + '"]')
+      : null;
+    if (namedErrorNode) {
+      errorNode = namedErrorNode;
+    } else {
+      var wrapper = control.parentElement;
+      if (wrapper) {
+        var candidate = wrapper.querySelector(".field-error");
+        if (candidate) {
+          errorNode = candidate;
+        }
+      }
+    }
+
+    if (errorNode) {
+      errorNode.textContent = "";
+      errorNode.classList.add("d-none");
+    }
+  }
+
+  function renderBrowserValidationErrors(form) {
+    var invalidControls = Array.from(
+      form.querySelectorAll("input, select, textarea")
+    ).filter(function (control) {
+      return !control.disabled && typeof control.checkValidity === "function" && !control.checkValidity();
+    });
+
+    if (!invalidControls.length) {
+      return false;
+    }
+
+    invalidControls.forEach(function (control) {
+      control.classList.add("is-invalid");
+
+      var invalidTargetSelector = control.dataset.invalidTarget;
+      if (invalidTargetSelector) {
+        var invalidTarget = form.querySelector(invalidTargetSelector);
+        if (invalidTarget) {
+          invalidTarget.classList.add("field-invalid-surface");
+        }
+      }
+
+      var target = form.querySelector('[data-field-error="' + control.name + '"]') || resolveErrorTarget(control);
+      if (target) {
+        target.textContent = control.validationMessage || "Campo obrigatório.";
+        target.classList.remove("d-none");
+      }
+    });
+
+    var firstInvalid = invalidControls[0];
+    if (firstInvalid && typeof firstInvalid.focus === "function") {
+      firstInvalid.focus();
+    }
+
+    showFormFeedback(form, "Preencha todos os campos obrigatórios destacados.", "danger");
+    return true;
+  }
+
   function submitAsyncForm(form, options) {
     if (!form || typeof window.SigoCsrf === "undefined") {
       return;
@@ -111,6 +184,10 @@
       event.preventDefault();
       hideFormFeedback(form);
       clearFieldErrors(form);
+
+      if (renderBrowserValidationErrors(form)) {
+        return;
+      }
 
       if (form.querySelectorAll(".is-invalid").length > 0) {
         showFormFeedback(form, "Preencha todos os campos obrigatórios destacados.", "danger");
@@ -201,6 +278,20 @@
             submitButton.textContent = originalLabel;
           }
         });
+    });
+
+    form.querySelectorAll("input, select, textarea").forEach(function (control) {
+      var clearIfValid = function () {
+        if (!control.classList.contains("is-invalid")) {
+          return;
+        }
+        if (typeof control.checkValidity === "function" && control.checkValidity()) {
+          clearControlError(control);
+        }
+      };
+
+      control.addEventListener("input", clearIfValid);
+      control.addEventListener("change", clearIfValid);
     });
   }
 

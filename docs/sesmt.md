@@ -114,7 +114,7 @@ Cobertura atual:
 
 Catálogo da área:
 
-- sigo_core/catalogos/catalogos/catalogo_himenopteros.json
+- sigo_core/catalogos/catalogo_himenopteros.json
 
 ## 6. Referências de evolução
 
@@ -212,5 +212,5 @@ Mapeamento por área:
 
 Catálogos alinhados para o fluxo:
 
-- sigo_core/catalogos/catalogos/catalogo_natureza.json
-- sigo_core/catalogos/catalogos/catalogo_tipo_pessoa.json
+- sigo_core/catalogos/catalogo_natureza.json
+- sigo_core/catalogos/catalogo_tipo_pessoa.json

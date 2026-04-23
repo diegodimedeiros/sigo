@@ -15,39 +15,62 @@
     <link rel="stylesheet" href="{% static 'sigo/assets/css/plugins.min.css' %}" />
     <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo.min.css' %}" />
     <link rel="stylesheet" href="{% static 'sigo/assets/css/sigo-app.css' %}" />
+    <link rel="stylesheet" href="{% static 'sigo/assets/css/login.css' %}" />
   </head>
-  <body class="login" data-sigo-cleanup-on-load="true">
+  <body class="login">
     <div class="wrapper wrapper-login">
-      <div class="container login-shell animated fadeIn">
-        <div class="login-showcase">
-          <div class="login-brand">
-            <img src="{% static 'sigo/assets/img/sigo/logo_color.svg' %}" alt="SIGO" class="login-brand-logo login-brand-logo-light" />
-            <img src="{% static 'sigo/assets/img/sigo/logo_light.svg' %}" alt="SIGO" class="login-brand-logo login-brand-logo-dark" />
-            <div>
-              <h1 class="login-brand-title mb-1">SIGO</h1>
-              <p class="login-brand-copy mb-0">Sistema Integrado de Gestão Organizacional</p>
+      <div class="login-shell">
+        <section class="login-showcase" aria-label="Apresentação do sistema">
+          <div>
+            <div class="login-brand">
+              <img
+                src="{% static 'sigo/assets/img/sigo/logo_light.svg' %}"
+                alt="SIGO"
+                class="login-brand-logo login-brand-logo-light"
+              />
+              <div>
+                <div class="login-brand-title">SIGO</div>
+                <p class="login-brand-copy mb-0">Sistema Integrado de Gestão Operacional</p>
+              </div>
+            </div>
+
+            <div class="login-showcase-copy">
+              <h1 class="login-showcase-title">
+                Gestão integrada para uma
+                <strong>operação mais segura.</strong>
+              </h1>
+              <p class="login-showcase-text mb-0">
+                Centralize rotinas, acompanhe os módulos operacionais e mantenha a equipe conectada
+                em um ambiente pensado para uso diário, rápido e confiável.
+              </p>
             </div>
           </div>
 
-          <div class="login-showcase-copy">
-            <span class="login-kicker">Plataforma central</span>
-            <h2 class="login-showcase-title">Gestão integrada, operação organizada e visão unificada dos módulos.</h2>
-            <p class="login-showcase-text mb-0">
-              Acesse o ambiente institucional do SIGO para navegar entre SIOP, SESMT e as demais áreas operacionais do sistema.
-            </p>
-          </div>
-
           <div class="login-showcase-badges">
-            <span class="login-badge">Portal central</span>
-            <span class="login-badge">Módulos integrados</span>
-            <span class="login-badge">Ambiente seguro</span>
+            <span class="login-badge"><i class="fas fa-shield-alt me-2"></i>Controle por módulos</span>
+            <span class="login-badge"><i class="fas fa-bell me-2"></i>Notificações centralizadas</span>
+            <span class="login-badge"><i class="fas fa-clipboard-check me-2"></i>Acompanhamento de rotinas</span>
           </div>
-        </div>
+        </section>
 
-        <div class="login-panel rounded-4">
+        <section class="login-mobile-brand-card" aria-label="Identidade do sistema">
+          <div class="login-panel-brand">
+            <img
+              src="{% static 'sigo/assets/img/sigo/logo_light.svg' %}"
+              alt="SIGO"
+              class="login-panel-brand-logo"
+            />
+            <div>
+              <h1 class="login-panel-brand-title">SIGO</h1>
+              <p class="login-panel-brand-copy">Sistema Integrado de Gestão Operacional</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="login-panel" aria-label="Formulário de acesso">
           <div class="login-panel-header">
-            <h3 class="login-panel-title mb-2">Entrar no sistema</h3>
-            <p class="login-copy mb-0">Use suas credenciais institucionais para continuar.</p>
+            <h2 class="login-panel-title mb-2">Login</h2>
+            <p class="login-copy mb-0">Entre com suas credenciais institucionais para continuar.</p>
           </div>
 
           {% if form.errors %}
@@ -62,31 +85,38 @@
           </div>
           {% endif %}
 
-          <form method="post" action="{% url 'sigo:login' %}" class="login-form">
+          <form method="post" action="{% url 'sigo:login' %}" class="login-form w-100" novalidate>
             {% csrf_token %}
+
             <div class="form-group mb-3">
               <label for="id_username" class="form-label login-label">Usuário</label>
-              <input
-                id="id_username"
-                name="username"
-                type="text"
-                class="form-control login-input"
-                value="{{ form.username.value|default:'' }}"
-                autocomplete="username"
-                required
-                autofocus
-              />
+              <div class="login-password-wrap">
+                <span class="login-input-icon"><i class="far fa-user" aria-hidden="true"></i></span>
+                <input
+                  id="id_username"
+                  name="username"
+                  type="text"
+                  class="form-control login-input login-input-with-icon"
+                  value="{{ form.username.value|default:'' }}"
+                  autocomplete="username"
+                  placeholder="Seu usuário"
+                  required
+                  autofocus
+                />
+              </div>
             </div>
 
-            <div class="form-group mb-4">
+            <div class="form-group mb-2">
               <label for="id_password" class="form-label login-label">Senha</label>
               <div class="login-password-wrap">
+                <span class="login-input-icon"><i class="fas fa-lock" aria-hidden="true"></i></span>
                 <input
                   id="id_password"
                   name="password"
                   type="password"
-                  class="form-control login-input login-input-password"
+                  class="form-control login-input login-input-with-icon login-input-password"
                   autocomplete="current-password"
+                  placeholder="Sua senha"
                   required
                 />
                 <button
@@ -102,11 +132,36 @@
             </div>
 
             <div class="form-action mb-0">
-              <button type="submit" class="btn btn-primary btn-login-submit w-100">Entrar</button>
+              <button type="submit" class="btn btn-login-submit w-100">Entrar</button>
             </div>
+
+            <div class="login-support-row">
+              <a href="mailto:ti@cnct.com.br" class="login-support-link">Precisa de suporte?</a>
+            </div>
+
+            <div class="login-offline-reportos" data-reportos-offline-access hidden>
+              <p class="login-offline-title">Modo offline do ReportOS disponivel neste dispositivo</p>
+              <p class="login-offline-copy">
+                Sem conexao no momento. Abra o ReportOS offline para consultar o que ja foi sincronizado
+                anteriormente neste navegador.
+              </p>
+              <a href="/reportos/" class="btn btn-outline-primary btn-sm login-offline-button">
+                Abrir ReportOS offline
+              </a>
+            </div>
+
             <input type="hidden" name="next" value="{{ next|default:'/' }}" />
           </form>
-        </div>
+
+          <div class="login-footer-note">
+            Ambiente corporativo do <strong>CNCT</strong>
+            <img
+              src="{% static 'sigo/assets/img/institucional/parque_caracol_color.png' %}"
+              alt="Parque do Caracol"
+              class="login-footer-logo"
+            />
+          </div>
+        </section>
       </div>
     </div>
 

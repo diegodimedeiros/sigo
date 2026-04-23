@@ -8,7 +8,8 @@
     if (supportedThemes.indexOf(theme) !== -1) {
       return theme;
     }
-    return mediaQuery.matches ? "dark" : "light";
+    // Sempre iniciar com light se não houver tema salvo
+    return "light";
   }
 
   function toBootstrapTheme(theme) {

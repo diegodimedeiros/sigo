@@ -9,6 +9,10 @@
   var LAST_SYNC_AT_KEY = "reportos_pwa_last_sync_at";
   var LAST_QUEUE_AT_KEY = "reportos_pwa_last_queue_at";
   var LAST_PENDING_COUNT_KEY = "reportos_pwa_last_pending_count";
+  var OFFLINE_ACCESS_ENABLED_KEY = "reportos_offline_access_enabled";
+  var OFFLINE_ACCESS_AUTHORIZED_AT_KEY = "reportos_offline_access_authorized_at";
+  var OFFLINE_ACCESS_EXPIRES_AT_KEY = "reportos_offline_access_expires_at";
+  var OFFLINE_ACCESS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
   var SYNC_STATUS_POLL_MS = 10000;
   var REPORTOS_WARMUP_ROUTES = [
     "/reportos/",
@@ -47,6 +51,17 @@
     } catch (_error) {
       return null;
     }
+  }
+
+  function refreshOfflineAccessTrust() {
+    if (!navigator.onLine) {
+      return;
+    }
+
+    var now = Date.now();
+    setStorageValue(OFFLINE_ACCESS_ENABLED_KEY, "true");
+    setStorageValue(OFFLINE_ACCESS_AUTHORIZED_AT_KEY, now);
+    setStorageValue(OFFLINE_ACCESS_EXPIRES_AT_KEY, now + OFFLINE_ACCESS_TTL_MS);
   }
 
   function withTimeout(promise, timeoutMs) {
@@ -391,6 +406,9 @@
     return probeConnection().then(function (isOnline) {
       setText("[data-pwa-connection-status]", isOnline ? "Online" : "Offline");
       setConnectionDot(isOnline);
+      if (isOnline) {
+        refreshOfflineAccessTrust();
+      }
       return updateSyncIndicator(isOnline).then(function () {
         return isOnline;
       });
@@ -415,6 +433,7 @@
       setText("[data-pwa-sw-status]", "Ativo");
       setServiceWorkerDot(true);
       updateConnectionStatus();
+      refreshOfflineAccessTrust();
       warmupReportosPages();
       warmupCatalogos();
     })

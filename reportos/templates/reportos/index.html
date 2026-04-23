@@ -40,23 +40,23 @@
   }
 
   .reportos-module-icon.is-atendimento {
-    background: #dbeafe;
-    color: #2563eb;
+    background: #fee2e2;
+    color: #dc2626;
   }
 
   .reportos-module-icon.is-manejo {
-    background: #dcfce7;
-    color: #16a34a;
-  }
-
-  .reportos-module-icon.is-flora {
     background: #fef3c7;
     color: #f59e0b;
   }
 
+  .reportos-module-icon.is-flora {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
   .reportos-module-icon.is-himenopteros {
-    background: #fee2e2;
-    color: #dc2626;
+    background: #dbeafe;
+    color: #2563eb;
   }
 
   .reportos-module-kicker {
@@ -93,14 +93,31 @@
 {% block reportos_content %}
 <div class="card reportos-overview-card mb-4">
   <div class="card-body p-4 p-lg-5">
-    <h4 class="mb-2">Operação em campo</h4>
-    <p class="reportos-overview-subtitle mb-4">Experiência preparada para uso online e offline, com sincronização automática quando a conexão retorna.</p>
-    <div class="d-flex justify-content-end mb-3">
-      <a href="{% url 'reportos:offline_diagnostics' %}" class="btn btn-label-info">Diagnóstico offline</a>
+    <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3 mb-4">
+      <div>
+        <h4 class="mb-2">ReportOS</h4>
+        <p class="reportos-overview-subtitle mb-0">Módulo foi pensado para funcionar em qualquer lugar, com ou sem internet.</p>
+      </div>
+      <div class="align-self-lg-start">
+        <a href="{% url 'reportos:offline_diagnostics' %}" class="btn btn-label-info">Diagnóstico offline</a>
+      </div>
     </div>
     <div class="row g-3">
-      <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Conectividade</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-connection-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-connection-status>Verificando...</span></div></div></div>
-      <div class="col-md-4"><div class="reportos-status-card p-3 h-100"><div class="small reportos-status-label">Worker de sincronização</div><div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-sw-dot class="fas fa-circle text-muted" aria-hidden="true"></i><span data-pwa-sw-status>Verificando...</span></div></div></div>
+      <div class="col-md-4">
+        <div class="reportos-status-card p-3 h-100">
+          <div class="small reportos-status-label">Conectividade</div>
+          <div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-connection-dot
+              class="fas fa-circle text-muted" aria-hidden="true"></i><span
+              data-pwa-connection-status>Verificando...</span></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="reportos-status-card p-3 h-100">
+          <div class="small reportos-status-label">Worker de sincronização</div>
+          <div class="fw-semibold d-flex align-items-center gap-2"><i data-pwa-sw-dot class="fas fa-circle text-muted"
+              aria-hidden="true"></i><span data-pwa-sw-status>Verificando...</span></div>
+        </div>
+      </div>
       <div class="col-md-4">
         <div class="reportos-status-card p-3 h-100">
           <div class="small reportos-status-label">Fila offline</div>
@@ -170,7 +187,8 @@
             <span class="reportos-module-icon is-himenopteros"><i class="fas fa-bug"></i></span>
           </div>
           <h3 class="reportos-module-title mb-3">Risco e inspeção</h3>
-          <p class="text-muted mb-4">Avaliação de risco, registro de evidências e encaminhamento técnico da ocorrência.</p>
+          <p class="text-muted mb-4">Avaliação de risco, registro de evidências e encaminhamento técnico da ocorrência.
+          </p>
           <span class="btn btn-label-info mt-auto align-self-start">Acessar área</span>
         </div>
       </div>

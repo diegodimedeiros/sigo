@@ -358,6 +358,22 @@ Resultado tecnico:
 - o antigo asset compartilhado `static/sigo/assets/js/siop/async-form.js` foi neutralizado para `static/sigo/assets/js/shared/async-form.js`
 - `SESMT`, `SIOP` e `ReportOS` passaram a apontar para o caminho compartilhado novo
 - o caminho antigo foi mantido apenas como shim de compatibilidade
+- os formularios `new.html` do `ReportOS` para `atendimento`, `manejo` e `flora` foram realinhados com o `SESMT`
+- o formulario `new.html` de `himenopteros` no `ReportOS` tambem foi realinhado com o `SESMT`
+- os `required` que conflitavam com as regras reais de validacao foram removidos do HTML quando a obrigatoriedade ja depende de:
+  - regras condicionais no JavaScript
+  - validacao de backend
+- em `atendimento`, o `ReportOS` voltou a expor `tipo_pessoa` e deixou de enviar o campo incorreto `data_hora_inicio`
+- em `atendimento`, `pessoa_sexo` e `pessoa_data_nascimento` voltaram a ser obrigatorios no front conforme a regra operacional desejada para abertura do registro
+- o `static/sigo/assets/js/shared/async-form.js` passou a refletir validacoes nativas do HTML no estado visual do formulario, aplicando `is-invalid` e mensagem de erro antes do envio async
+- no `atendimento`, havia interferencia da validacao especifica de `static/sigo/assets/js/sesmt/atendimento-form.js`, que limpava marcacoes anteriores e nao incluia `pessoa_sexo` e `pessoa_data_nascimento`; isso foi corrigido
+- o precache do service worker do `ReportOS` para `static/sigo/assets/js/shared/async-form.js` teve revisao incrementada para forcar atualizacao do asset no navegador
+- no `ReportOS` atendimento, `pessoa_sexo` e `pessoa_data_nascimento` passaram a ter placeholders dedicados de erro no template e o carregamento de `atendimento-form.js` recebeu `cache-bust` explicito para evitar falso negativo por asset antigo em cache
+- o fluxo visual de erro do `ReportOS` atendimento foi realinhado ao mesmo padrao funcional de `flora`: mensagens `invalid-feedback` dinamicas inseridas pelo JavaScript especifico do formulario e limpeza por remocao desses nós a cada nova validacao
+- em `manejo`, o `ReportOS` voltou a usar `data_hora` e deixou de endurecer anexos e geolocalizacao no HTML inicial
+- em `flora`, o `ReportOS` deixou de exigir no HTML campos cuja obrigatoriedade efetiva depende do fluxo operacional e das regras do `SESMT`
+- em `himenopteros`, o `ReportOS` voltou a expor `acao_realizada`, `responsavel_tecnico` e `justificativa_tecnica`, removeu `required` indevidos e passou a usar o `id` esperado pelo JavaScript compartilhado para `isolamento_area`
+- em `himenopteros`, os campos `area`, `responsavel_registro`, `local`, `descricao_local`, `proximidade_pessoas`, `classificacao_risco`, `condicao` e `hipomenoptero` permanecem nao obrigatorios no front e a mensagem introdutoria do bloco inicial foi ajustada para nao sugerir obrigatoriedade ampla indevida
 
 Validacao executada:
 
@@ -371,6 +387,9 @@ Validacao executada:
   - ambiente atual sem `django` instalado no interpretador ativo
   - validacao completa de aplicacao ficou bloqueada por dependencia ausente
 - validacao estatica por diff e inspeção dos arquivos alterados
+- validacao posterior no ambiente virtual correto:
+  - `./.venv/bin/python manage.py check`
+  - resultado: `System check identified no issues (0 silenced).`
 
 Roteiro manual recomendado para fechamento do tema offline:
 

@@ -16,7 +16,7 @@
 <div class="card">
   <div class="card-header"><div class="card-title">Formulário de registro</div></div>
   <div class="card-body">
-    <form id="atendimento-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'reportos:api_atendimento' %}">
+    <form id="atendimento-form" method="post" enctype="multipart/form-data" data-async-form="true" data-api-url="{% url 'reportos:api_atendimento' %}" novalidate>
       {% csrf_token %}
       <div class="alert alert-danger d-none js-form-feedback"></div>
 
@@ -28,8 +28,14 @@
         <div class="col-12">
           <div class="row g-4">
             <div class="col-md-3">
-              <label class="form-label">Data e Hora do Registro</label>
-              <input type="datetime-local" id="atendimento-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}" required>
+              <label class="form-label">Tipo de pessoa</label>
+              <select id="tipo_pessoa" name="tipo_pessoa" class="form-select" required>
+                <option value="">Selecione</option>
+                {% for item in tipo_pessoa_options %}
+                <option value="{{ item.chave }}" {% if request_data.tipo_pessoa == item.chave %}selected{% endif %}>{{ item.valor }}</option>
+                {% endfor %}
+              </select>
+            </div>
             <div class="col-md-3">
               <label class="form-label" for="recusa_atendimento">Recusa de atendimento</label>
               <select name="recusa_atendimento" id="recusa_atendimento" class="form-select">
@@ -64,7 +70,7 @@
           <div class="row g-4">
             <div class="col-md-3">
               <label class="form-label">Sexo</label>
-              <select name="pessoa_sexo" class="form-select" required>
+              <select id="pessoa_sexo" name="pessoa_sexo" class="form-select" required>
                 <option value="">Selecione</option>
                 {% for item in sexo_options %}
                 <option value="{{ item.chave }}" {% if request_data.pessoa_sexo == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -73,7 +79,7 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Data de nascimento</label>
-              <input type="date" name="pessoa_data_nascimento" class="form-control" value="{{ request_data.pessoa_data_nascimento }}">
+              <input id="pessoa_data_nascimento" type="date" name="pessoa_data_nascimento" class="form-control" value="{{ request_data.pessoa_data_nascimento }}" required>
             </div>
             <div class="col-md-3">
               <label class="form-label">Nacionalidade</label>
@@ -156,7 +162,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Tipo de ocorrência</label>
-          <select name="tipo_ocorrencia" class="form-select" required>
+          <select name="tipo_ocorrencia" class="form-control" required>
             <option value="">Selecione</option>
             {% for item in tipo_ocorrencia_options %}
             <option value="{{ item.chave }}" {% if request_data.tipo_ocorrencia == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -165,7 +171,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Responsável pelo atendimento</label>
-          <select name="responsavel_atendimento" class="form-select" required>
+          <select name="responsavel_atendimento" class="form-control" required>
             <option value="">Selecione</option>
             {% for item in bc_options %}
             <option value="{{ item.chave }}" {% if request_data.responsavel_atendimento == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -181,7 +187,7 @@
         </div>
         <div class="col-md-3">
           <label class="form-label">Primeiros socorros</label>
-          <select name="primeiros_socorros" id="primeiros_socorros" class="form-select">
+          <select id="primeiros_socorros" name="primeiros_socorros" class="form-select">
             <option value="">Selecione</option>
             {% for item in primeiros_socorros_options %}
             <option value="{{ item.chave }}" {% if request_data.primeiros_socorros == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -225,7 +231,7 @@
           <div class="row g-4">
             <div class="col-md-6">
               <label class="form-label">Nome do plano de saúde</label>
-              <input type="text" name="nome_plano_saude" class="form-control" value="{{ request_data.nome_plano_saude }}">
+              <input type="text" id="nome_plano_saude" name="nome_plano_saude" class="form-control" value="{{ request_data.nome_plano_saude }}">
             </div>
             <div class="col-md-6">
               <label class="form-label">Número da carteirinha</label>
@@ -434,7 +440,7 @@
         </div>
         <div class="col-12">
           <label class="form-label">Descrição do atendimento</label>
-          <textarea name="descricao" class="form-control" rows="6">{{ request_data.descricao }}</textarea>
+          <textarea name="descricao" class="form-control" rows="6" required>{{ request_data.descricao }}</textarea>
         </div>
       </div>
 
@@ -470,5 +476,5 @@
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'sigo/assets/js/shared/async-form.js' %}"></script>
-<script src="{% static 'sigo/assets/js/sesmt/atendimento-form.js' %}"></script>
+<script src="{% static 'sigo/assets/js/sesmt/atendimento-form.js' %}?v=2"></script>
 {% endblock %}

@@ -13,7 +13,7 @@ if (workbox) {
   workbox.precaching.precacheAndRoute([
     { url: "/static/sigo/assets/js/reportos/pwa-register.js", revision: "5" },
     { url: "/static/sigo/assets/js/reportos/catalogos.js", revision: "1" },
-    { url: "/static/sigo/assets/js/shared/async-form.js", revision: "1" },
+    { url: "/static/sigo/assets/js/shared/async-form.js", revision: "2" },
     { url: "/static/sigo/assets/css/sigo-app.css", revision: "2" },
     { url: "/static/sigo/assets/pwa/reportos-offline.html", revision: "1" }
   ]);

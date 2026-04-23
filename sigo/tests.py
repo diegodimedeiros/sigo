@@ -178,14 +178,20 @@ class LogoutCleanupTests(TestCase):
         self.assertContains(response, 'data-sigo-logout="true"')
         self.assertContains(response, "sigo/assets/js/sigo/logout-cleanup.js")
 
-    def test_login_page_runs_cleanup_on_load(self):
+    def test_login_page_does_not_run_cleanup_on_load(self):
         self.client.logout()
 
         response = self.client.get(reverse("sigo:login"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'data-sigo-cleanup-on-load="true"')
+        self.assertNotContains(response, 'data-sigo-cleanup-on-load="true"')
         self.assertContains(response, "sigo/assets/js/sigo/logout-cleanup.js")
+
+    def test_home_hero_logout_button_exposes_logout_cleanup_hook(self):
+        response = self.client.get(reverse("sigo:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<form method="post" action="' + reverse("sigo:logout") + '" class="d-inline" data-sigo-logout="true"', html=False)
 
     def test_logout_route_redirects_to_login_and_clears_session(self):
         response = self.client.post(reverse("sigo:logout"))

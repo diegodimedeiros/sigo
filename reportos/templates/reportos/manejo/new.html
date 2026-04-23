@@ -32,12 +32,12 @@
         <p class="text-muted mb-0">Identificação da fauna, data do registro e contexto inicial do manejo.</p>
       </div>
       <div class="col-md-4">
-        <label class="form-label">Data e Hora do Registro</label>
-        <input type="datetime-local" id="manejo-data_hora_inicio" name="data_hora_inicio" class="form-control" value="{{ request_data.data_hora_inicio }}" required>
+        <label class="form-label">Data e hora do manejo</label>
+        <input type="datetime-local" name="data_hora" class="form-control" value="{{ request_data.data_hora }}">
       </div>
       <div class="col-md-4">
         <label class="form-label">Classe</label>
-        <select id="classe" name="classe" class="form-select" data-especies-url="{% url 'reportos:manejo_api_especies' %}" required>
+        <select id="classe" name="classe" class="form-select" data-especies-url="{% url 'reportos:manejo_api_especies' %}">
           <option value="">Selecione</option>
           {% for item in classe_options %}
           <option value="{{ item.chave }}" {% if request_data.classe == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -46,7 +46,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label">Nome popular</label>
-        <select id="nome_popular" name="nome_popular" class="form-select" data-selected-value="{{ request_data.nome_popular }}" required>
+        <select id="nome_popular" name="nome_popular" class="form-select" data-selected-value="{{ request_data.nome_popular }}">
           <option value="">Selecione</option>
           {% for item in nome_popular_options %}
           <option value="{{ item.chave }}" {% if request_data.nome_popular == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -68,7 +68,7 @@
       </div>
       <div class="col-md-6">
         <label class="form-label">Área de captura</label>
-        <select id="area_captura" name="area_captura" class="form-select" data-locais-url="{% url 'reportos:manejo_api_locais' %}" required>
+        <select id="area_captura" name="area_captura" class="form-select" data-locais-url="{% url 'reportos:manejo_api_locais' %}">
           <option value="">Selecione</option>
           {% for item in area_options %}
           <option value="{{ item.chave }}" {% if request_data.area_captura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -77,7 +77,7 @@
       </div>
       <div class="col-md-6">
         <label class="form-label">Local de captura</label>
-        <select id="local_captura" name="local_captura" class="form-select" data-selected-value="{{ request_data.local_captura }}" required>
+        <select id="local_captura" name="local_captura" class="form-select" data-selected-value="{{ request_data.local_captura }}">
           <option value="">Selecione</option>
           {% for item in local_captura_options %}
           <option value="{{ item.chave }}" {% if request_data.local_captura == item.chave %}selected{% endif %}>{{ item.valor }}</option>
@@ -93,7 +93,7 @@
           <div class="fw-semibold mb-3">Fotos e Lista de Imagens da Captura</div>
           <div class="row g-3">
             <div class="col-md-6">
-              <input type="file" id="foto_captura" name="foto_captura" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_captura_panel" required>
+              <input type="file" id="foto_captura" name="foto_captura" accept="image/*" capture="environment" multiple class="d-none" data-invalid-target="#foto_captura_panel">
               <button type="button" class="btn w-100 atendimento-evidence-trigger" data-trigger-file="foto_captura">
                 <i class="fas fa-camera me-2"></i>Abrir câmera
               </button>
@@ -111,8 +111,8 @@
       <div class="col-12">
         <div id="geolocalizacao_captura_panel" class="border rounded-3 p-3 atendimento-evidence-panel">
           <div class="fw-semibold mb-3">Geolocalização da Captura</div>
-          <input type="hidden" id="latitude_captura" name="latitude_captura" value="{{ request_data.latitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel" required>
-          <input type="hidden" id="longitude_captura" name="longitude_captura" value="{{ request_data.longitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel" required>
+          <input type="hidden" id="latitude_captura" name="latitude_captura" value="{{ request_data.latitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel">
+          <input type="hidden" id="longitude_captura" name="longitude_captura" value="{{ request_data.longitude_captura }}" data-invalid-target="#geolocalizacao_captura_panel">
           <div id="geolocalizacao_captura_vazia" class="detail-note-box">Nenhuma geolocalização registrada ainda.</div>
           <div id="geolocalizacao_captura" class="d-grid gap-2"></div>
           <div class="invalid-feedback d-block field-error d-none" data-field-error="latitude_captura"></div>
