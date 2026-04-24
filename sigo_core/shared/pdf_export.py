@@ -1,5 +1,7 @@
+
 import io
 import os
+import logging
 from xml.sax.saxutils import escape
 
 from django.conf import settings
@@ -9,7 +11,82 @@ from django.utils import timezone
 from sigo_core.shared.formatters import to_export_text, user_display
 
 
+# =====================
+# Constantes de Estilo/Layout
+# =====================
+PDF_COLORS = {
+    "green": (5 / 255, 150 / 255, 105 / 255),
+    "light_green": (52 / 255, 211 / 255, 153 / 255),
+    "dark_text": (0.15, 0.15, 0.15),
+}
+
+PDF_LAYOUT = {
+    "a4_content_x": 22.638,
+    "a4_content_y": 80.454,
+    "a4_content_width": 550.0,
+    "a4_content_height": 650.0,
+}
+
+PDF_FONTS = {
+    "header": ("Helvetica-Bold", 13),
+    "subtitle": ("Helvetica", 11),
+    "body": ("Helvetica", 10),
+    "footer": ("Helvetica", 8.5),
+    "label": ("Helvetica-Bold", 11),
+    "list": ("Helvetica", 9),
+}
+
+
+# =====================
+# Logger
+# =====================
+logger = logging.getLogger(__name__)
+
+
+
+# =====================
+# Helpers de Layout
+# =====================
+def get_a4_content_area():
+    """Retorna o dicionário com a área útil do A4."""
+    return {
+        "x": PDF_LAYOUT["a4_content_x"],
+        "y": PDF_LAYOUT["a4_content_y"],
+        "width": PDF_LAYOUT["a4_content_width"],
+        "height": PDF_LAYOUT["a4_content_height"],
+        "right": PDF_LAYOUT["a4_content_x"] + PDF_LAYOUT["a4_content_width"],
+        "top": PDF_LAYOUT["a4_content_y"] + PDF_LAYOUT["a4_content_height"],
+    }
+
+# --- Helper de quebra de página ---
+
+def ensure_space(canvas, y, min_y, page_content_top, draw_page):
+    """Garante espaço na página, faz quebra se necessário."""
+    if y < min_y:
+        canvas.showPage()
+        draw_page()
+        return page_content_top
+    return y
+
+# --- Helper seguro para imagens ---
+
+def safe_draw_image(canvas, path, *args, **kwargs):
+    """Desenha imagem de forma segura, logando erros."""
+    if not os.path.exists(path):
+        return False
+    try:
+        canvas.drawImage(path, *args, **kwargs)
+        return True
+    except Exception:
+        logger.exception("Erro ao desenhar imagem no PDF: %s", path)
+        return False
+
+
+#############################
+# Canvas e Chrome Visual
+#############################
 def build_numbered_canvas_class(page_width):
+    """Classe canvas que adiciona numeração de páginas."""
     from reportlab.pdfgen import canvas as rl_canvas
 
     class NumberedCanvas(rl_canvas.Canvas):
@@ -38,20 +115,13 @@ def draw_pdf_page_chrome(
     canvas,
     page_width,
     page_height,
-    generated_by,
-    generated_at=None,
-    hash_cadastro=None,
-    footer_suffix=None,
-    footer_on_two_lines=False,
     header_subtitle=None,
 ):
     from reportlab.lib.utils import ImageReader
+    from reportlab.pdfbase.pdfmetrics import stringWidth
 
-    generated_at = generated_at or timezone.localtime(timezone.now())
-
-    green = (5 / 255, 150 / 255, 105 / 255)
-    light_green = (52 / 255, 211 / 255, 153 / 255)
-    dark_text = (0.15, 0.15, 0.15)
+    green = PDF_COLORS["green"]
+    light_green = PDF_COLORS["light_green"]
 
     canvas.setFillColorRGB(*green)
     canvas.rect(0, page_height - 92, page_width, 92, stroke=0, fill=1)
@@ -72,20 +142,21 @@ def draw_pdf_page_chrome(
         "sigo",
         "assets",
         "img",
-        "institucional",
-        "parque_caracol_white.png",
+        "sigo",
+        "sigo.png",
     )
 
     if os.path.exists(logo_path):
         try:
             logo_img = ImageReader(logo_path)
             img_w, img_h = logo_img.getSize()
-            max_w = 92
-            max_h = 52
+            max_w = 84
+            max_h = 44
             scale = min(max_w / float(img_w), max_h / float(img_h))
             draw_w = img_w * scale
             draw_h = img_h * scale
-            logo_y = title_y - (draw_h / 2.0)
+            # Ajuste: subir o logo 12 pontos a mais
+            logo_y = title_y - (draw_h / 2.0) + 12
             canvas.drawImage(
                 logo_img,
                 20,
@@ -95,58 +166,94 @@ def draw_pdf_page_chrome(
                 mask="auto",
             )
         except Exception:
-            pass
+            logger.exception("Erro ao desenhar imagem no PDF: %s", logo_path)
 
-    canvas.setFillColorRGB(1, 1, 1)
-    canvas.setFont("Helvetica-Bold", 14)
-    canvas.drawCentredString(
-        page_width / 2,
-        title_y,
-        "SIOP - Sistema de Inteligência e Operações",
-    )
+    # --- Cabeçalho limpo e objetivo ---
+    font_name, font_size = PDF_FONTS["header"]
+    canvas.setFont(font_name, font_size)
+    canvas.setFillColorRGB(1, 1, 1)  # Branco
+    canvas.drawCentredString(page_width / 2, title_y, "Sistema Integrado de Gestão Operacional")
+
     if header_subtitle:
-        canvas.setFont("Helvetica", 10)
-        canvas.drawCentredString(page_width / 2, title_y - 16, header_subtitle)
+        font_name, font_size = PDF_FONTS["subtitle"]
+        canvas.setFont(font_name, font_size)
+        canvas.setFillColorRGB(1, 1, 1)  # Branco
+        canvas.drawCentredString(page_width / 2, title_y - 18, header_subtitle)
+
+    # Aumentar altura do rodapé
+    rodape_altura = 52
+    curva_y1 = 57 
+    curva_y2 = 47
+    curva_y3 = 67
+    curva_y4 = 39
+    curva_y5 = 49
+    curva_y6 = 29
 
     canvas.setFillColorRGB(*green)
-    canvas.rect(0, 0, page_width, 42, stroke=0, fill=1)
-
-    canvas.setFillColorRGB(*dark_text)
-    canvas.setFont("Helvetica", 7)
-
-    generated_text = f"Gerado em {generated_at.strftime('%d/%m/%Y %H:%M')} por {generated_by}"
-    if footer_on_two_lines and hash_cadastro:
-        hash_text = f"Hash Atendimento: {hash_cadastro}"
-        if footer_suffix:
-            hash_text = f"{hash_text} {footer_suffix}"
-        canvas.drawRightString(page_width - 24, 62, generated_text)
-        canvas.drawRightString(page_width - 24, 52, hash_text)
-    else:
-        if hash_cadastro:
-            generated_text = f"{generated_text} | Hash Atendimento: {hash_cadastro}"
-        if footer_suffix:
-            generated_text = f"{generated_text} {footer_suffix}"
-        canvas.drawRightString(page_width - 24, 56, generated_text)
+    canvas.rect(0, 0, page_width, rodape_altura, stroke=0, fill=1)
 
     path_bottom = canvas.beginPath()
-    path_bottom.moveTo(0, 47)
-    path_bottom.curveTo(page_width * 0.28, 37, page_width * 0.72, 57, page_width, 47)
-    path_bottom.lineTo(page_width, 31)
-    path_bottom.curveTo(page_width * 0.72, 41, page_width * 0.28, 21, 0, 31)
+    path_bottom.moveTo(0, curva_y1)
+    path_bottom.curveTo(page_width * 0.28, curva_y2, page_width * 0.72, curva_y3, page_width, curva_y1)
+    path_bottom.lineTo(page_width, curva_y4)
+    path_bottom.curveTo(page_width * 0.72, curva_y5, page_width * 0.28, curva_y6, 0, curva_y4)
     path_bottom.close()
     canvas.setFillColorRGB(*light_green)
     canvas.drawPath(path_bottom, stroke=0, fill=1)
 
     canvas.setFillColorRGB(1, 1, 1)
     canvas.setFont("Helvetica", 8.5)
-    canvas.drawCentredString(
-        page_width / 2,
-        16,
-        "Rodovia RS 466, km 0, s/n - Caracol, Canela - RS - CNPJ 48.255.552/0001-77",
+    footer_text = "Rodovia RS 466, km 0, s/n - Caracol, Canela - RS - CNPJ 48.255.552/0001-77"
+    footer_y = 18  # era 10, subiu 8 pontos
+    footer_font = "Helvetica"
+    footer_font_size = 8.5
+    logo_footer_path = os.path.join(
+        settings.BASE_DIR,
+        "static",
+        "sigo",
+        "assets",
+        "img",
+        "institucional",
+        "parque_caracol_white.png",
     )
+    logo_gap = 8
+    logo_w = 64
+    logo_h = 64
+    text_w = stringWidth(footer_text, footer_font, footer_font_size)
+    total_w = text_w
+    logo_drawn = False
+
+    if os.path.exists(logo_footer_path):
+        try:
+            footer_logo = ImageReader(logo_footer_path)
+            img_w, img_h = footer_logo.getSize()
+            scale = min(logo_w / float(img_w), logo_h / float(img_h))
+            draw_w = img_w * scale
+            draw_h = img_h * scale
+            total_w += draw_w + logo_gap
+            start_x = (page_width - total_w) / 2
+            canvas.drawImage(
+                footer_logo,
+                start_x,
+                footer_y - ((draw_h - footer_font_size) / 2.0),
+                width=draw_w,
+                height=draw_h,
+                mask="auto",
+            )
+            canvas.drawString(start_x + draw_w + logo_gap, footer_y, footer_text)
+            logo_drawn = True
+        except Exception:
+            logger.exception("Erro ao desenhar imagem no PDF: %s", logo_footer_path)
+
+    if not logo_drawn:
+        canvas.drawCentredString(page_width / 2, footer_y, footer_text)
 
 
+#############################
+# Helpers de Texto e Layout
+#############################
 def draw_pdf_label_value(canvas, x, y, label, value, font_size=10):
+    """Desenha um label e valor na mesma linha."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
 
     label_txt = f"{label}: "
@@ -159,6 +266,7 @@ def draw_pdf_label_value(canvas, x, y, label, value, font_size=10):
 
 
 def wrap_pdf_text_lines(text, max_width, font_name="Helvetica", font_size=10):
+    """Quebra texto em múltiplas linhas para caber no PDF."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
 
     text = (text or "").replace("\r", "")
@@ -185,6 +293,9 @@ def wrap_pdf_text_lines(text, max_width, font_name="Helvetica", font_size=10):
     return wrapped
 
 
+#############################
+# Exportação de Tabela PDF
+#############################
 def export_generic_pdf(
     request,
     queryset,
@@ -227,8 +338,6 @@ def export_generic_pdf(
             canvas=canvas,
             page_width=page_w,
             page_height=page_h,
-            generated_by=user_display(getattr(request, "user", None)) or "Sistema",
-            generated_at=now_local,
         )
         canvas.restoreState()
 
@@ -305,6 +414,9 @@ def export_generic_pdf(
     return FileResponse(buffer, as_attachment=True, filename=filename)
 
 
+#############################
+# Contexto para PDF de Registro Individual
+#############################
 def build_record_pdf_context(request, *, report_title, report_subject, header_subtitle):
     """Inicializa um canvas ReportLab para PDFs de registro individual (view-PDF).
 
@@ -331,31 +443,31 @@ def build_record_pdf_context(request, *, report_title, report_subject, header_su
     canvas.setAuthor(user_display(request.user))
     canvas.setSubject(report_subject)
 
+    content_area = get_a4_content_area()
     dark_text = (0.15, 0.15, 0.15)
-    page_content_top = height - 120
-    min_y = 72
-    info_x = 82
+    page_content_top = content_area["top"]
+    min_y = content_area["y"]
+    info_x = content_area["x"]
 
     def draw_page():
         draw_pdf_page_chrome(
             canvas=canvas,
             page_width=width,
             page_height=height,
-            generated_by=user_display(request.user) or "Sistema",
-            generated_at=timezone.localtime(timezone.now()),
             header_subtitle=header_subtitle,
         )
 
     draw_page()
     canvas.setFillColorRGB(*dark_text)
     canvas.setFont("Helvetica-Bold", 12)
-    canvas.drawCentredString(width / 2, height - 140, report_title)
+    canvas.drawCentredString(width / 2, content_area["top"] - 60, report_title)
 
     return {
         "buffer": buffer,
         "canvas": canvas,
         "width": width,
         "height": height,
+        "content_area": content_area,
         "dark_text": dark_text,
         "page_content_top": page_content_top,
         "min_y": min_y,
@@ -365,16 +477,14 @@ def build_record_pdf_context(request, *, report_title, report_subject, header_su
 
 
 def draw_pdf_wrapped_section(canvas, *, title, text, x, y, width, min_y, page_content_top, draw_page, dark_text):
+    """Desenha seção de texto longo com quebra automática e paginação."""
     """Desenha uma seção de texto longo com quebra automática de linha e paginação.
 
     Cuida da mudança de página quando o conteúdo ultrapassar min_y.
     Retorna a posição y final após o texto.
     """
     title_y = y - 8
-    if title_y < min_y:
-        canvas.showPage()
-        draw_page()
-        title_y = page_content_top
+    title_y = ensure_space(canvas, title_y, min_y, page_content_top, draw_page)
 
     canvas.setFillColorRGB(*dark_text)
     canvas.setFont("Helvetica-Bold", 11)
@@ -384,9 +494,8 @@ def draw_pdf_wrapped_section(canvas, *, title, text, x, y, width, min_y, page_co
     canvas.setFont("Helvetica", 10)
     next_y = title_y - 18
     for line in lines:
-        if next_y < min_y:
-            canvas.showPage()
-            draw_page()
+        next_y = ensure_space(canvas, next_y, min_y, page_content_top, draw_page)
+        if next_y == page_content_top:
             canvas.setFillColorRGB(*dark_text)
             canvas.setFont("Helvetica-Bold", 11)
             canvas.drawString(x, page_content_top, f"{title} (continuação)")
@@ -398,16 +507,14 @@ def draw_pdf_wrapped_section(canvas, *, title, text, x, y, width, min_y, page_co
 
 
 def draw_pdf_list_section(canvas, *, title, items, x, y, min_y, page_content_top, draw_page, dark_text, empty_text):
+    """Desenha seção de lista numerada com paginação automática."""
     """Desenha uma seção de lista numerada com paginação automática.
 
     Se items for vazio, exibe empty_text.
     Retorna a posição y final após a lista.
     """
     section_y = y - 12
-    if section_y < min_y:
-        canvas.showPage()
-        draw_page()
-        section_y = page_content_top
+    section_y = ensure_space(canvas, section_y, min_y, page_content_top, draw_page)
 
     canvas.setFillColorRGB(*dark_text)
     canvas.setFont("Helvetica-Bold", 11)
@@ -417,9 +524,8 @@ def draw_pdf_list_section(canvas, *, title, items, x, y, min_y, page_content_top
     next_y = section_y - 14
     if items:
         for index, item in enumerate(items, start=1):
-            if next_y < min_y:
-                canvas.showPage()
-                draw_page()
+            next_y = ensure_space(canvas, next_y, min_y, page_content_top, draw_page)
+            if next_y == page_content_top:
                 canvas.setFillColorRGB(*dark_text)
                 canvas.setFont("Helvetica-Bold", 11)
                 canvas.drawString(x, page_content_top, f"{title} (continuação)")

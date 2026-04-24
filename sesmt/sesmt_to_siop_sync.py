@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -19,6 +17,19 @@ from siop.models import Ocorrencia
 from .models import ControleAtendimento, Flora, Himenoptero, Manejo
 
 User = get_user_model()
+
+def _marker(tipo: str, pk: int) -> str:
+    # Compatível com formato antigo dos testes
+    tipo = tipo.upper()
+    if tipo == "ATENDIMENTO":
+        return f"[SESMT_ATENDIMENTO_SYNC:{pk}]"
+    if tipo == "MANEJO":
+        return f"[SESMT_MANEJO_SYNC:{pk}]"
+    if tipo == "FLORA":
+        return f"[SESMT_FLORA_SYNC:{pk}]"
+    if tipo == "HIMENOPTERO":
+        return f"[SESMT_HIMENOPTERO_SYNC:{pk}]"
+    return f"[SESMT_{tipo}_SYNC:{pk}]"
 
 
 def _marker_atendimento(pk: int) -> str:

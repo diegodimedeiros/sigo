@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET
 from django.utils import timezone
 
 from sigo_core.api import (
@@ -31,7 +30,13 @@ from sigo_core.catalogos import (
 )
 from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import bool_ptbr, fmt_dt, user_display
-from sigo_core.shared.pdf_export import build_numbered_canvas_class, draw_pdf_label_value, draw_pdf_page_chrome, wrap_pdf_text_lines
+from sigo_core.shared.pdf_export import (
+    build_numbered_canvas_class,
+    draw_pdf_label_value,
+    draw_pdf_page_chrome,
+    get_a4_content_area,
+    wrap_pdf_text_lines,
+)
 from sigo_core.shared.xlsx_export import export_generic_excel
 
 from siop.models import AchadosPerdidos
@@ -436,57 +441,57 @@ def achados_perdidos_export_view_pdf(request, pk):
     canvas.setAuthor(user_display(request.user))
     canvas.setSubject("Relatório de Achados e Perdidos")
 
+    content_area = get_a4_content_area()
     dark_text = (0.15, 0.15, 0.15)
-    page_content_top = height - 120
-    min_y = 72
-    info_x = 82
+    page_content_top = content_area["top"]
+    min_y = content_area["y"]
+    info_x = content_area["x"]
 
     def draw_page_chrome_wrapper():
         draw_pdf_page_chrome(
             canvas=canvas,
             page_width=width,
             page_height=height,
-            generated_by=user_display(request.user) or "Sistema",
-            generated_at=timezone.localtime(timezone.now()),
             header_subtitle="Módulo Achados e Perdidos",
         )
 
     draw_page_chrome_wrapper()
     canvas.setFillColorRGB(*dark_text)
     canvas.setFont("Helvetica-Bold", 12)
-    canvas.drawCentredString(width / 2, height - 140, f"Relatório do Item: #{item.id}")
+    canvas.drawCentredString(width / 2, content_area["top"] - 60, f"Relatório do Item: #{item.id}")
 
     info_block_w = 430
-    info_y = height - 195
+    info_y = content_area["top"] - 115
     line_h = 14
     block_gap = 14
     right_x = info_x + (info_block_w / 2)
+    RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x, info_y, "Situação", catalogo_achado_situacao_label(item.situacao) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Status", catalogo_achado_status_label(item.status) or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Situação", catalogo_achado_situacao_label(item.situacao) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", catalogo_achado_status_label(item.status) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Tipo do Item", catalogo_achado_classificacao_label(item.tipo) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Área", item.area_label or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo do Item", catalogo_achado_classificacao_label(item.tipo) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Área", item.area_label or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Local", item.local_label or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Orgânico", bool_ptbr(item.organico))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", item.local_label or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Orgânico", bool_ptbr(item.organico))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "CIOP", item.ciop or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Colaborador", item.colaborador or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "CIOP", item.ciop or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Colaborador", item.colaborador or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Setor", item.setor or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Pessoa", item.pessoa.nome if item.pessoa_id else "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Setor", item.setor or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Pessoa", item.pessoa.nome if item.pessoa_id else "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Documento", item.pessoa.documento if item.pessoa_id else "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Devolução", fmt_dt(item.data_devolucao))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Documento", item.pessoa.documento if item.pessoa_id else "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(item.data_devolucao))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Fotos", str(item.fotos.count()))
-    draw_pdf_label_value(canvas, right_x, info_y, "Criado por", user_display(item.criado_por))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Fotos", str(item.fotos.count()))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Criado por", user_display(item.criado_por))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Modificado por", user_display(item.modificado_por))
-    draw_pdf_label_value(canvas, right_x, info_y, "Criado em", fmt_dt(item.criado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Modificado por", user_display(item.modificado_por))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Criado em", fmt_dt(item.criado_em))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Modificado em", fmt_dt(item.modificado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Modificado em", fmt_dt(item.modificado_em))
     info_y -= (line_h + block_gap)
 
     desc_title_y = info_y - 8
@@ -506,6 +511,14 @@ def achados_perdidos_export_view_pdf(request, pk):
             y = page_content_top - 18
         canvas.drawString(info_x, y, line)
         y -= 13
+
+    canvas.setFont("Helvetica-Oblique", 8)
+    canvas.setFillColorRGB(0.4, 0.4, 0.4)
+    canvas.drawRightString(
+        width - info_x,
+        min_y - 10,
+        f"Gerado por: {user_display(request.user) or 'Sistema'} em {fmt_dt(timezone.localtime(timezone.now()))}",
+    )
 
     canvas.showPage()
     canvas.save()

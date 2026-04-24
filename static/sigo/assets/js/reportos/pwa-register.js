@@ -460,4 +460,7 @@
   });
 
   window.setInterval(updateConnectionStatus, SYNC_STATUS_POLL_MS);
+
+  // Torna updateConnectionStatus acessível globalmente
+  window.updateConnectionStatus = updateConnectionStatus;
 }());

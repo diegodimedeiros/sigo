@@ -179,20 +179,21 @@ def liberacao_acesso_export_view_pdf(request, pk):
     line_h = 14
     block_gap = 14
     right_x = info_x + 215
-    draw_pdf_label_value(canvas, info_x, info_y, "Data da liberação", fmt_dt(liberacao.data_liberacao))
-    draw_pdf_label_value(canvas, right_x, info_y, "Unidade", liberacao.unidade_sigla or "-")
+    RECUO = 24
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data da liberação", fmt_dt(liberacao.data_liberacao))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", liberacao.unidade_sigla or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Empresa", liberacao.empresa or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Solicitante", liberacao.solicitante or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Empresa", liberacao.empresa or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Solicitante", liberacao.solicitante or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Chegadas registradas", str(len(liberacao.chegadas_registradas or [])))
-    draw_pdf_label_value(canvas, right_x, info_y, "Total de pessoas", str(liberacao.pessoas.count()))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Chegadas registradas", str(len(liberacao.chegadas_registradas or [])))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Total de pessoas", str(liberacao.pessoas.count()))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(liberacao, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(liberacao, "modificado_por", None)) or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(liberacao, "criado_por", None)) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(liberacao, "modificado_por", None)) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(liberacao.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(liberacao.modificado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(liberacao.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(liberacao.modificado_em))
     y = draw_pdf_wrapped_section(canvas, title="Motivo da Liberação de Acesso", text=liberacao.motivo or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     y = draw_pdf_list_section(canvas, title="Pessoas Liberadas", items=[f"{pessoa.nome} - {pessoa.documento or '-'}" for pessoa in liberacao.pessoas.all()], x=info_x, y=y, min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"], empty_text="Nenhuma pessoa vinculada.")
     draw_pdf_list_section(canvas, title="Anexos", items=[anexo.nome_arquivo for anexo in liberacao.anexos.all()], x=info_x, y=y, min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"], empty_text="Nenhum anexo.")

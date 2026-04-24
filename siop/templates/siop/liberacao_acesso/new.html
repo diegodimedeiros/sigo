@@ -31,7 +31,7 @@
                 <input type="text" name="pessoa_documento" class="form-control{% if errors.pessoa_documento %} is-invalid{% endif %}" value="{{ pessoa.documento }}" placeholder="Documento" required>
               </div>
               <div class="col-lg-2 col-md-3 d-grid">
-                <button type="button" class="btn btn-label-danger pessoa-remove-btn"{% if forloop.first and request_data.pessoas|length == 1 %} style="display:none"{% endif %}>Remover</button>
+                <button type="button" class="btn btn-label-danger pessoa-remove-btn{% if forloop.first and request_data.pessoas|length == 1 %} d-none{% endif %}">Remover</button>
               </div>
             </div>
             {% endfor %}

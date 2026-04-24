@@ -723,9 +723,11 @@ class HimenopterosFlowTests(TestCase):
         ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
 
     def _payload(self, **overrides):
+        now = timezone.localtime()
         foto = SimpleUploadedFile("registro.jpg", b"image-data", content_type="image/jpeg")
         payload = {
-            "data_hora_inicio": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+            "data_hora_inicio": now.strftime("%Y-%m-%dT%H:%M"),
+            "data_hora_fim": now.strftime("%Y-%m-%dT%H:%M"),
             "responsavel_registro": "diego_pereira_bicca_geloch",
             "area": "entrada",
             "local": "entrada_de_pedestres",

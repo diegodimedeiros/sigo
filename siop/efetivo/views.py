@@ -156,31 +156,32 @@ def efetivo_export_view_pdf(request, pk):
     line_h = 14
     block_gap = 14
     right_x = info_x + 215
-    draw_pdf_label_value(canvas, info_x, info_y, "Responsável Plantão", efetivo.plantao or "-")
+    RECUO = 24
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável Plantão", efetivo.plantao or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(efetivo, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(efetivo, "modificado_por", None)) or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(efetivo, "criado_por", None)) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(efetivo, "modificado_por", None)) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(efetivo.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(efetivo.modificado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(efetivo.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(efetivo.modificado_em))
     info_y -= (line_h + block_gap)
     canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, info_y, "Composição do Efetivo:")
+    canvas.drawString(info_x + RECUO, info_y, "Composição do Efetivo:")
     info_y -= 18
-    pairs = [("Atendimento", efetivo.atendimento), ("Bilheteria", efetivo.bilheteria), ("Bombeiro Civil 1", efetivo.bombeiro_civil), ("Bombeiro Civil 2", efetivo.bombeiro_civil_2), ("Bombeiro Hidráulico", efetivo.bombeiro_hidraulico), ("CIOP", efetivo.ciop), ("Elétrica", efetivo.eletrica), ("Artífice Civil", efetivo.artifice_civil), ("TI", efetivo.ti), ("Facilities", efetivo.facilities), ("Manutenção", efetivo.manutencao), ("Jardinagem", efetivo.jardinagem), ("Limpeza", efetivo.limpeza), ("Segurança do Trabalho", efetivo.seguranca_trabalho), ("Segurança Patrimonial", efetivo.seguranca_patrimonial), ("Meio Ambiente", efetivo.meio_ambiente), ("Engenharia", efetivo.engenharia), ("Estapar", efetivo.estapar)]
+    pairs = [("Atendimento", efetivo.atendimento), ("Bilheteria", efetivo.bilheteria), ("Bombeiro Civil 1", efetivo.bombeiro_civil), ("Bombeiro Civil 2", efetivo.bombeiro_civil_2), ("Bombeiro Hidrulico", efetivo.bombeiro_hidraulico), ("CIOP", efetivo.ciop), ("Elétrica", efetivo.eletrica), ("Artífice Civil", efetivo.artifice_civil), ("TI", efetivo.ti), ("Facilities", efetivo.facilities), ("Manutenção", efetivo.manutencao), ("Jardinagem", efetivo.jardinagem), ("Limpeza", efetivo.limpeza), ("Segurança do Trabalho", efetivo.seguranca_trabalho), ("Segurança Patrimonial", efetivo.seguranca_patrimonial), ("Meio Ambiente", efetivo.meio_ambiente), ("Engenharia", efetivo.engenharia), ("Estapar", efetivo.estapar)]
     for index in range(0, len(pairs), 2):
         if info_y < pdf["min_y"]:
             canvas.showPage()
             pdf["draw_page"]()
             canvas.setFillColorRGB(*pdf["dark_text"])
             canvas.setFont("Helvetica-Bold", 11)
-            canvas.drawString(info_x, pdf["page_content_top"], "Composição do Efetivo (continuação):")
+            canvas.drawString(info_x + RECUO, pdf["page_content_top"], "Composição do Efetivo (continuação):")
             info_y = pdf["page_content_top"] - 18
         label_left, value_left = pairs[index]
-        draw_pdf_label_value(canvas, info_x, info_y, label_left, value_left or "-")
+        draw_pdf_label_value(canvas, info_x + RECUO, info_y, label_left, value_left or "-")
         if index + 1 < len(pairs):
             label_right, value_right = pairs[index + 1]
-            draw_pdf_label_value(canvas, right_x, info_y, label_right, value_right or "-")
+            draw_pdf_label_value(canvas, right_x + RECUO, info_y, label_right, value_right or "-")
         info_y -= line_h
     draw_pdf_wrapped_section(canvas, title="Observação", text=efetivo.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     canvas.showPage()

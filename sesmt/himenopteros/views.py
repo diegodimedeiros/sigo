@@ -11,14 +11,14 @@ from django.utils import timezone
 from django.utils.http import content_disposition_header
 
 from sigo_core.shared.pdf_export import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
-from sigo.models import Assinatura, Foto, Geolocalizacao
+from sigo.models import Foto, Geolocalizacao
 from sigo_core.api import ApiStatus, api_error, api_method_not_allowed, api_success, parse_limit_offset
 from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.parsers import parse_local_datetime, to_bool
 from sigo_core.shared.pdf_export import draw_pdf_label_value
 from sigo_core.shared.xlsx_export import export_generic_excel
-from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero as HipomenopteroModel
+from sesmt.models import Himenoptero as HipomenopteroModel
 from sesmt.notificacoes import (
     publicar_notificacao_himenoptero_atualizado,
     publicar_notificacao_himenoptero_criado,
@@ -38,7 +38,7 @@ def _flora_local_label(area, local):
 
 
 def _himenopteros_status_meta(registro):
-    if registro.data_hora_fim or (registro.acao_realizada and registro.acao_realizada != "nenhuma"):
+    if registro.data_hora_fim:
         return {"label": "Finalizado", "badge": "success"}
     return {"label": "Em andamento", "badge": "warning"}
 
@@ -186,6 +186,12 @@ def _save_himenopteros_from_payload(*, payload, files, user, registro=None):
         errors["longitude"] = "Informe a geolocalização do registro."
     if is_create and not str(payload.get("isolamento_area") or "").strip():
         errors["isolamento_area"] = "Informe se houve isolamento de área."
+    if (
+        _normalize_payload_value(payload.get("acao_realizada"))
+        and _normalize_payload_value(payload.get("acao_realizada")) != "nenhuma"
+        and not data_hora_fim
+    ):
+        errors["data_hora_fim"] = "Informe a data e hora de encerramento ao registrar a ação realizada."
     if (
         _normalize_payload_value(payload.get("acao_realizada")) == "controle_letal"
         and not _normalize_payload_value(payload.get("justificativa_tecnica"))
@@ -394,9 +400,9 @@ def _apply_himenopteros_filters(queryset, params):
     if area:
         queryset = queryset.filter(area=area)
     if status == "andamento":
-        queryset = queryset.filter(Q(data_hora_fim__isnull=True) & (Q(acao_realizada__isnull=True) | Q(acao_realizada="") | Q(acao_realizada="nenhuma")))
+        queryset = queryset.filter(data_hora_fim__isnull=True)
     elif status == "finalizado":
-        queryset = queryset.exclude(Q(data_hora_fim__isnull=True) & (Q(acao_realizada__isnull=True) | Q(acao_realizada="") | Q(acao_realizada="nenhuma")))
+        queryset = queryset.filter(data_hora_fim__isnull=False)
     if data_inicio:
         queryset = queryset.filter(data_hora_inicio__date__gte=data_inicio)
     if data_fim:
@@ -573,24 +579,25 @@ def himenopteros_export_view_pdf(request, pk):
     info_y = pdf["height"] - 195
     line_h = 14
     right_x = info_x + 215
+    RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x, info_y, "Data/Hora Início", fmt_dt(registro.data_hora_inicio))
-    draw_pdf_label_value(canvas, right_x, info_y, "Status", registro.status_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data/Hora Início", fmt_dt(registro.data_hora_inicio))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", registro.status_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Responsável Registro", registro.responsavel_registro_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Área", registro.area_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável Registro", registro.responsavel_registro_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Área", registro.area_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Local", registro.local_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Tipo", registro.tipo_himenoptero_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", registro.local_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Tipo", registro.tipo_himenoptero_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Proximidade", registro.proximidade_pessoas_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Classificação", registro.classificacao_risco_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Proximidade", registro.proximidade_pessoas_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Classificação", registro.classificacao_risco_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Condição", registro.condicao_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Ação Realizada", registro.acao_realizada_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Condição", registro.condicao_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Ação Realizada", registro.acao_realizada_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Isolamento de Área", _human_bool(registro.isolamento_area))
-    draw_pdf_label_value(canvas, right_x, info_y, "Responsável Técnico", registro.responsavel_tecnico or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Isolamento de Área", _human_bool(registro.isolamento_area))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Responsável Técnico", registro.responsavel_tecnico or "-")
     y = info_y - 24
     y = draw_pdf_wrapped_section(canvas, title="Descrição do Local", text=registro.descricao_local or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     y = draw_pdf_wrapped_section(canvas, title="Observações", text=registro.observacao or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])

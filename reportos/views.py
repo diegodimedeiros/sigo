@@ -1,7 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -81,45 +80,19 @@ def home(request):
     return render(
         request,
         "reportos/index.html",
-        {
-            "module_title": "Central do ReportOS",
-            "module_description": (
-                "Módulo PWA offline-first para operação em campo do SESMT, "
-                "com sincronização automática ao retornar conectividade."
-            ),
-            "reportos_scope": [
-                {
-                    "title": "Atendimento",
-                    "description": "Fluxo de campo para atendimento e primeiros registros operacionais.",
-                    "url_home": "reportos:atendimento_index",
-                    "url_new": "reportos:atendimento_new",
-                },
-                {
-                    "title": "Flora",
-                    "description": "Registro ambiental com foco em captura de evidências em campo.",
-                    "url_home": "reportos:flora_index",
-                    "url_new": "reportos:flora_new",
-                },
-                {
-                    "title": "Fauna e Manejo",
-                    "description": "Fluxo de manejo com sincronização resiliente para operação sem rede.",
-                    "url_home": "reportos:manejo_index",
-                    "url_new": "reportos:manejo_new",
-                },
-                {
-                    "title": "Monitor Himenóptero",
-                    "description": "Registro técnico, avaliação de risco e condução operacional de ocorrências com himenópteros.",
-                    "url_home": "reportos:himenopteros_index",
-                    "url_new": "reportos:himenopteros_new",
-                },
-            ],
-        },
+        {},
     )
 
 
 @login_required
 def offline_diagnostics(request):
-    return render(request, "reportos/offline_diagnostics.html")
+    user = request.user
+    # Django salva o horário do último login em user.last_login
+    last_login = user.last_login
+    return render(request, "reportos/offline_diagnostics.html", {
+        "usuario_logado": user,
+        "hora_login": last_login,
+    })
 
 
 @require_GET
@@ -337,47 +310,6 @@ def atendimento_edit(request, pk):
 
 
 @login_required
-def atendimento_export(request):
-    params = request.POST if request.method == "POST" else request.GET
-    queryset = atendimento_contract.queryset().select_related(
-        "pessoa", "contato", "acompanhante_pessoa", "criado_por", "modificado_por"
-    ).order_by("-data_atendimento", "-id")
-    queryset, filters = atendimento_contract.apply_filters(queryset, params)
-    if request.method == "POST":
-        formato = (request.POST.get("formato") or "").strip().lower()
-        formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-        return atendimento_contract.build_export_response(request, queryset, formato)
-    return render(
-        request,
-        "reportos/atendimento/export.html",
-        {
-            "total_atendimentos": queryset.count(),
-            "request_data": {"formato": "xlsx", **filters},
-            "tipo_ocorrencia_options": atendimento_contract.TIPO_OCORRENCIA_OPTIONS,
-            "area_options": atendimento_contract.AREA_OPTIONS,
-        },
-    )
-
-
-@login_required
-def api_atendimento_export(request):
-    if request.method != "POST":
-        return atendimento_contract.api_method_not_allowed()
-    queryset = atendimento_contract.queryset().select_related(
-        "pessoa", "contato", "acompanhante_pessoa", "criado_por", "modificado_por"
-    ).order_by("-data_atendimento", "-id")
-    queryset, _ = atendimento_contract.apply_filters(queryset, request.POST)
-    formato = (request.POST.get("formato") or "").strip().lower()
-    formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-    return atendimento_contract.build_export_response(request, queryset, formato)
-
-
-@login_required
-def atendimento_export_view_pdf(request, pk):
-    return atendimento_contract.atendimento_export_view_pdf(request, pk)
-
-
-@login_required
 def atendimento_api_locais(request):
     return atendimento_contract.atendimento_api_locais(request)
 
@@ -568,47 +500,6 @@ def manejo_edit(request, pk):
         "reportos/manejo/edit.html",
         manejo_contract.build_form_context(manejo=manejo),
     )
-
-
-@login_required
-def manejo_export(request):
-    params = request.POST if request.method == "POST" else request.GET
-    queryset = manejo_contract.queryset().select_related(
-        "criado_por", "modificado_por"
-    ).order_by("-data_hora", "-id")
-    queryset, filters = manejo_contract.apply_filters(queryset, params)
-    if request.method == "POST":
-        formato = (request.POST.get("formato") or "").strip().lower()
-        formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-        return manejo_contract.build_export_response(request, queryset, formato)
-    return render(
-        request,
-        "reportos/manejo/export.html",
-        {
-            "total_manejos": queryset.count(),
-            "request_data": {"formato": "xlsx", **filters},
-            "classe_options": manejo_contract.MANEJO_CLASSE_OPTIONS,
-            "area_options": manejo_contract.AREA_OPTIONS,
-        },
-    )
-
-
-@login_required
-def api_manejo_export(request):
-    if request.method != "POST":
-        return manejo_contract.api_method_not_allowed()
-    queryset = manejo_contract.queryset().select_related(
-        "criado_por", "modificado_por"
-    ).order_by("-data_hora", "-id")
-    queryset, _ = manejo_contract.apply_filters(queryset, request.POST)
-    formato = (request.POST.get("formato") or "").strip().lower()
-    formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-    return manejo_contract.build_export_response(request, queryset, formato)
-
-
-@login_required
-def manejo_export_view_pdf(request, pk):
-    return manejo_contract.manejo_export_view_pdf(request, pk)
 
 
 @login_required
@@ -806,46 +697,6 @@ def flora_edit(request, pk):
         "reportos/flora/edit.html",
         flora_contract.build_form_context(flora=flora),
     )
-
-
-@login_required
-def flora_export(request):
-    params = request.POST if request.method == "POST" else request.GET
-    queryset = flora_contract.queryset().select_related(
-        "criado_por", "modificado_por"
-    ).order_by("-data_hora_inicio", "-id")
-    queryset, filters = flora_contract.apply_filters(queryset, params)
-    if request.method == "POST":
-        formato = (request.POST.get("formato") or "").strip().lower()
-        formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-        return flora_contract.build_export_response(request, queryset, formato)
-    return render(
-        request,
-        "reportos/flora/export.html",
-        {
-            "total_floras": queryset.count(),
-            "request_data": {"formato": "xlsx", **filters},
-            "area_options": flora_contract.AREA_OPTIONS,
-        },
-    )
-
-
-@login_required
-def api_flora_export(request):
-    if request.method != "POST":
-        return flora_contract.api_method_not_allowed()
-    queryset = flora_contract.queryset().select_related(
-        "criado_por", "modificado_por"
-    ).order_by("-data_hora_inicio", "-id")
-    queryset, _ = flora_contract.apply_filters(queryset, request.POST)
-    formato = (request.POST.get("formato") or "").strip().lower()
-    formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-    return flora_contract.build_export_response(request, queryset, formato)
-
-
-@login_required
-def flora_export_view_pdf(request, pk):
-    return flora_contract.flora_export_view_pdf(request, pk)
 
 
 @login_required
@@ -1055,46 +906,6 @@ def himenopteros_foto_view(request, pk, foto_id):
 @login_required
 def himenopteros_api_locais(request):
     return himenopteros_contract.himenopteros_api_locais(request)
-
-
-@login_required
-def himenopteros_export(request):
-    params = request.POST if request.method == "POST" else request.GET
-    queryset = himenopteros_contract.queryset().select_related(
-        "criado_por", "modificado_por"
-    ).order_by("-data_hora_inicio", "-id")
-    queryset, filters = himenopteros_contract.apply_filters(queryset, params)
-    if request.method == "POST":
-        formato = (request.POST.get("formato") or "").strip().lower()
-        formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-        return himenopteros_contract.build_export_response(request, queryset, formato)
-    return render(
-        request,
-        "reportos/himenopteros/export.html",
-        {
-            "total_registros": queryset.count(),
-            "request_data": {"formato": "xlsx", **filters},
-            "area_options": himenopteros_contract.AREA_OPTIONS,
-        },
-    )
-
-
-@login_required
-def api_himenopteros_export(request):
-    if request.method != "POST":
-        return himenopteros_contract.api_method_not_allowed()
-    queryset = himenopteros_contract.queryset().select_related(
-        "criado_por", "modificado_por"
-    ).order_by("-data_hora_inicio", "-id")
-    queryset, _ = himenopteros_contract.apply_filters(queryset, request.POST)
-    formato = (request.POST.get("formato") or "").strip().lower()
-    formato = formato if formato in {"xlsx", "csv"} else "xlsx"
-    return himenopteros_contract.build_export_response(request, queryset, formato)
-
-
-@login_required
-def himenopteros_export_view_pdf(request, pk):
-    return himenopteros_contract.himenopteros_export_view_pdf(request, pk)
 
 
 @require_GET

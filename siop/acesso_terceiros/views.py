@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET
 from django.utils import timezone
 
 from sigo_core.api import (
@@ -23,6 +22,7 @@ from sigo_core.shared.pdf_export import (
     build_numbered_canvas_class,
     draw_pdf_label_value,
     draw_pdf_page_chrome,
+    get_a4_content_area,
     wrap_pdf_text_lines,
 )
 from sigo_core.shared.xlsx_export import export_generic_excel
@@ -463,11 +463,12 @@ def acesso_terceiros_export(request):
 @login_required
 def acesso_terceiros_export_view_pdf(request, pk):
     acesso = get_object_or_404(AcessoTerceiros.objects.select_related("pessoa").prefetch_related("anexos"), pk=pk)
-
     try:
         from reportlab.lib.pagesizes import A4
     except ImportError:
         return HttpResponse("reportlab não está instalado.", status=500)
+
+    from sigo_core.shared.pdf_export import PDF_FONTS, PDF_COLORS
 
     width, height = A4
     buffer = io.BytesIO()
@@ -477,118 +478,171 @@ def acesso_terceiros_export_view_pdf(request, pk):
     canvas.setAuthor(user_display(request.user))
     canvas.setSubject("Relatório de Acesso de Terceiros")
 
-    dark_text = (0.15, 0.15, 0.15)
-    page_content_top = height - 120
-    min_y = 72
-    info_x = 82
+    content_area = get_a4_content_area()
+    dark_text = PDF_COLORS["dark_text"]
+    page_content_top = content_area["top"]
+    min_y = content_area["y"]
+    info_x = content_area["x"]
+
+    LINE_HEIGHT = 14
+    BLOCK_GAP = 14
+    DESCRIPTION_LINE_HEIGHT = 13
+    ATTACHMENT_LINE_HEIGHT = 12
+    TITLE_OFFSET = 60
+    RECUO = 24
 
     def draw_page_chrome():
         draw_pdf_page_chrome(
             canvas=canvas,
             page_width=width,
             page_height=height,
-            generated_by=user_display(request.user) or "Sistema",
-            generated_at=timezone.localtime(timezone.now()),
             header_subtitle="Módulo Acesso de Terceiros",
         )
+        canvas.setFillColorRGB(*dark_text)
 
-    draw_page_chrome()
+    def set_font(font_key):
+        font_name, font_size = PDF_FONTS[font_key]
+        canvas.setFont(font_name, font_size)
+        return font_name, font_size
 
-    canvas.setFillColorRGB(*dark_text)
-    canvas.setFont("Helvetica-Bold", 12)
-    canvas.drawCentredString(width / 2, height - 140, f"Relatório de Acesso de Terceiros: #{acesso.id}")
-
-    info_block_w = 430
-    info_y = height - 195
-    line_h = 14
-    block_gap = 14
-    right_x = info_x + (info_block_w / 2)
-
-    draw_pdf_label_value(canvas, info_x, info_y, "Entrada", fmt_dt(acesso.entrada))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Saída", fmt_dt(acesso.saida))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(acesso, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(acesso, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(acesso.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(acesso.modificado_em))
-    info_y -= (line_h + block_gap)
-
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, info_y, "Dados da Pessoa:")
-    info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Nome completo", acesso.nome or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Documento", acesso.documento or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "P1", catalogo_p1_label(acesso.p1) or "-")
-    info_y -= (line_h + block_gap)
-
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, info_y, "Dados do Acesso:")
-    info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Empresa", acesso.empresa or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Placa do veículo", acesso.placa_veiculo or "-")
-    info_y -= (line_h + block_gap)
-
-    desc_title_y = info_y - 8
-    if desc_title_y < min_y:
-        canvas.showPage()
-        draw_page_chrome()
-        desc_title_y = page_content_top
-
-    canvas.setFillColorRGB(*dark_text)
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, desc_title_y, "Descrição do Acesso de Terceiros")
-
-    desc_lines = wrap_pdf_text_lines(acesso.descricao or "-", width - (info_x * 2))
-    canvas.setFont("Helvetica", 10)
-    y = desc_title_y - 18
-    for line in desc_lines:
+    def ensure_space(y, title=None):
         if y < min_y:
             canvas.showPage()
             draw_page_chrome()
-            canvas.setFillColorRGB(*dark_text)
-            canvas.setFont("Helvetica-Bold", 11)
-            canvas.drawString(info_x, page_content_top, "Descrição do Acesso de Terceiros (continuação)")
-            canvas.setFont("Helvetica", 10)
-            y = page_content_top - 18
-        canvas.drawString(info_x, y, line)
-        y -= 13
+            if title:
+                set_font("label")
+                canvas.drawString(info_x, page_content_top, title)
+                return page_content_top - 18
+            return page_content_top
+        return y
 
-    anexos_y = y - 12
-    if anexos_y < min_y:
-        canvas.showPage()
-        draw_page_chrome()
-        canvas.setFillColorRGB(*dark_text)
-        anexos_y = page_content_top
+    def draw_main_title():
+        set_font("header")
+        canvas.drawCentredString(
+            width / 2,
+            content_area["top"] - TITLE_OFFSET,
+            f"Relatório de Acesso de Terceiros: #{acesso.id}"
+        )
 
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, anexos_y, "Anexos")
-    canvas.setFont("Helvetica", 9)
+    def draw_basic_info(y):
+        set_font("label")
+        draw_pdf_label_value(canvas, info_x + RECUO, y, "Entrada", fmt_dt(acesso.entrada))
+        y -= LINE_HEIGHT
+        draw_pdf_label_value(canvas, info_x + RECUO, y, "Saída", fmt_dt(acesso.saida))
+        y -= LINE_HEIGHT
+        draw_pdf_label_value(canvas, info_x + RECUO, y, "Criado por", user_display(getattr(acesso, "criado_por", None)) or "-")
+        draw_pdf_label_value(canvas, info_x + 220 + RECUO, y, "Modificado por", user_display(getattr(acesso, "modificado_por", None)) or "-")
+        y -= LINE_HEIGHT
+        draw_pdf_label_value(canvas, info_x + RECUO, y, "Criado em", fmt_dt(acesso.criado_em))
+        draw_pdf_label_value(canvas, info_x + 220 + RECUO, y, "Modificado em", fmt_dt(acesso.modificado_em))
+        y -= (LINE_HEIGHT + BLOCK_GAP)
+        return y
 
-    anexos = list(acesso.anexos.all())
-    y = anexos_y - 14
-    if anexos:
+    def draw_section_title(y, title):
+        y = ensure_space(y)
+        set_font("label")
+        canvas.drawString(info_x, y, title)
+        return y - 20
+
+    def draw_pessoa_data(y):
+        y = draw_section_title(y, "Dados da Pessoa:")
+        set_font("body")
+        fields = [
+            ("Nome completo", acesso.nome or "-"),
+            ("Documento", acesso.documento or "-"),
+            ("P1", catalogo_p1_label(acesso.p1) or "-"),
+        ]
+        for label, value in fields:
+            y = ensure_space(y)
+            draw_pdf_label_value(canvas, info_x + RECUO, y, label, value)
+            y -= LINE_HEIGHT
+        return y - BLOCK_GAP
+
+    def draw_acesso_data(y):
+        y = draw_section_title(y, "Dados do Acesso:")
+        set_font("body")
+        fields = [
+            ("Empresa", acesso.empresa or "-"),
+            ("Placa do veículo", acesso.placa_veiculo or "-"),
+        ]
+        for label, value in fields:
+            y = ensure_space(y)
+            draw_pdf_label_value(canvas, info_x + RECUO, y, label, value)
+            y -= LINE_HEIGHT
+        return y - BLOCK_GAP
+
+    def draw_description(y):
+        y -= 8
+        if y < min_y:
+            canvas.showPage()
+            draw_page_chrome()
+            y = page_content_top
+        set_font("label")
+        canvas.drawString(info_x, y, "Descrição do Acesso de Terceiros")
+        font_name, font_size = set_font("body")
+        desc_lines = wrap_pdf_text_lines(acesso.descricao or "-", width - (info_x * 2), font_name, font_size)
+        y -= 18
+        for line in desc_lines:
+            if y < min_y:
+                canvas.showPage()
+                draw_page_chrome()
+                set_font("label")
+                canvas.drawString(info_x, page_content_top, "Descrição do Acesso de Terceiros (continuação)")
+                set_font("body")
+                y = page_content_top - 18
+            canvas.drawString(info_x + RECUO, y, line)
+            y -= DESCRIPTION_LINE_HEIGHT
+        return y - 12
+
+    def draw_attachments(y):
+        if y < min_y:
+            canvas.showPage()
+            draw_page_chrome()
+            y = page_content_top
+        set_font("label")
+        canvas.drawString(info_x, y, "Anexos")
+        set_font("list")
+        anexos = list(acesso.anexos.all())
+        y -= 14
+        if not anexos:
+            y = ensure_space(y)
+            canvas.drawString(info_x + 4, y, "Nenhum anexo.")
+            return y - ATTACHMENT_LINE_HEIGHT
         for index, anexo in enumerate(anexos, start=1):
             if y < min_y:
                 canvas.showPage()
                 draw_page_chrome()
-                canvas.setFillColorRGB(*dark_text)
-                canvas.setFont("Helvetica-Bold", 11)
+                set_font("label")
                 canvas.drawString(info_x, page_content_top, "Anexos (continuação)")
-                canvas.setFont("Helvetica", 9)
+                set_font("list")
                 y = page_content_top - 14
             canvas.drawString(info_x + 4, y, f"{index}. {anexo.nome_arquivo}")
-            y -= 12
-    else:
-        canvas.drawString(info_x + 4, y, "Nenhum anexo.")
+            y -= ATTACHMENT_LINE_HEIGHT
+        return y
 
-    canvas.showPage()
-    canvas.save()
+    def draw_footer():
+        canvas.setFont("Helvetica-Oblique", 8)
+        canvas.setFillColorRGB(0.4, 0.4, 0.4)
+        canvas.drawRightString(
+            width - info_x,
+            min_y - 10,
+            f"Gerado por: {user_display(request.user) or 'Sistema'} em {fmt_dt(timezone.localtime(timezone.now()))}"
+        )
+
+    try:
+        draw_page_chrome()
+        draw_main_title()
+        y = content_area["top"] - 90
+        y = draw_basic_info(y)
+        y = draw_pessoa_data(y)
+        y = draw_acesso_data(y)
+        y = draw_description(y)
+        y = draw_attachments(y)
+        draw_footer()
+        canvas.showPage()
+        canvas.save()
+    except Exception as exc:
+        return HttpResponse(f"Erro ao gerar PDF do acesso: {exc}", status=500)
     buffer.seek(0)
-
     filename = f"acesso_terceiros_{acesso.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
     return FileResponse(buffer, as_attachment=True, filename=filename)

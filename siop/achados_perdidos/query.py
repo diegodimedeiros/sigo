@@ -5,16 +5,12 @@ from django.utils import timezone
 
 from sigo_core.catalogos import (
     catalogo_achado_classificacao_items,
-    catalogo_achado_classificacao_label,
     catalogo_achado_classificacao_key,
     catalogo_achado_situacao_items,
-    catalogo_achado_situacao_label,
     catalogo_achado_situacao_key,
     catalogo_achado_status_items,
-    catalogo_achado_status_label,
     catalogo_achado_status_key,
     catalogo_areas_data,
-    catalogo_local_label,
     catalogo_locais_por_area_data,
     colaboradores_ciop_items,
     colaboradores_options,

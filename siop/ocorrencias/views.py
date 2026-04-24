@@ -6,7 +6,6 @@ from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_GET
 
 from sigo_core.api import ApiStatus, api_error, api_method_not_allowed, api_success, is_json_request, parse_limit_offset
 from sigo_core.catalogos import (
@@ -17,13 +16,17 @@ from sigo_core.catalogos import (
     catalogo_naturezas_data,
     catalogo_tipo_label,
     catalogo_tipo_pessoa_label,
-    catalogo_tipos_pessoa_data,
-    catalogo_tipos_por_natureza_data,
 )
 from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import bool_ptbr, fmt_dt, status_ptbr, user_display
 from sigo_core.shared.xlsx_export import export_generic_excel
-from sigo_core.shared.pdf_export import build_numbered_canvas_class, draw_pdf_label_value, draw_pdf_page_chrome, wrap_pdf_text_lines
+from sigo_core.shared.pdf_export import (
+    build_numbered_canvas_class,
+    draw_pdf_label_value,
+    draw_pdf_page_chrome,
+    get_a4_content_area,
+    wrap_pdf_text_lines,
+)
 
 from ..models import Ocorrencia
 from .common import (
@@ -257,102 +260,134 @@ def ocorrencias_export_view_pdf(request, pk):
     canvas.setAuthor(user_display(request.user))
     canvas.setSubject("Relatório de Ocorrência")
 
-    dark_text = (0.15, 0.15, 0.15)
-    page_content_top = height - 120
-    min_y = 72
-    info_x = 82
+    content_area = get_a4_content_area()
+    PDF = __import__('sigo_core.shared.pdf_export', fromlist=['PDF_FONTS', 'PDF_COLORS'])
+    PDF_FONTS = PDF.PDF_FONTS
+    PDF_COLORS = PDF.PDF_COLORS
+    dark_text = PDF_COLORS["dark_text"]
+    page_content_top = content_area["top"]
+    min_y = content_area["y"]
+    info_x = content_area["x"]
 
     def draw_page_chrome():
         draw_pdf_page_chrome(
             canvas=canvas,
             page_width=width,
             page_height=height,
-            generated_by=user_display(request.user) or "Sistema",
-            generated_at=timezone.localtime(timezone.now()),
             header_subtitle="Módulo Ocorrências",
         )
 
     draw_page_chrome()
     canvas.setFillColorRGB(*dark_text)
-    canvas.setFont("Helvetica-Bold", 12)
-    canvas.drawCentredString(width / 2, height - 140, f"Relatório da Ocorrência: #{ocorrencia_obj.id}")
+    # Título principal
+    font_name, font_size = PDF_FONTS["header"]
+    canvas.setFont(font_name, font_size)
+    canvas.drawCentredString(width / 2, content_area["top"] - 50, f"Relatório da Ocorrência: #{ocorrencia_obj.id}")
 
+
+
+    # Layout em duas colunas para dados principais
     info_block_w = 430
-    info_y = height - 195
-    line_h = 14
-    block_gap = 14
-    right_x = info_x + (info_block_w / 2)
+    info_y = content_area["top"] - 90
+    line_h = 16
+    block_gap = 18
+    col_gap = 32
+    col_w = (content_area["width"] - col_gap) / 2
+    left_x = info_x
+    right_x = info_x + col_w + col_gap
+    RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x, info_y, "Data/Hora", fmt_dt(ocorrencia_obj.data_ocorrencia))
+    font_name, font_size = PDF_FONTS["label"]
+    canvas.setFont(font_name, font_size)
+    # Primeira linha
+    draw_pdf_label_value(canvas, left_x + RECUO, info_y, "Data/Hora", fmt_dt(ocorrencia_obj.data_ocorrencia))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", status_ptbr(ocorrencia_obj.status))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Status", status_ptbr(ocorrencia_obj.status))
+    # Segunda linha
+    draw_pdf_label_value(canvas, left_x + RECUO, info_y, "Criado por", user_display(getattr(ocorrencia_obj, "criado_por", None)) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(ocorrencia_obj, "modificado_por", None)) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(ocorrencia_obj, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(ocorrencia_obj, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(ocorrencia_obj.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(ocorrencia_obj.modificado_em))
+    # Terceira linha
+    draw_pdf_label_value(canvas, left_x + RECUO, info_y, "Criado em", fmt_dt(ocorrencia_obj.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(ocorrencia_obj.modificado_em))
     info_y -= (line_h + block_gap)
 
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, info_y, "Dados da Ocorrência:")
-    info_y -= 18
 
-    draw_pdf_label_value(canvas, info_x, info_y, "Tipo Pessoa", ocorrencia_obj.tipo_pessoa_label or "-")
+
+    # Bloco de dados da ocorrência (largura total)
+    font_name, font_size = PDF_FONTS["label"]
+    canvas.setFont(font_name, font_size)
+    canvas.drawString(info_x + RECUO, info_y, "Dados da Ocorrência:")
+    info_y -= 20
+    font_name, font_size = PDF_FONTS["body"]
+    canvas.setFont(font_name, font_size)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo Pessoa", ocorrencia_obj.tipo_pessoa_label or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Natureza", ocorrencia_obj.natureza_label or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Natureza", ocorrencia_obj.natureza_label or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Tipo", ocorrencia_obj.tipo_label or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo", ocorrencia_obj.tipo_label or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Área", ocorrencia_obj.area_label or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área", ocorrencia_obj.area_label or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Local", ocorrencia_obj.local_label or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", ocorrencia_obj.local_label or "-")
     info_y -= (line_h + block_gap)
 
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, info_y, "Informações Complementares:")
-    info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Imagens CFTV", bool_ptbr(ocorrencia_obj.cftv))
+
+
+    # Bloco de informações complementares (largura total)
+    font_name, font_size = PDF_FONTS["label"]
+    canvas.setFont(font_name, font_size)
+    canvas.drawString(info_x + RECUO, info_y, "Informações Complementares:")
+    info_y -= 20
+    font_name, font_size = PDF_FONTS["body"]
+    canvas.setFont(font_name, font_size)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Imagens CFTV", bool_ptbr(ocorrencia_obj.cftv))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Bombeiro Civil", bool_ptbr(ocorrencia_obj.bombeiro_civil))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Bombeiro Civil", bool_ptbr(ocorrencia_obj.bombeiro_civil))
     info_y -= (line_h + block_gap)
 
+
+
+    # Bloco de descrição
     desc_title_y = info_y - 8
     if desc_title_y < min_y:
         canvas.showPage()
         draw_page_chrome()
         desc_title_y = page_content_top
-
     canvas.setFillColorRGB(*dark_text)
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, desc_title_y, "Descrição da Ocorrência")
-
-    desc_lines = wrap_pdf_text_lines(ocorrencia_obj.descricao or "-", width - (info_x * 2))
-    canvas.setFont("Helvetica", 10)
+    font_name, font_size = PDF_FONTS["label"]
+    canvas.setFont(font_name, font_size)
+    canvas.drawString(info_x + RECUO, desc_title_y, "Descrição da Ocorrência")
+    font_name, font_size = PDF_FONTS["body"]
+    desc_lines = wrap_pdf_text_lines(ocorrencia_obj.descricao or "-", width - (info_x * 2), font_name, font_size)
+    canvas.setFont(font_name, font_size)
     y = desc_title_y - 18
     for line in desc_lines:
         if y < min_y:
             canvas.showPage()
             draw_page_chrome()
             canvas.setFillColorRGB(*dark_text)
-            canvas.setFont("Helvetica-Bold", 11)
-            canvas.drawString(info_x, page_content_top, "Descrição da Ocorrência (continuação)")
-            canvas.setFont("Helvetica", 10)
+            font_name, font_size = PDF_FONTS["label"]
+            canvas.setFont(font_name, font_size)
+            canvas.drawString(info_x + RECUO, page_content_top, "Descrição da Ocorrência (continuação)")
+            font_name, font_size = PDF_FONTS["body"]
+            canvas.setFont(font_name, font_size)
             y = page_content_top - 18
-        canvas.drawString(info_x, y, line)
-        y -= 13
+        canvas.drawString(info_x + RECUO, y, line)
+        y -= 13  
 
+    # Bloco de anexos
     anexos_y = y - 12
     if anexos_y < min_y:
         canvas.showPage()
         draw_page_chrome()
         canvas.setFillColorRGB(*dark_text)
         anexos_y = page_content_top
-
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, anexos_y, "Anexos")
-    canvas.setFont("Helvetica", 9)
-
+    font_name, font_size = PDF_FONTS["label"]
+    canvas.setFont(font_name, font_size)
+    canvas.drawString(info_x + RECUO, anexos_y, "Anexos")
+    font_name, font_size = PDF_FONTS["body"]
+    canvas.setFont(font_name, font_size)
     anexos = list(ocorrencia_obj.anexos.all())
     y = anexos_y - 14
     if anexos:
@@ -361,14 +396,21 @@ def ocorrencias_export_view_pdf(request, pk):
                 canvas.showPage()
                 draw_page_chrome()
                 canvas.setFillColorRGB(*dark_text)
-                canvas.setFont("Helvetica-Bold", 11)
-                canvas.drawString(info_x, page_content_top, "Anexos (continuação)")
-                canvas.setFont("Helvetica", 9)
+                font_name, font_size = PDF_FONTS["label"]
+                canvas.setFont(font_name, font_size)
+                canvas.drawString(info_x + RECUO, page_content_top, "Anexos (continuação)")
+                font_name, font_size = PDF_FONTS["body"]
+                canvas.setFont(font_name, font_size)
                 y = page_content_top - 14
-            canvas.drawString(info_x + 4, y, f"{index}. {anexo.nome_arquivo}")
+            canvas.drawString(info_x + RECUO + 4, y, f"{index}. {anexo.nome_arquivo}")
             y -= 12
     else:
-        canvas.drawString(info_x + 4, y, "Nenhum anexo.")
+        canvas.drawString(info_x + RECUO + 4, y, "Nenhum anexo.")
+
+    # Rodapé
+    canvas.setFont("Helvetica", 8)
+    canvas.setFillColorRGB(*dark_text)
+    canvas.drawRightString(width - info_x, min_y - 10, f"Gerado por: {user_display(request.user) or 'Sistema'} em {fmt_dt(timezone.localtime(timezone.now()))}")
 
     canvas.showPage()
     canvas.save()

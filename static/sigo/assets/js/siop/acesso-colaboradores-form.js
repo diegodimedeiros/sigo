@@ -68,7 +68,7 @@
         if (!button) {
           return;
         }
-        button.style.display = rows.length === 1 && index === 0 ? "none" : "";
+        button.classList.toggle("d-none", rows.length === 1 && index === 0);
       });
     }
 

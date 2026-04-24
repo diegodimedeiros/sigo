@@ -248,22 +248,23 @@ def acesso_colaboradores_export_view_pdf(request, pk):
     line_h = 14
     block_gap = 14
     right_x = info_x + 215
-    draw_pdf_label_value(canvas, info_x, info_y, "Entrada", fmt_dt(acesso.entrada))
-    draw_pdf_label_value(canvas, right_x, info_y, "Saída", fmt_dt(acesso.saida))
+    RECUO = 24
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Entrada", fmt_dt(acesso.entrada))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Saída", fmt_dt(acesso.saida))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "P1", acesso.p1_label or acesso.p1 or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Placa", acesso.placa_veiculo or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "P1", acesso.p1_label or acesso.p1 or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Placa", acesso.placa_veiculo or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Unidade", acesso.unidade_sigla or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Status", acesso.status_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Unidade", acesso.unidade_sigla or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", acesso.status_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(acesso, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(acesso, "modificado_por", None)) or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(acesso, "criado_por", None)) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(acesso, "modificado_por", None)) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(acesso.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(acesso.modificado_em))
-    draw_pdf_wrapped_section(canvas, title="Colaborador vinculado", text=(acesso.pessoa.nome if acesso.pessoa_id and acesso.pessoa.nome else "-"), x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    draw_pdf_wrapped_section(canvas, title="Descrição do acesso", text=acesso.descricao_acesso or "-", x=info_x, y=info_y - (block_gap * 2), width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(acesso.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(acesso.modificado_em))
+    draw_pdf_wrapped_section(canvas, title="Colaborador vinculado", text=(acesso.pessoa.nome if acesso.pessoa_id and acesso.pessoa.nome else "-"), x=info_x + RECUO, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
+    draw_pdf_wrapped_section(canvas, title="Descrição do acesso", text=acesso.descricao_acesso or "-", x=info_x + RECUO, y=info_y - (block_gap * 2), width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     canvas.showPage()
     canvas.save()
     pdf["buffer"].seek(0)

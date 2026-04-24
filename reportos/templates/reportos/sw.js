@@ -64,7 +64,8 @@ if (workbox) {
     })
   );
 
-  var bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin("reportos-sesmt-sync", {
+  // Torna o plugin acessível globalmente para uso no evento de mensagem
+  self.bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin("reportos-sesmt-sync", {
     maxRetentionTime: 24 * 60
   });
 
@@ -76,7 +77,7 @@ if (workbox) {
       );
     },
     new workbox.strategies.NetworkOnly({
-      plugins: [bgSyncPlugin]
+      plugins: [self.bgSyncPlugin]
     }),
     "POST"
   );
@@ -86,9 +87,18 @@ self.addEventListener("install", function () {
   self.skipWaiting();
 });
 
+
 self.addEventListener("message", function (event) {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+  if (event.data && event.data.type === "FORCE_SYNC_QUEUE") {
+    // Atenção: o acesso a _queue é uma API interna do Workbox e pode quebrar em futuras versões.
+    // Não existe API pública/documentada para forçar o replay da fila.
+    // Veja: https://github.com/GoogleChrome/workbox/issues/1790
+    if (self.bgSyncPlugin && self.bgSyncPlugin._queue) {
+      self.bgSyncPlugin._queue.replayRequests();
+    }
   }
 });
 

@@ -156,6 +156,7 @@ class ModuleNamespaceAccessPolicyTests(TestCase):
 
     def test_reportos_home_returns_403_without_reportos_group(self):
         user = User.objects.create_user(username="sem_reportos", password="SenhaForte123!")
+        # Não adiciona ao grupo de propósito para testar bloqueio
         self.client.force_login(user)
 
         response = self.client.get(reverse("reportos:home"))
@@ -191,7 +192,7 @@ class LogoutCleanupTests(TestCase):
         response = self.client.get(reverse("sigo:home"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<form method="post" action="' + reverse("sigo:logout") + '" class="d-inline" data-sigo-logout="true"', html=False)
+        self.assertContains(response, '<form method="post" action="' + reverse("sigo:logout") + '" class="m-0" data-sigo-logout="true"', html=False)
 
     def test_logout_route_redirects_to_login_and_clears_session(self):
         response = self.client.post(reverse("sigo:logout"))

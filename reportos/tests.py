@@ -79,23 +79,29 @@ class ReportosHomeTests(TestCase):
         self.assertIn("locais_por_area", payload["data"])
         self.assertIn("especies_por_classe", payload["data"])
 
-    def test_export_routes_are_registered(self):
-        self.assertEqual(reverse("reportos:atendimento_export"), "/reportos/atendimento/exportar/")
-        self.assertEqual(reverse("reportos:api_atendimento_export"), "/reportos/api/atendimento/export/")
-        self.assertEqual(reverse("reportos:manejo_export"), "/reportos/manejo/exportar/")
-        self.assertEqual(reverse("reportos:api_manejo_export"), "/reportos/api/manejo/export/")
-        self.assertEqual(reverse("reportos:flora_export"), "/reportos/flora/exportar/")
-        self.assertEqual(reverse("reportos:api_flora_export"), "/reportos/api/flora/export/")
-        self.assertEqual(reverse("reportos:himenopteros_export"), "/reportos/himenopteros/exportar/")
-        self.assertEqual(reverse("reportos:api_himenopteros_export"), "/reportos/api/himenopteros/export/")
-
-    def test_old_home_aliases_are_not_registered(self):
+    def test_rotas_antigas_ou_fora_do_escopo_nao_estao_registradas(self):
         with self.assertRaises(NoReverseMatch):
             reverse("reportos:atendimento_home")
         with self.assertRaises(NoReverseMatch):
             reverse("reportos:manejo_home")
         with self.assertRaises(NoReverseMatch):
             reverse("reportos:flora_home")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:atendimento_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:api_atendimento_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:manejo_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:api_manejo_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:flora_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:api_flora_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:himenopteros_export")
+        with self.assertRaises(NoReverseMatch):
+            reverse("reportos:api_himenopteros_export")
 
 
 class ReportosAtendimentoApiTests(TestCase):
@@ -141,6 +147,80 @@ class ReportosAtendimentoApiTests(TestCase):
         self.assertTrue(payload["ok"])
         atendimento = ControleAtendimento.objects.get()
         self.assertEqual(payload["data"]["id"], atendimento.pk)
+        self.assertEqual(
+            payload["data"]["redirect_url"],
+            reverse("reportos:atendimento_view", args=[atendimento.pk]),
+        )
+
+    def test_api_atendimento_list_reescreve_view_url_para_reportos(self):
+        self.client.post(reverse("reportos:api_atendimento"), data=self._payload())
+
+        response = self.client.get(reverse("reportos:api_atendimento"))
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertGreaterEqual(len(payload["data"]["registros"]), 1)
+        self.assertTrue(payload["data"]["registros"][0]["view_url"].startswith("/reportos/atendimento/"))
+
+    def test_api_atendimento_detail_reescreve_urls_de_evidencias(self):
+        self.client.post(reverse("reportos:api_atendimento"), data=self._payload())
+        atendimento = ControleAtendimento.objects.get()
+        content_type = ContentType.objects.get_for_model(ControleAtendimento)
+
+        Foto.objects.create(
+            content_type=content_type,
+            object_id=atendimento.pk,
+            tipo=Foto.TIPO_CAPTURA,
+            nome_arquivo="foto.jpg",
+            mime_type="image/jpeg",
+            arquivo=b"fake-image-content",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+        Assinatura.objects.create(
+            content_type=content_type,
+            object_id=atendimento.pk,
+            nome_arquivo="assinatura.png",
+            mime_type="image/png",
+            arquivo=b"fake-signature-content",
+            criado_por=self.user,
+            modificado_por=self.user,
+        )
+
+        response = self.client.get(reverse("reportos:api_atendimento_detail", args=[atendimento.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        fotos = payload["data"]["evidencias"]["fotos"]
+        assinaturas = payload["data"]["evidencias"]["assinaturas"]
+        self.assertEqual(len(fotos), 1)
+        self.assertEqual(len(assinaturas), 1)
+        self.assertTrue(fotos[0]["url"].startswith("/reportos/atendimento/"))
+        self.assertIn("/fotos/", fotos[0]["url"])
+        self.assertTrue(assinaturas[0]["url"].startswith("/reportos/atendimento/"))
+        self.assertIn("/assinaturas/", assinaturas[0]["url"])
+
+    def test_api_atendimento_update_mantem_redirect_do_reportos(self):
+        self.client.post(reverse("reportos:api_atendimento"), data=self._payload())
+        atendimento = ControleAtendimento.objects.get()
+
+        response = self.client.post(
+            reverse("reportos:api_atendimento_detail", args=[atendimento.pk]),
+            data=self._payload(
+                responsavel_atendimento="Fernanda Costa",
+                atendimentos="on",
+                primeiros_socorros="curativo",
+                descricao="Atendimento atualizado via API do ReportOS.",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        atendimento.refresh_from_db()
+        self.assertEqual(atendimento.responsavel_atendimento, "Fernanda Costa")
         self.assertEqual(
             payload["data"]["redirect_url"],
             reverse("reportos:atendimento_view", args=[atendimento.pk]),
@@ -358,9 +438,11 @@ class ReportosHimenopterosApiTests(TestCase):
         ConfiguracaoSistema.objects.create(unidade_ativa=self.unidade)
 
     def _payload(self, **overrides):
+        now = timezone.localtime()
         foto = SimpleUploadedFile("registro.jpg", b"image-data", content_type="image/jpeg")
         payload = {
-            "data_hora_inicio": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+            "data_hora_inicio": now.strftime("%Y-%m-%dT%H:%M"),
+            "data_hora_fim": now.strftime("%Y-%m-%dT%H:%M"),
             "responsavel_registro": "diego_pereira_bicca_geloch",
             "area": "entrada",
             "local": "entrada_de_pedestres",
@@ -437,77 +519,3 @@ class ReportosHimenopterosApiTests(TestCase):
         self.assertTrue(payload["ok"])
         registro.refresh_from_db()
         self.assertEqual(payload["data"]["redirect_url"], reverse("reportos:himenopteros_view", args=[registro.pk]))
-
-    def test_api_atendimento_list_reescreve_view_url_para_reportos(self):
-        self.client.post(reverse("reportos:api_atendimento"), data=self._payload())
-
-        response = self.client.get(reverse("reportos:api_atendimento"))
-
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertTrue(payload["ok"])
-        self.assertGreaterEqual(len(payload["data"]["registros"]), 1)
-        self.assertTrue(payload["data"]["registros"][0]["view_url"].startswith("/reportos/atendimento/"))
-
-    def test_api_atendimento_detail_reescreve_urls_de_evidencias(self):
-        self.client.post(reverse("reportos:api_atendimento"), data=self._payload())
-        atendimento = ControleAtendimento.objects.get()
-        content_type = ContentType.objects.get_for_model(ControleAtendimento)
-
-        Foto.objects.create(
-            content_type=content_type,
-            object_id=atendimento.pk,
-            tipo=Foto.TIPO_CAPTURA,
-            nome_arquivo="foto.jpg",
-            mime_type="image/jpeg",
-            arquivo=b"fake-image-content",
-            criado_por=self.user,
-            modificado_por=self.user,
-        )
-        Assinatura.objects.create(
-            content_type=content_type,
-            object_id=atendimento.pk,
-            nome_arquivo="assinatura.png",
-            mime_type="image/png",
-            arquivo=b"fake-signature-content",
-            criado_por=self.user,
-            modificado_por=self.user,
-        )
-
-        response = self.client.get(reverse("reportos:api_atendimento_detail", args=[atendimento.pk]))
-
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertTrue(payload["ok"])
-        fotos = payload["data"]["evidencias"]["fotos"]
-        assinaturas = payload["data"]["evidencias"]["assinaturas"]
-        self.assertEqual(len(fotos), 1)
-        self.assertEqual(len(assinaturas), 1)
-        self.assertTrue(fotos[0]["url"].startswith("/reportos/atendimento/"))
-        self.assertIn("/fotos/", fotos[0]["url"])
-        self.assertTrue(assinaturas[0]["url"].startswith("/reportos/atendimento/"))
-        self.assertIn("/assinaturas/", assinaturas[0]["url"])
-
-    def test_api_atendimento_update_mantem_redirect_do_reportos(self):
-        self.client.post(reverse("reportos:api_atendimento"), data=self._payload())
-        atendimento = ControleAtendimento.objects.get()
-
-        response = self.client.post(
-            reverse("reportos:api_atendimento_detail", args=[atendimento.pk]),
-            data=self._payload(
-                responsavel_atendimento="Fernanda Costa",
-                atendimentos="on",
-                primeiros_socorros="curativo",
-                descricao="Atendimento atualizado via API do ReportOS.",
-            ),
-        )
-
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertTrue(payload["ok"])
-        atendimento.refresh_from_db()
-        self.assertEqual(atendimento.responsavel_atendimento, "Fernanda Costa")
-        self.assertEqual(
-            payload["data"]["redirect_url"],
-            reverse("reportos:atendimento_view", args=[atendimento.pk]),
-        )

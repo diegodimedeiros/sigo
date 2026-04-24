@@ -216,6 +216,12 @@
         // Isolamento de área obrigatório na criação
         var isCreate = !val("himenopteros-id");
         if (isCreate && !val("himenopteros-isolamento_area")) { errors.push("Informe se houve isolamento de área."); markInvalid("himenopteros-isolamento_area", "Campo obrigatório"); }
+        var acaoRealizada = document.querySelector('#himenopteros-form select[name="acao_realizada"]');
+        var acaoValue = acaoRealizada && acaoRealizada.value ? acaoRealizada.value.trim() : "";
+        if (acaoValue && acaoValue !== "nenhuma" && !val("himenopteros-data_hora_fim")) {
+          errors.push("Informe a data e hora de encerramento ao registrar a ação realizada.");
+          markInvalid("himenopteros-data_hora_fim", "Campo obrigatório");
+        }
         if (errors.length) {
           event.preventDefault();
           if (firstInvalid && typeof firstInvalid.focus === "function") firstInvalid.focus();

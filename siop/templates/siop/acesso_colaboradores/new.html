@@ -31,7 +31,7 @@
                 <input type="text" name="pessoa_nome" class="form-control js-colaborador-manual" value="{% if pessoa.custom %}{{ pessoa.nome }}{% endif %}" placeholder="Nome do colaborador">
               </div>
               <div class="col-lg-2 col-md-3 d-grid">
-                <button type="button" class="btn btn-label-danger pessoa-remove-btn"{% if forloop.first and request_data.pessoas|length == 1 %} style="display:none"{% endif %}>Remover</button>
+                <button type="button" class="btn btn-label-danger pessoa-remove-btn{% if forloop.first and request_data.pessoas|length == 1 %} d-none{% endif %}">Remover</button>
               </div>
             </div>
             {% endfor %}

@@ -197,23 +197,24 @@ def controle_chaves_export_view_pdf(request, pk):
     line_h = 14
     block_gap = 14
     right_x = info_x + 215
-    draw_pdf_label_value(canvas, info_x, info_y, "Retirada", fmt_dt(chave_obj.retirada))
-    draw_pdf_label_value(canvas, right_x, info_y, "Devolução", fmt_dt(chave_obj.devolucao))
+    RECUO = 24
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Retirada", fmt_dt(chave_obj.retirada))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(chave_obj.devolucao))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Chave", chave_obj.chave_label or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Número", chave_obj.chave_numero or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Chave", chave_obj.chave_label or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Número", chave_obj.chave_numero or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Área", chave_obj.chave_area or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Unidade", chave_obj.unidade_sigla or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área", chave_obj.chave_area or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", chave_obj.unidade_sigla or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Pessoa", chave_obj.pessoa.nome or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Documento", chave_obj.pessoa.documento or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Pessoa", chave_obj.pessoa.nome or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Documento", chave_obj.pessoa.documento or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(chave_obj, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(chave_obj, "modificado_por", None)) or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(chave_obj, "criado_por", None)) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(chave_obj, "modificado_por", None)) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(chave_obj.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(chave_obj.modificado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(chave_obj.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(chave_obj.modificado_em))
     draw_pdf_wrapped_section(canvas, title="Observação", text=chave_obj.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     canvas.showPage()
     canvas.save()

@@ -1,53 +1,119 @@
 {% extends "reportos/base.html" %}
 
 {% block reportos_content %}
-<div class="card module-hero mb-4">
-  <div class="card-body py-4">
-    <div class="module-hero-content d-flex flex-column flex-lg-row justify-content-between gap-3">
-      <div>
-        <h1 class="h3 mb-2">Diagnóstico Offline</h1>
-        <p class="mb-0 text-muted">Painel técnico para validar o estado da camada PWA do ReportOS neste navegador.</p>
-      </div>
-      <div class="d-flex align-items-start">
-        <a href="{% url 'reportos:home' %}" class="btn btn-label-info">Voltar para a central</a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="row g-4">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header"><div class="card-title">Estado Atual</div></div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-sm-5">Conectividade</dt>
-          <dd class="col-sm-7" data-pwa-diag-connection>Verificando...</dd>
-          <dt class="col-sm-5">Service worker</dt>
-          <dd class="col-sm-7" data-pwa-diag-sw>Verificando...</dd>
-          <dt class="col-sm-5">Fila pendente</dt>
-          <dd class="col-sm-7" data-pwa-diag-pending>Verificando...</dd>
-          <dt class="col-sm-5">Último envio conhecido</dt>
-          <dd class="col-sm-7" data-pwa-diag-last-sync>Sem registro</dd>
-          <dt class="col-sm-5">Último enfileiramento</dt>
-          <dd class="col-sm-7" data-pwa-diag-last-queue>Sem registro</dd>
-          <dt class="col-sm-5">Suporte IndexedDB</dt>
-          <dd class="col-sm-7" data-pwa-diag-idb>Verificando...</dd>
-          <dt class="col-sm-5">Suporte CacheStorage</dt>
-          <dd class="col-sm-7" data-pwa-diag-cache-api>Verificando...</dd>
-        </dl>
+  <div class="col-12">
+    <!-- Card superior com botão de voltar -->
+    <div class="card reportos-overview-card mb-4">
+      <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+        <div>
+          <h4 class="mb-2">Diagnóstico Offline</h4>
+          <p class="mb-0 reportos-overview-subtitle">Veja o estado do ReportOS offline, recursos do navegador e sincronização.</p>
+        </div>
+        <div class="align-self-lg-start mt-3 mt-lg-0 d-flex flex-column align-items-end gap-2">
+          <a href="{% url 'reportos:home' %}" class="btn btn-outline-secondary mb-2"><i class="fas fa-arrow-left me-2"></i>Voltar</a>
+          <button id="forceSyncBtn" type="button" class="btn btn-outline-primary btn-sm px-4">Sincronizar</button>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header"><div class="card-title">Caches Ativos</div></div>
-      <div class="card-body">
-        <ul class="list-group list-group-flush" data-pwa-diag-cache-list>
-          <li class="list-group-item px-0 text-muted">Consultando caches...</li>
-        </ul>
+
+    <!-- Card de diagnóstico -->
+    <div class="card shadow-lg border-0 rounded-4 h-100 p-2 p-md-4 w-100">
+      <div class="card-header bg-white border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-0">
+        <div class="card-title h4 mb-2 mb-md-0">Estado Atual</div>
+      </div>
+      <div class="card-body pt-2">
+        <div class="table-responsive">
+          <table class="table table-borderless align-middle mb-0">
+            <tbody>
+              <tr>
+                <th class="text-nowrap">Conectividade</th>
+                <td data-pwa-diag-connection><i class="fas fa-globe-americas me-2"></i>Verificando...</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Service worker</th>
+                <td data-pwa-diag-sw><i class="fas fa-cogs me-2"></i>Verificando...</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Fila pendente</th>
+                <td data-pwa-diag-pending><i class="fas fa-tasks me-2"></i>Verificando...</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Último envio conhecido</th>
+                <td data-pwa-diag-last-sync>Sem registro</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Último enfileiramento</th>
+                <td data-pwa-diag-last-queue>Sem registro</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Suporte IndexedDB</th>
+                <td data-pwa-diag-idb><i class="fas fa-database me-2"></i>Verificando...</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Suporte CacheStorage</th>
+                <td data-pwa-diag-cache-api><i class="fas fa-archive me-2"></i>Verificando...</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Usuário logado</th>
+                <td>{{ usuario_logado.get_full_name|default:usuario_logado.username }}</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Hora do login</th>
+                <td>{% if hora_login %}{{ hora_login|date:'d/m/Y H:i:s' }}{% else %}-{% endif %}</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">User Agent</th>
+                <td><code>{{ request.META.HTTP_USER_AGENT|default:'-' }}</code></td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Data/Hora Atual</th>
+                <td><span id="nowDate"></span></td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Caches Ativos</th>
+                <td>
+                  <ul class="list-group list-group-flush" data-pwa-diag-cache-list>
+                    <li class="list-group-item px-0 text-muted">Consultando caches...</li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var btn = document.getElementById("forceSyncBtn");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: "FORCE_SYNC_QUEUE" });
+        }
+        btn.disabled = true;
+        btn.textContent = "Solicitado...";
+        setTimeout(function () {
+          btn.disabled = false;
+          btn.textContent = "Sincronizar";
+        }, 2000);
+      });
+    }
+    // Atualiza data/hora atual
+    var nowDate = document.getElementById("nowDate");
+    if (nowDate) {
+      var now = new Date();
+      nowDate.textContent = now.toLocaleString("pt-BR");
+    }
+    // Garante atualização do diagnóstico
+    if (window.updateConnectionStatus) {
+      window.updateConnectionStatus();
+    }
+  });
+    </script>
 {% endblock %}

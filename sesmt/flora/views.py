@@ -13,14 +13,14 @@ from django.utils import timezone
 from django.utils.http import content_disposition_header
 
 from sigo_core.shared.pdf_export import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
-from sigo.models import Assinatura, Foto, Geolocalizacao
+from sigo.models import Foto, Geolocalizacao
 from sigo_core.api import ApiStatus, api_error, api_method_not_allowed, api_success, parse_limit_offset
 from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.parsers import parse_local_datetime, to_bool
 from sigo_core.shared.pdf_export import draw_pdf_label_value
 from sigo_core.shared.xlsx_export import export_generic_excel
-from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero as HipomenopteroModel
+from sesmt.models import Flora, Manejo
 from sesmt.notificacoes import (
     publicar_notificacao_flora_atualizada,
     publicar_notificacao_flora_criada,
@@ -672,30 +672,31 @@ def flora_export_view_pdf(request, pk):
     line_h = 14
     block_gap = 14
     right_x = info_x + 215
+    RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x, info_y, "Data/Hora Início", fmt_dt(flora.data_hora_inicio))
-    draw_pdf_label_value(canvas, right_x, info_y, "Status", flora.status_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data/Hora Início", fmt_dt(flora.data_hora_inicio))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", flora.status_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Responsável Registro", flora.responsavel_registro_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Área", flora.area_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável Registro", flora.responsavel_registro_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Área", flora.area_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Local", flora.local_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Condição", flora.condicao_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", flora.local_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Condição", flora.condicao_label)
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Ação Realizada", flora.acao_realizada_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Nativa", _human_bool(flora.nativa))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Ação Realizada", flora.acao_realizada_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Nativa", _human_bool(flora.nativa))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Nome Popular", flora.popular or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Espécie", flora.especie or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Nome Popular", flora.popular or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Espécie", flora.especie or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Diâmetro", flora.diametro_peito or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Altura", flora.altura_total or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Diâmetro", flora.diametro_peito or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Altura", flora.altura_total or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Zona", flora.zona_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Responsável Técnico", flora.responsavel_tecnico or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Zona", flora.zona_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Responsável Técnico", flora.responsavel_tecnico or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(flora.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(flora.modificado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(flora.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(flora.modificado_em))
 
     y = draw_pdf_wrapped_section(
         canvas,

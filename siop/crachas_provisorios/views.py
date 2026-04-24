@@ -182,20 +182,21 @@ def crachas_provisorios_export_view_pdf(request, pk):
     line_h = 14
     block_gap = 14
     right_x = info_x + 215
-    draw_pdf_label_value(canvas, info_x, info_y, "Entrega", fmt_dt(cracha.entrega))
-    draw_pdf_label_value(canvas, right_x, info_y, "Devolução", fmt_dt(cracha.devolucao))
+    RECUO = 24
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Entrega", fmt_dt(cracha.entrega))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(cracha.devolucao))
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Crachá", cracha.cracha_label or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Unidade", cracha.unidade_sigla or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Crachá", cracha.cracha_label or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", cracha.unidade_sigla or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Pessoa", cracha.pessoa.nome or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Documento", cracha.documento or cracha.pessoa.documento or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Pessoa", cracha.pessoa.nome or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Documento", cracha.documento or cracha.pessoa.documento or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado por", user_display(getattr(cracha, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado por", user_display(getattr(cracha, "modificado_por", None)) or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(cracha, "criado_por", None)) or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(cracha, "modificado_por", None)) or "-")
     info_y -= line_h
-    draw_pdf_label_value(canvas, info_x, info_y, "Criado em", fmt_dt(cracha.criado_em))
-    draw_pdf_label_value(canvas, right_x, info_y, "Modificado em", fmt_dt(cracha.modificado_em))
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(cracha.criado_em))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(cracha.modificado_em))
     draw_pdf_wrapped_section(canvas, title="Observação", text=cracha.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     canvas.showPage()
     canvas.save()

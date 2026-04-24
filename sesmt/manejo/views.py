@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.http import content_disposition_header
 
 from sigo_core.shared.pdf_export import build_record_pdf_context, draw_pdf_list_section, draw_pdf_wrapped_section
-from sigo.models import Assinatura, Foto, Geolocalizacao
+from sigo.models import Foto, Geolocalizacao
 from sigo_core.api import ApiStatus, api_error, api_method_not_allowed, api_success, parse_limit_offset
 from sigo_core.catalogos import catalogo_bc_key, catalogo_bc_label
 
@@ -20,7 +20,7 @@ from sigo_core.shared.formatters import fmt_dt, user_display
 from sigo_core.shared.parsers import parse_local_datetime, to_bool
 from sigo_core.shared.pdf_export import draw_pdf_label_value
 from sigo_core.shared.xlsx_export import export_generic_excel
-from sesmt.models import ControleAtendimento, Flora, Manejo, Testemunha, Himenoptero as HipomenopteroModel
+from sesmt.models import Manejo
 from sesmt.notificacoes import (
     publicar_notificacao_manejo_atualizado,
     publicar_notificacao_manejo_criado,
@@ -763,27 +763,28 @@ def manejo_export_view_pdf(request, pk):
     right_x = width / 2 + 12
     info_y = height - 150
     block_gap = 14
+    RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x, info_y, "ID", f"#{manejo.id}")
-    draw_pdf_label_value(canvas, right_x, info_y, "Status", manejo.status_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "ID", f"#{manejo.id}")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", manejo.status_label)
     info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Data/Hora", fmt_dt(manejo.data_hora))
-    draw_pdf_label_value(canvas, right_x, info_y, "Responsável", manejo.responsavel_manejo_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data/Hora", fmt_dt(manejo.data_hora))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Responsável", manejo.responsavel_manejo_label)
     info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Classe", manejo.classe_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Nome Popular", manejo.nome_popular_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Classe", manejo.classe_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Nome Popular", manejo.nome_popular_label)
     info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Nome Científico", manejo.nome_cientifico or "-")
-    draw_pdf_label_value(canvas, right_x, info_y, "Estágio", manejo.estagio_desenvolvimento or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Nome Científico", manejo.nome_cientifico or "-")
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Estágio", manejo.estagio_desenvolvimento or "-")
     info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Área Captura", manejo.area_captura_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Local Captura", manejo.local_captura_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área Captura", manejo.area_captura_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Local Captura", manejo.local_captura_label)
     info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Área Soltura", manejo.area_soltura_label)
-    draw_pdf_label_value(canvas, right_x, info_y, "Local Soltura", manejo.local_soltura_label)
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área Soltura", manejo.area_soltura_label)
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Local Soltura", manejo.local_soltura_label)
     info_y -= 18
-    draw_pdf_label_value(canvas, info_x, info_y, "Importância Médica", _human_bool(manejo.importancia_medica))
-    draw_pdf_label_value(canvas, right_x, info_y, "Órgão Público", manejo.orgao_publico or "-")
+    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Importância Médica", _human_bool(manejo.importancia_medica))
+    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Órgão Público", manejo.orgao_publico or "-")
     info_y -= 28
 
     info_y = draw_pdf_wrapped_section(

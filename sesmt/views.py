@@ -1,4 +1,3 @@
-from .core_views import home, notifications_list
 from .atendimento.views import (
     api_atendimento,
     api_atendimento_detail,
@@ -99,7 +98,6 @@ __all__ = [
     "himenopteros_list",
     "himenopteros_new",
     "himenopteros_view",
-    "home",
     "manejo_api_especies",
     "manejo_api_locais",
     "manejo_edit",
@@ -110,5 +108,4 @@ __all__ = [
     "manejo_list",
     "manejo_new",
     "manejo_view",
-    "notifications_list",
 ]
