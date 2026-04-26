@@ -49,8 +49,8 @@ sigo_core/catalogos/*.json
 htmlcov/
 
 # IDE / Editor
-.vscode/
-.idea/
+.vscode*
+.idea/*
 *.swp
 *.swo
 *~
@@ -72,6 +72,7 @@ Thumbs.db
 *.cer
 *.der
 *.kdbx
+*.envrc
 
 # Local databases and backups
 *.sqlite3
