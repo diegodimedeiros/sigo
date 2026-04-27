@@ -12,6 +12,48 @@ from sigo_core.catalogos import catalogo_ativos_data
 from .support import catalogo_destinos_ativos
 
 
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
 @login_required
 def controle_ativos_index(request):
     queryset = ControleAtivos.objects.select_related("pessoa").order_by("-retirada", "-id")
@@ -178,10 +220,20 @@ def controle_ativos_export(request):
 
 @login_required
 def controle_ativos_export_view_pdf(request, pk):
-    ativo = get_object_or_404(ControleAtivos.objects.select_related("pessoa"), pk=pk)
-    pdf = build_record_pdf_context(request, report_title=f"Relatório de Controle de Ativo: #{ativo.id}", report_subject="Relatório de Controle de Ativos", header_subtitle="Módulo Controle de Ativos")
+    ativo = get_object_or_404(
+        ControleAtivos.objects.select_related("pessoa", "criado_por", "modificado_por"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Controle de Ativo: #{ativo.id}",
+        report_subject="Relatório de Controle de Ativos",
+        header_subtitle="Módulo Controle de Ativos",
+    )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
+
     canvas = pdf["canvas"]
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
@@ -189,25 +241,47 @@ def controle_ativos_export_view_pdf(request, pk):
     block_gap = 14
     right_x = info_x + 215
     RECUO = 24
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Retirada", fmt_dt(ativo.retirada))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(ativo.devolucao))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Ativo", ativo.equipamento_label or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Destino", ativo.destino_label or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Pessoa", ativo.pessoa.nome or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Documento", ativo.pessoa.documento or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Unidade", ativo.unidade_sigla or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(ativo, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(ativo, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(ativo.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(ativo.modificado_em))
-    draw_pdf_wrapped_section(canvas, title="Observação", text=ativo.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"controle_ativos_{ativo.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Retirada", fmt_dt(ativo.retirada)), ("Devolução", fmt_dt(ativo.devolucao) or "-")),
+            (("Status", ativo_status_label(ativo)), ("Unidade", ativo.unidade_sigla or "-")),
+            (("Ativo", ativo.equipamento_label or "-"), ("Destino", ativo.destino_label or "-")),
+            (("Código do ativo", ativo.equipamento or "-"), ("Código do destino", ativo.destino or "-")),
+            (("Pessoa", ativo.pessoa.nome if ativo.pessoa_id else "-"), ("Documento", ativo.pessoa.documento if ativo.pessoa_id else "-")),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Observação",
+        text=ativo.observacao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_audit_fields(
+        canvas,
+        ativo,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    filename = build_pdf_filename("controle_ativos", ativo.id)
+    return finish_record_pdf_response(pdf, filename)

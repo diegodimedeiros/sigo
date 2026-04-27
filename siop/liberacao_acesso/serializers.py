@@ -1,9 +1,3 @@
-"""Serializadores de payloads da área SIOP.
-
-Estrutura para facilitar evolução incremental das views.
-"""
-
-
 def safe_text(value, fallback="-"):
     text = str(value or "").strip()
     return text or fallback

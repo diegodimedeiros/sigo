@@ -578,31 +578,105 @@ def himenopteros_export_view_pdf(request, pk):
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
     line_h = 14
+    block_gap = 14
     right_x = info_x + 215
     RECUO = 24
 
-    def draw_label_row(y, left, right):
-        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
-        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
-        return y - line_h
+    # Dados principais em duas colunas
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Data/Hora Início", fmt_dt(registro.data_hora_inicio)), ("Status", registro.status_label)),
+            (("Responsável Registro", registro.responsavel_registro_label), ("Área", registro.area_label)),
+            (("Local", registro.local_label), ("Tipo", registro.tipo_himenoptero_label)),
+            (("Proximidade", registro.proximidade_pessoas_label), ("Classificação", registro.classificacao_risco_label)),
+            (("Condição", registro.condicao_label), ("Ação Realizada", registro.acao_realizada_label)),
+            (("Isolamento de Área", _human_bool(registro.isolamento_area)), ("Responsável Técnico", registro.responsavel_tecnico or "-")),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
 
-    info_y = draw_label_row(info_y, ("Data/Hora Início", fmt_dt(registro.data_hora_inicio)), ("Status", registro.status_label))
-    info_y = draw_label_row(info_y, ("Responsável Registro", registro.responsavel_registro_label), ("Área", registro.area_label))
-    info_y = draw_label_row(info_y, ("Local", registro.local_label), ("Tipo", registro.tipo_himenoptero_label))
-    info_y = draw_label_row(info_y, ("Proximidade", registro.proximidade_pessoas_label), ("Classificação", registro.classificacao_risco_label))
-    info_y = draw_label_row(info_y, ("Condição", registro.condicao_label), ("Ação Realizada", registro.acao_realizada_label))
-    info_y = draw_label_row(info_y, ("Isolamento de Área", _human_bool(registro.isolamento_area)), ("Responsável Técnico", registro.responsavel_tecnico or "-"))
-    y = info_y - 24
-    y = draw_pdf_wrapped_section(canvas, title="Descrição do Local", text=registro.descricao_local or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    y = draw_pdf_wrapped_section(canvas, title="Observações", text=registro.observacao or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    y = draw_pdf_wrapped_section(canvas, title="Justificativa Técnica", text=registro.justificativa_tecnica or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
+    info_y -= block_gap
+
+    # Seções textuais
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Descrição do Local",
+        text=registro.descricao_local or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Observações",
+        text=registro.observacao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Justificativa Técnica",
+        text=registro.justificativa_tecnica or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    # Auditoria
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        registro,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    # Evidências
     evidencias = [
         f"Fotos: {registro.fotos.count()}",
         "Geolocalização: " + ("Sim" if registro.geolocalizacao else "Não"),
     ]
-    draw_pdf_list_section(canvas, title="Evidências", items=evidencias, x=info_x, y=y, min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"], empty_text="Nenhuma evidência registrada.")
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"sesmt_himenopteros_{registro.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+    draw_pdf_list_section(
+        canvas,
+        title="Evidências",
+        items=evidencias,
+        x=info_x + RECUO,
+        y=info_y,
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+        empty_text="Nenhuma evidência registrada.",
+    )
+
+    draw_pdf_photo_pages(
+        pdf,
+        title="Fotos de Himenópteros",
+        fotos=registro.fotos.order_by("criado_em", "id"),
+        geolocalizacoes=registro.geolocalizacoes.all(),
+    )
+
+    filename = build_pdf_filename("sesmt_himenopteros", registro.id)
+    return finish_record_pdf_response(pdf, filename)

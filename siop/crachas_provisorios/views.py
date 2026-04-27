@@ -10,6 +10,48 @@ from ..view_shared import (
 from sigo_core.catalogos import catalogo_cracha_provisorio_data
 
 
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
 @login_required
 def crachas_provisorios_index(request):
     queryset = CrachaProvisorio.objects.select_related("pessoa").order_by("-entrega", "-id")
@@ -172,10 +214,20 @@ def crachas_provisorios_export(request):
 
 @login_required
 def crachas_provisorios_export_view_pdf(request, pk):
-    cracha = get_object_or_404(CrachaProvisorio.objects.select_related("pessoa"), pk=pk)
-    pdf = build_record_pdf_context(request, report_title=f"Relatório de Crachá Provisório: #{cracha.id}", report_subject="Relatório de Crachás Provisórios", header_subtitle="Módulo Crachás Provisórios")
+    cracha = get_object_or_404(
+        CrachaProvisorio.objects.select_related("pessoa", "criado_por", "modificado_por"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Crachá Provisório: #{cracha.id}",
+        report_subject="Relatório de Crachás Provisórios",
+        header_subtitle="Módulo Crachás Provisórios",
+    )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
+
     canvas = pdf["canvas"]
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
@@ -183,23 +235,46 @@ def crachas_provisorios_export_view_pdf(request, pk):
     block_gap = 14
     right_x = info_x + 215
     RECUO = 24
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Entrega", fmt_dt(cracha.entrega))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(cracha.devolucao))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Crachá", cracha.cracha_label or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", cracha.unidade_sigla or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Pessoa", cracha.pessoa.nome or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Documento", cracha.documento or cracha.pessoa.documento or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(cracha, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(cracha, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(cracha.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(cracha.modificado_em))
-    draw_pdf_wrapped_section(canvas, title="Observação", text=cracha.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"crachas_provisorios_{cracha.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Entrega", fmt_dt(cracha.entrega)), ("Devolução", fmt_dt(cracha.devolucao) or "-")),
+            (("Status", cracha_status_label(cracha)), ("Unidade", cracha.unidade_sigla or "-")),
+            (("Crachá", cracha.cracha_label or "-"), ("Código", cracha.cracha or "-")),
+            (("Pessoa", cracha.pessoa.nome if cracha.pessoa_id else "-"), ("Documento", cracha.documento or (cracha.pessoa.documento if cracha.pessoa_id else "-"))),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Observação",
+        text=cracha.observacao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_audit_fields(
+        canvas,
+        cracha,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    filename = build_pdf_filename("crachas_provisorios", cracha.id)
+    return finish_record_pdf_response(pdf, filename)

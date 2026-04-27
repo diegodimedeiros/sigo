@@ -1,4 +1,13 @@
 Django==5.2.3
-python-dotenv==1.0.1
-openpyxl==3.1.2
-reportlab==4.1.0
+python-dotenv==1.2.2
+openpyxl==3.1.5
+reportlab==4.4.10
+# Dependências auxiliares
+asgiref==3.11.1
+charset-normalizer==3.4.6
+esprima==4.0.1
+et_xmlfile==2.0.0
+pillow==12.1.1
+sqlparse==0.5.5
+ruff==0.15.11
+pip==24.0

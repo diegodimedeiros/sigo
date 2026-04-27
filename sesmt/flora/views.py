@@ -674,45 +674,67 @@ def flora_export_view_pdf(request, pk):
     right_x = info_x + 215
     RECUO = 24
 
+    # Dados principais em duas colunas
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Data/Hora Início", fmt_dt(flora.data_hora_inicio)), ("Status", flora.status_label)),
+            (("Responsável Registro", flora.responsavel_registro_label), ("Área", flora.area_label)),
+            (("Local", flora.local_label), ("Condição", flora.condicao_label)),
+            (("Ação Realizada", flora.acao_realizada_label), ("Nativa", _human_bool(flora.nativa))),
+            (("Nome Popular", flora.popular or "-"), ("Espécie", flora.especie or "-")),
+            (("Diâmetro", flora.diametro_peito or "-"), ("Altura", flora.altura_total or "-")),
+            (("Zona", flora.zona_label), ("Responsável Técnico", flora.responsavel_tecnico or "-")),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
 
-    def draw_label_row(y, left, right):
-        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
-        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
-        return y - line_h
+    info_y -= block_gap
 
-    info_y = draw_label_row(info_y, ("Data/Hora Início", fmt_dt(flora.data_hora_inicio)), ("Status", flora.status_label))
-    info_y = draw_label_row(info_y, ("Responsável Registro", flora.responsavel_registro_label), ("Área", flora.area_label))
-    info_y = draw_label_row(info_y, ("Local", flora.local_label), ("Condição", flora.condicao_label))
-    info_y = draw_label_row(info_y, ("Ação Realizada", flora.acao_realizada_label), ("Nativa", _human_bool(flora.nativa)))
-    info_y = draw_label_row(info_y, ("Nome Popular", flora.popular or "-"), ("Espécie", flora.especie or "-"))
-    info_y = draw_label_row(info_y, ("Diâmetro", flora.diametro_peito or "-"), ("Altura", flora.altura_total or "-"))
-    info_y = draw_label_row(info_y, ("Zona", flora.zona_label), ("Responsável Técnico", flora.responsavel_tecnico or "-"))
-    info_y = draw_label_row(info_y, ("Criado em", fmt_dt(flora.criado_em)), ("Modificado em", fmt_dt(flora.modificado_em)))
-
-    y = draw_pdf_wrapped_section(
+    # Seções textuais
+    info_y = draw_pdf_wrapped_section(
         canvas,
         title="Descrição",
         text=flora.descricao or "-",
-        x=info_x,
-        y=info_y - block_gap,
+        x=info_x + RECUO,
+        y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
         draw_page=pdf["draw_page"],
         dark_text=pdf["dark_text"],
     )
-    y = draw_pdf_wrapped_section(
+    info_y = draw_pdf_wrapped_section(
         canvas,
         title="Justificativa",
         text=flora.justificativa or "-",
-        x=info_x,
-        y=y,
+        x=info_x + RECUO,
+        y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
         draw_page=pdf["draw_page"],
         dark_text=pdf["dark_text"],
     )
+
+    info_y -= block_gap
+
+    # Auditoria
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        flora,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    # Evidências
     evidencias = [
         f"Fotos de antes: {flora.fotos.filter(tipo=Foto.TIPO_FLORA_ANTES).count()}",
         f"Fotos de depois: {flora.fotos.filter(tipo=Foto.TIPO_FLORA_DEPOIS).count()}",
@@ -722,8 +744,8 @@ def flora_export_view_pdf(request, pk):
         canvas,
         title="Evidências",
         items=evidencias,
-        x=info_x,
-        y=y,
+        x=info_x + RECUO,
+        y=info_y,
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
         draw_page=pdf["draw_page"],
@@ -731,8 +753,12 @@ def flora_export_view_pdf(request, pk):
         empty_text="Nenhuma evidência registrada.",
     )
 
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"sesmt_flora_{flora.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+    draw_pdf_photo_pages(
+        pdf,
+        title="Fotos de Flora",
+        fotos=flora.fotos.order_by("tipo", "criado_em", "id"),
+        geolocalizacoes=flora.geolocalizacoes.all(),
+    )
+
+    filename = build_pdf_filename("sesmt_flora", flora.id)
+    return finish_record_pdf_response(pdf, filename)

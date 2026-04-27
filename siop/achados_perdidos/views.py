@@ -1,5 +1,3 @@
-import io
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -17,11 +15,8 @@ from sigo_core.api import (
 )
 from sigo_core.catalogos import (
     catalogo_achado_classificacao_items,
-    catalogo_achado_classificacao_label,
     catalogo_achado_situacao_items,
-    catalogo_achado_situacao_label,
     catalogo_achado_status_items,
-    catalogo_achado_status_label,
     catalogo_areas_data,
     catalogo_colaborador_setor_label,
     catalogo_locais_por_area_data,
@@ -31,11 +26,10 @@ from sigo_core.catalogos import (
 from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import bool_ptbr, fmt_dt, user_display
 from sigo_core.shared.pdf_export import (
-    build_numbered_canvas_class,
+    build_record_pdf_context,
+    draw_pdf_list_section,
     draw_pdf_label_value,
-    draw_pdf_page_chrome,
-    get_a4_content_area,
-    wrap_pdf_text_lines,
+    draw_pdf_wrapped_section,
 )
 from sigo_core.shared.xlsx_export import export_generic_excel
 
@@ -50,6 +44,48 @@ from .common import (
 )
 from .query import build_achado_filtered_qs
 from .services import FINAL_STATUS, build_achados_dashboard, create_achado_perdido, edit_achado_perdido, get_recent_achados
+
+
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
 
 
 def _build_sort_link_meta(request, current_sort, current_dir, fields):
@@ -427,101 +463,86 @@ def achados_perdidos_export(request):
 
 @login_required
 def achados_perdidos_export_view_pdf(request, pk):
-    item = get_object_or_404(AchadosPerdidos.objects.select_related("pessoa").prefetch_related("fotos", "anexos"), pk=pk)
-    try:
-        from reportlab.lib.pagesizes import A4
-    except ImportError:
-        return HttpResponse("reportlab não está instalado.", status=500)
-
-    width, height = A4
-    buffer = io.BytesIO()
-    numbered_canvas = build_numbered_canvas_class(width)
-    canvas = numbered_canvas(buffer, pagesize=A4)
-    canvas.setTitle(f"Relatório do Item #{item.id}")
-    canvas.setAuthor(user_display(request.user))
-    canvas.setSubject("Relatório de Achados e Perdidos")
-
-    content_area = get_a4_content_area()
-    dark_text = (0.15, 0.15, 0.15)
-    page_content_top = content_area["top"]
-    min_y = content_area["y"]
-    info_x = content_area["x"]
-
-    def draw_page_chrome_wrapper():
-        draw_pdf_page_chrome(
-            canvas=canvas,
-            page_width=width,
-            page_height=height,
-            header_subtitle="Módulo Achados e Perdidos",
-        )
-
-    draw_page_chrome_wrapper()
-    canvas.setFillColorRGB(*dark_text)
-    canvas.setFont("Helvetica-Bold", 12)
-    canvas.drawCentredString(width / 2, content_area["top"] - 60, f"Relatório do Item: #{item.id}")
-
-    info_block_w = 430
-    info_y = content_area["top"] - 115
-    line_h = 14
-    block_gap = 14
-    right_x = info_x + (info_block_w / 2)
-    RECUO = 24
-
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Situação", catalogo_achado_situacao_label(item.situacao) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", catalogo_achado_status_label(item.status) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo do Item", catalogo_achado_classificacao_label(item.tipo) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Área", item.area_label or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", item.local_label or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Orgânico", bool_ptbr(item.organico))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "CIOP", item.ciop or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Colaborador", item.colaborador or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Setor", item.setor or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Pessoa", item.pessoa.nome if item.pessoa_id else "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Documento", item.pessoa.documento if item.pessoa_id else "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(item.data_devolucao))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Fotos", str(item.fotos.count()))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Criado por", user_display(item.criado_por))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Modificado por", user_display(item.modificado_por))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Criado em", fmt_dt(item.criado_em))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Modificado em", fmt_dt(item.modificado_em))
-    info_y -= (line_h + block_gap)
-
-    desc_title_y = info_y - 8
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x, desc_title_y, "Descrição do Item")
-    desc_lines = wrap_pdf_text_lines(item.descricao or "-", width - (info_x * 2))
-    canvas.setFont("Helvetica", 10)
-    y = desc_title_y - 18
-    for line in desc_lines:
-        if y < min_y:
-            canvas.showPage()
-            draw_page_chrome_wrapper()
-            canvas.setFillColorRGB(*dark_text)
-            canvas.setFont("Helvetica-Bold", 11)
-            canvas.drawString(info_x, page_content_top, "Descrição do Item (continuação)")
-            canvas.setFont("Helvetica", 10)
-            y = page_content_top - 18
-        canvas.drawString(info_x, y, line)
-        y -= 13
-
-    canvas.setFont("Helvetica-Oblique", 8)
-    canvas.setFillColorRGB(0.4, 0.4, 0.4)
-    canvas.drawRightString(
-        width - info_x,
-        min_y - 10,
-        f"Gerado por: {user_display(request.user) or 'Sistema'} em {fmt_dt(timezone.localtime(timezone.now()))}",
+    item = get_object_or_404(
+        AchadosPerdidos.objects.select_related("pessoa", "criado_por", "modificado_por").prefetch_related("fotos", "anexos"),
+        pk=pk,
     )
 
-    canvas.showPage()
-    canvas.save()
-    buffer.seek(0)
-    filename = f"achados_perdidos_{item.id}_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(buffer, as_attachment=True, filename=filename)
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório do Item: #{item.id}",
+        report_subject="Relatório de Achados e Perdidos",
+        header_subtitle="Módulo Achados e Perdidos",
+    )
+    if pdf is None:
+        return HttpResponse("reportlab não está instalado.", status=500)
+
+    canvas = pdf["canvas"]
+    info_x = pdf["info_x"]
+    info_y = pdf["height"] - 195
+    line_h = 14
+    block_gap = 14
+    right_x = info_x + 250
+    RECUO = 24
+
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Situação", item.situacao_label or "-"), ("Status", item.status_label or "-")),
+            (("Tipo do Item", item.tipo_label or "-"), ("Área", item.area_label or "-")),
+            (("Local", item.local_label or "-"), ("Orgânico", bool_ptbr(item.organico))),
+            (("CIOP", item.ciop or "-"), ("Colaborador", item.colaborador or "-")),
+            (("Setor", item.setor or "-"), ("Unidade", item.unidade_sigla or "-")),
+            (("Pessoa", item.pessoa.nome if item.pessoa_id else "-"), ("Documento", item.pessoa.documento if item.pessoa_id else "-")),
+            (("Devolução", fmt_dt(item.data_devolucao) or "-"), ("Fotos", str(item.fotos.count()))),
+            (("Anexos", str(item.anexos.count())), None),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Descrição do Item",
+        text=item.descricao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        item,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_list_section(
+        canvas,
+        title="Anexos",
+        items=[anexo.nome_arquivo for anexo in item.anexos.all()],
+        x=info_x + RECUO,
+        y=info_y,
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+        empty_text="Nenhum anexo.",
+    )
+
+    filename = build_pdf_filename("achados_perdidos", item.id)
+    return finish_record_pdf_response(pdf, filename)

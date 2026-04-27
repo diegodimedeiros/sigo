@@ -981,28 +981,33 @@ def atendimento_export_view_pdf(request, pk):
     right_x = info_x + 215
     RECUO = 24
 
+    # Dados principais em duas colunas
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Data/Hora", fmt_dt(atendimento.data_atendimento)), ("Status", atendimento.status_label)),
+            (("Pessoa", atendimento.pessoa.nome if atendimento.pessoa_id else "-"), ("Documento", atendimento.pessoa_documento_display)),
+            (("Tipo Pessoa", atendimento.tipo_pessoa_label), ("Tipo Ocorrência", atendimento.tipo_ocorrencia_label)),
+            (("Área", atendimento.area_atendimento_label), ("Local", atendimento.local_label)),
+            (("Responsável", atendimento.responsavel_atendimento_label), ("Recusa", _human_bool(atendimento.recusa_atendimento))),
+            (("Passeio", _human_bool(atendimento.seguiu_passeio)), ("Remoção", _human_bool(atendimento.houve_remocao))),
+            (("Primeiros Socorros", atendimento.primeiros_socorros_label or "-"), ("Unidade", atendimento.unidade_sigla or "-")),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
 
-    def draw_label_row(y, left, right):
-        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
-        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
-        return y - line_h
+    info_y -= block_gap
 
-    info_y = draw_label_row(info_y, ("Data/Hora", fmt_dt(atendimento.data_atendimento)), ("Status", atendimento.status_label))
-    info_y = draw_label_row(info_y, ("Pessoa", atendimento.pessoa.nome if atendimento.pessoa_id else "-"), ("Documento", atendimento.pessoa_documento_display))
-    info_y = draw_label_row(info_y, ("Tipo Pessoa", atendimento.tipo_pessoa_label), ("Tipo Ocorrência", atendimento.tipo_ocorrencia_label))
-    info_y = draw_label_row(info_y, ("Área", atendimento.area_atendimento_label), ("Local", atendimento.local_label))
-    info_y = draw_label_row(info_y, ("Responsável", atendimento.responsavel_atendimento_label), ("Recusa", _human_bool(atendimento.recusa_atendimento)))
-    info_y = draw_label_row(info_y, ("Passeio", _human_bool(atendimento.seguiu_passeio)), ("Remoção", _human_bool(atendimento.houve_remocao)))
-    info_y = draw_label_row(info_y, ("Primeiros Socorros", atendimento.primeiros_socorros_label or "-"), ("Unidade", atendimento.unidade_sigla or "-"))
-    info_y = draw_label_row(info_y, ("Criado por", user_display(getattr(atendimento, "criado_por", None)) or "-"), ("Modificado por", user_display(getattr(atendimento, "modificado_por", None)) or "-"))
-    info_y = draw_label_row(info_y, ("Criado em", fmt_dt(atendimento.criado_em)), ("Modificado em", fmt_dt(atendimento.modificado_em)))
-
-    y = draw_pdf_wrapped_section(
+    # Seção textual
+    info_y = draw_pdf_wrapped_section(
         canvas,
         title="Descrição do Atendimento",
         text=atendimento.descricao or "-",
-        x=info_x,
-        y=info_y - block_gap,
+        x=info_x + RECUO,
+        y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
@@ -1010,16 +1015,19 @@ def atendimento_export_view_pdf(request, pk):
         dark_text=pdf["dark_text"],
     )
 
+    info_y -= block_gap
+
+    # Testemunhas
     testemunhas_items = [
         f"{t.nome} - {t.documento} - {t.contato.telefone if getattr(t, 'contato', None) else '-'}"
         for t in atendimento.testemunhas.select_related("contato").order_by("id")
     ]
-    y = draw_pdf_list_section(
+    info_y = draw_pdf_list_section(
         canvas,
         title="Testemunhas",
         items=testemunhas_items,
-        x=info_x,
-        y=y,
+        x=info_x + RECUO,
+        y=info_y,
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
         draw_page=pdf["draw_page"],
@@ -1027,6 +1035,31 @@ def atendimento_export_view_pdf(request, pk):
         empty_text="Nenhuma testemunha registrada.",
     )
 
+    info_y -= block_gap
+
+    # Auditoria
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        atendimento,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_inline_signatures(
+        pdf,
+        title="Assinatura do Atendido",
+        assinaturas=atendimento.assinaturas.order_by("criado_em", "id"),
+        x=info_x + RECUO,
+        y=info_y,
+    )
+
+    info_y -= block_gap
+
+    # Evidências
     evidencias = []
     if atendimento.geolocalizacoes.exists():
         geo = atendimento.geolocalizacoes.first()
@@ -1039,8 +1072,8 @@ def atendimento_export_view_pdf(request, pk):
         canvas,
         title="Anexos e Evidências",
         items=evidencias,
-        x=info_x,
-        y=y,
+        x=info_x + RECUO,
+        y=info_y,
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
         draw_page=pdf["draw_page"],
@@ -1048,11 +1081,15 @@ def atendimento_export_view_pdf(request, pk):
         empty_text="Nenhuma evidência registrada.",
     )
 
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"sesmt_atendimento_{atendimento.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+    draw_pdf_photo_pages(
+        pdf,
+        title="Fotos do Atendimento",
+        fotos=atendimento.fotos.order_by("criado_em", "id"),
+        geolocalizacoes=atendimento.geolocalizacoes.all(),
+    )
+
+    filename = build_pdf_filename("sesmt_atendimento", atendimento.id)
+    return finish_record_pdf_response(pdf, filename)
 
 
 @login_required

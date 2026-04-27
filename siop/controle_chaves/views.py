@@ -9,6 +9,48 @@ from ..view_shared import (
 )
 
 
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
 @login_required
 def controle_chaves_index(request):
     queryset = ControleChaves.objects.select_related("pessoa").order_by("-retirada", "-id")
@@ -187,10 +229,20 @@ def controle_chaves_export(request):
 
 @login_required
 def controle_chaves_export_view_pdf(request, pk):
-    chave_obj = get_object_or_404(ControleChaves.objects.select_related("pessoa"), pk=pk)
-    pdf = build_record_pdf_context(request, report_title=f"Relatório de Controle de Chave: #{chave_obj.id}", report_subject="Relatório de Controle de Chaves", header_subtitle="Módulo Controle de Chaves")
+    chave_obj = get_object_or_404(
+        ControleChaves.objects.select_related("pessoa", "criado_por", "modificado_por"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Controle de Chave: #{chave_obj.id}",
+        report_subject="Relatório de Controle de Chaves",
+        header_subtitle="Módulo Controle de Chaves",
+    )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
+
     canvas = pdf["canvas"]
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
@@ -198,26 +250,48 @@ def controle_chaves_export_view_pdf(request, pk):
     block_gap = 14
     right_x = info_x + 215
     RECUO = 24
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Retirada", fmt_dt(chave_obj.retirada))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Devolução", fmt_dt(chave_obj.devolucao))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Chave", chave_obj.chave_label or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Número", chave_obj.chave_numero or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área", chave_obj.chave_area or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", chave_obj.unidade_sigla or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Pessoa", chave_obj.pessoa.nome or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Documento", chave_obj.pessoa.documento or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(chave_obj, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(chave_obj, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(chave_obj.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(chave_obj.modificado_em))
-    draw_pdf_wrapped_section(canvas, title="Observação", text=chave_obj.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"controle_chaves_{chave_obj.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Retirada", fmt_dt(chave_obj.retirada)), ("Devolução", fmt_dt(chave_obj.devolucao) or "-")),
+            (("Status", chave_status_label(chave_obj)), ("Unidade", chave_obj.unidade_sigla or "-")),
+            (("Chave", chave_obj.chave_label or "-"), ("Número", chave_obj.chave_numero or "-")),
+            (("Área", chave_obj.chave_area or "-"), ("Código", chave_obj.chave or "-")),
+            (("Pessoa", chave_obj.pessoa.nome if chave_obj.pessoa_id else "-"), ("Documento", chave_obj.pessoa.documento if chave_obj.pessoa_id else "-")),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Observação",
+        text=chave_obj.observacao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_audit_fields(
+        canvas,
+        chave_obj,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    filename = build_pdf_filename("controle_chaves", chave_obj.id)
+    return finish_record_pdf_response(pdf, filename)
+

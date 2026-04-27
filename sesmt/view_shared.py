@@ -26,6 +26,13 @@ __all__ = [
     "_parse_decimal_7",
     "_extract_error_details",
     "_filter_export_period",
+    "draw_pdf_two_column_fields",
+    "draw_pdf_audit_fields",
+    "build_pdf_filename",
+    "finish_record_pdf_response",
+    "draw_pdf_photo_pages",
+    "draw_pdf_signature_pages",
+    "draw_pdf_inline_signatures",
     "get_unidade_ativa",
     # re-exports de catálogos usados nas views filhas
     "catalogo_locais_por_area_data",
@@ -55,12 +62,14 @@ __all__ = [
     "HIMENOPTEROS_TIPO_OPTIONS", "HIMENOPTEROS_TIPO_MAP",
 ]
 
+import io
 import uuid
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count
+from django.http import FileResponse
 from django.utils import timezone
 
 from sigo.models import Contato, Pessoa, get_unidade_ativa
@@ -73,7 +82,268 @@ from sigo_core.catalogos import (
     catalogo_tipos_ocorrencia_data,
     catalogo_tipos_pessoa_data,
 )
+from sigo_core.shared.formatters import fmt_dt, user_display
+from sigo_core.shared.pdf_export import draw_pdf_label_value
 from sesmt.models import ControleAtendimento
+
+
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
+def _photo_type_label(foto):
+    if hasattr(foto, "get_tipo_display"):
+        return foto.get_tipo_display() or getattr(foto, "tipo", "") or "-"
+    return getattr(foto, "tipo", "") or "-"
+
+
+def _geolocation_for_photo(foto, geolocalizacoes):
+    foto_geos = list(getattr(foto, "geolocalizacoes", []).all()) if hasattr(foto, "geolocalizacoes") else []
+    if foto_geos:
+        return foto_geos[0]
+
+    geos = list(geolocalizacoes or [])
+    if not geos:
+        return None
+
+    foto_tipo = getattr(foto, "tipo", None)
+    for geo in geos:
+        if getattr(geo, "tipo", None) == foto_tipo:
+            return geo
+
+    if len(geos) == 1:
+        return geos[0]
+    return None
+
+
+def _draw_pdf_metadata_line(canvas, label, value, *, x, y, max_chars=100):
+    value = str(value or "-")
+    chunks = [value[i : i + max_chars] for i in range(0, len(value), max_chars)] or ["-"]
+    canvas.setFont("Helvetica-Bold", 8)
+    canvas.drawString(x, y, f"{label}:")
+    canvas.setFont("Helvetica", 8)
+    current_y = y
+    for index, chunk in enumerate(chunks):
+        canvas.drawString(x + 86, current_y, chunk)
+        if index < len(chunks) - 1:
+            current_y -= 10
+    return current_y - 11
+
+
+def draw_pdf_photo_pages(pdf, *, title, fotos, geolocalizacoes=None):
+    fotos = list(fotos or [])
+    if not fotos:
+        return
+
+    from reportlab.lib.utils import ImageReader
+
+    canvas = pdf["canvas"]
+    width = pdf["width"]
+    content_area = pdf["content_area"]
+    dark_text = pdf["dark_text"]
+    draw_page = pdf["draw_page"]
+    x = pdf["info_x"] + 24
+    image_max_w = min(width - (x * 2), 360)
+    image_max_h = 155
+    slot_tops = [content_area["top"] - 95, content_area["top"] - 380]
+
+    def draw_photo_slot(foto, index, slot_top):
+        canvas.setFillColorRGB(*dark_text)
+        canvas.setFont("Helvetica-Bold", 10)
+        canvas.drawString(x, slot_top, f"Foto {index} de {len(fotos)}")
+
+        image_top = slot_top - 14
+        try:
+            image = ImageReader(io.BytesIO(bytes(foto.arquivo)))
+            img_w, img_h = image.getSize()
+            scale = min(image_max_w / float(img_w), image_max_h / float(img_h), 1)
+            draw_w = img_w * scale
+            draw_h = img_h * scale
+            image_x = (width - draw_w) / 2
+            image_y = image_top - draw_h
+            canvas.drawImage(image, image_x, image_y, width=draw_w, height=draw_h, preserveAspectRatio=True, mask="auto")
+            metadata_y = image_y - 13
+        except Exception:
+            canvas.setFont("Helvetica", 9)
+            canvas.drawString(x, image_top, "Não foi possível renderizar a imagem desta foto.")
+            metadata_y = image_top - 16
+
+        geo = _geolocation_for_photo(foto, geolocalizacoes)
+        canvas.setFillColorRGB(*dark_text)
+        metadata_y = _draw_pdf_metadata_line(canvas, "Arquivo", getattr(foto, "nome_arquivo", "-"), x=x, y=metadata_y, max_chars=84)
+        metadata_y = _draw_pdf_metadata_line(canvas, "Tipo", _photo_type_label(foto), x=x, y=metadata_y)
+        metadata_y = _draw_pdf_metadata_line(canvas, "Hash foto", getattr(foto, "hash_arquivo_atual", None) or getattr(foto, "hash_arquivo", None), x=x, y=metadata_y, max_chars=74)
+
+        if geo:
+            metadata_y = _draw_pdf_metadata_line(canvas, "Latitude", getattr(geo, "latitude", "-"), x=x, y=metadata_y)
+            metadata_y = _draw_pdf_metadata_line(canvas, "Longitude", getattr(geo, "longitude", "-"), x=x, y=metadata_y)
+            _draw_pdf_metadata_line(canvas, "Hash geo", getattr(geo, "hash_geolocalizacao", None), x=x, y=metadata_y, max_chars=74)
+        else:
+            _draw_pdf_metadata_line(canvas, "Geolocalização", "Não registrada", x=x, y=metadata_y)
+
+    for index, foto in enumerate(fotos, start=1):
+        slot_index = (index - 1) % 2
+        if slot_index == 0:
+            canvas.showPage()
+            draw_page()
+            canvas.setFillColorRGB(*dark_text)
+            canvas.setFont("Helvetica-Bold", 12)
+            page_number = ((index - 1) // 2) + 1
+            total_pages = (len(fotos) + 1) // 2
+            canvas.drawCentredString(width / 2, content_area["top"] - 60, f"{title} - Página {page_number} de {total_pages}")
+
+        draw_photo_slot(foto, index, slot_tops[slot_index])
+
+
+def draw_pdf_signature_pages(pdf, *, title, assinaturas):
+    assinaturas = list(assinaturas or [])
+    if not assinaturas:
+        return
+
+    from reportlab.lib.utils import ImageReader
+
+    canvas = pdf["canvas"]
+    width = pdf["width"]
+    content_area = pdf["content_area"]
+    dark_text = pdf["dark_text"]
+    draw_page = pdf["draw_page"]
+    x = pdf["info_x"] + 24
+    image_max_w = min(width - (x * 2), 360)
+    image_max_h = 155
+    slot_tops = [content_area["top"] - 95, content_area["top"] - 380]
+
+    def draw_signature_slot(assinatura, index, slot_top):
+        canvas.setFillColorRGB(*dark_text)
+        canvas.setFont("Helvetica-Bold", 10)
+        canvas.drawString(x, slot_top, f"Assinatura {index} de {len(assinaturas)}")
+
+        image_top = slot_top - 14
+        try:
+            image = ImageReader(io.BytesIO(bytes(assinatura.arquivo)))
+            img_w, img_h = image.getSize()
+            scale = min(image_max_w / float(img_w), image_max_h / float(img_h), 1)
+            draw_w = img_w * scale
+            draw_h = img_h * scale
+            image_x = (width - draw_w) / 2
+            image_y = image_top - draw_h
+            canvas.drawImage(image, image_x, image_y, width=draw_w, height=draw_h, preserveAspectRatio=True, mask="auto")
+            metadata_y = image_y - 13
+        except Exception:
+            canvas.setFont("Helvetica", 9)
+            canvas.drawString(x, image_top, "Não foi possível renderizar a imagem desta assinatura.")
+            metadata_y = image_top - 16
+
+        assinatura_geos = list(assinatura.geolocalizacoes.all()) if hasattr(assinatura, "geolocalizacoes") else []
+        geo = assinatura_geos[0] if assinatura_geos else None
+        canvas.setFillColorRGB(*dark_text)
+        metadata_y = _draw_pdf_metadata_line(canvas, "Arquivo", getattr(assinatura, "nome_arquivo", "-"), x=x, y=metadata_y, max_chars=84)
+        metadata_y = _draw_pdf_metadata_line(canvas, "Hash assinatura", getattr(assinatura, "hash_assinatura", None), x=x, y=metadata_y, max_chars=74)
+
+        if geo:
+            metadata_y = _draw_pdf_metadata_line(canvas, "Latitude", getattr(geo, "latitude", "-"), x=x, y=metadata_y)
+            metadata_y = _draw_pdf_metadata_line(canvas, "Longitude", getattr(geo, "longitude", "-"), x=x, y=metadata_y)
+            _draw_pdf_metadata_line(canvas, "Hash geo", getattr(geo, "hash_geolocalizacao", None), x=x, y=metadata_y, max_chars=74)
+
+    for index, assinatura in enumerate(assinaturas, start=1):
+        slot_index = (index - 1) % 2
+        if slot_index == 0:
+            canvas.showPage()
+            draw_page()
+            canvas.setFillColorRGB(*dark_text)
+            canvas.setFont("Helvetica-Bold", 12)
+            page_number = ((index - 1) // 2) + 1
+            total_pages = (len(assinaturas) + 1) // 2
+            canvas.drawCentredString(width / 2, content_area["top"] - 60, f"{title} - Página {page_number} de {total_pages}")
+
+        draw_signature_slot(assinatura, index, slot_tops[slot_index])
+
+
+def draw_pdf_inline_signatures(pdf, *, title, assinaturas, x, y):
+    assinaturas = list(assinaturas or [])
+    if not assinaturas:
+        return y
+
+    from reportlab.lib.utils import ImageReader
+
+    canvas = pdf["canvas"]
+    dark_text = pdf["dark_text"]
+    canvas.setFillColorRGB(*dark_text)
+    title_y = y - 10
+    canvas.setFont("Helvetica-Bold", 11)
+    canvas.drawString(x, title_y, title)
+
+    current_y = title_y - 16
+    image_max_w = 170
+    image_max_h = 48
+    metadata_x = x + image_max_w + 16
+
+    for index, assinatura in enumerate(assinaturas, start=1):
+        image_y = current_y - image_max_h
+        try:
+            image = ImageReader(io.BytesIO(bytes(assinatura.arquivo)))
+            img_w, img_h = image.getSize()
+            scale = min(image_max_w / float(img_w), image_max_h / float(img_h), 1)
+            draw_w = img_w * scale
+            draw_h = img_h * scale
+            canvas.drawImage(
+                image,
+                x,
+                current_y - draw_h,
+                width=draw_w,
+                height=draw_h,
+                preserveAspectRatio=True,
+                mask="auto",
+            )
+        except Exception:
+            canvas.setFont("Helvetica", 8)
+            canvas.drawString(x, current_y - 12, "Assinatura não renderizável.")
+
+        metadata_y = current_y - 2
+        if len(assinaturas) > 1:
+            metadata_y = _draw_pdf_metadata_line(canvas, "Assinatura", index, x=metadata_x, y=metadata_y)
+        metadata_y = _draw_pdf_metadata_line(canvas, "Arquivo", getattr(assinatura, "nome_arquivo", "-"), x=metadata_x, y=metadata_y, max_chars=54)
+        _draw_pdf_metadata_line(canvas, "Hash assinatura", getattr(assinatura, "hash_assinatura", None), x=metadata_x, y=metadata_y, max_chars=54)
+        current_y = image_y - 18
+
+    return current_y
 
 
 def _paginate_mock_list(request, items):

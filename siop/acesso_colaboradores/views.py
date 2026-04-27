@@ -10,6 +10,48 @@ from ..view_shared import (
 )
 
 
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
 @login_required
 def acesso_colaboradores_index(request):
     queryset = AcessoColaboradores.objects.select_related("pessoa").order_by("-entrada", "-id")
@@ -238,10 +280,20 @@ def acesso_colaboradores_export(request):
 
 @login_required
 def acesso_colaboradores_export_view_pdf(request, pk):
-    acesso = get_object_or_404(AcessoColaboradores.objects.select_related("pessoa").prefetch_related("anexos"), pk=pk)
-    pdf = build_record_pdf_context(request, report_title=f"Relatório de Acesso de Colaboradores: #{acesso.id}", report_subject="Relatório de Acesso de Colaboradores", header_subtitle="Módulo Acesso de Colaboradores")
+    acesso = get_object_or_404(
+        AcessoColaboradores.objects.select_related("pessoa", "criado_por", "modificado_por").prefetch_related("anexos"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Acesso de Colaboradores: #{acesso.id}",
+        report_subject="Relatório de Acesso de Colaboradores",
+        header_subtitle="Módulo Acesso de Colaboradores",
+    )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
+
     canvas = pdf["canvas"]
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
@@ -249,24 +301,62 @@ def acesso_colaboradores_export_view_pdf(request, pk):
     block_gap = 14
     right_x = info_x + 215
     RECUO = 24
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Entrada", fmt_dt(acesso.entrada))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Saída", fmt_dt(acesso.saida))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "P1", acesso.p1_label or acesso.p1 or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Placa", acesso.placa_veiculo or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Unidade", acesso.unidade_sigla or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", acesso.status_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(acesso, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(acesso, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(acesso.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(acesso.modificado_em))
-    draw_pdf_wrapped_section(canvas, title="Colaborador vinculado", text=(acesso.pessoa.nome if acesso.pessoa_id and acesso.pessoa.nome else "-"), x=info_x + RECUO, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    draw_pdf_wrapped_section(canvas, title="Descrição do acesso", text=acesso.descricao_acesso or "-", x=info_x + RECUO, y=info_y - (block_gap * 2), width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"acesso_colaboradores_{acesso.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Entrada", fmt_dt(acesso.entrada)), ("Saída", fmt_dt(acesso.saida) or "-")),
+            (("Status", acesso.status_label), ("P1", acesso.p1_label or acesso.p1 or "-")),
+            (("Pessoa", acesso.pessoa.nome if acesso.pessoa_id else "-"), ("Documento", acesso.pessoa.documento if acesso.pessoa_id else "-")),
+            (("Placa", acesso.placa_veiculo or "-"), ("Unidade", acesso.unidade_sigla or "-")),
+            (("Anexos", str(acesso.anexos.count())), None),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Descrição do Acesso",
+        text=acesso.descricao_acesso or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        acesso,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_list_section(
+        canvas,
+        title="Anexos",
+        items=[anexo.nome_arquivo for anexo in acesso.anexos.all()],
+        x=info_x + RECUO,
+        y=info_y,
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+        empty_text="Nenhum anexo.",
+    )
+
+    filename = build_pdf_filename("acesso_colaboradores", acesso.id)
+    return finish_record_pdf_response(pdf, filename)

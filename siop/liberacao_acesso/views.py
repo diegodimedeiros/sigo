@@ -11,6 +11,48 @@ from ..view_shared import (
 )
 
 
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
 @login_required
 def liberacao_acesso_index(request):
     queryset = LiberacaoAcesso.objects.prefetch_related("pessoas").order_by("-data_liberacao", "-id")
@@ -169,10 +211,20 @@ def liberacao_acesso_export(request):
 
 @login_required
 def liberacao_acesso_export_view_pdf(request, pk):
-    liberacao = get_object_or_404(LiberacaoAcesso.objects.prefetch_related("pessoas", "anexos"), pk=pk)
-    pdf = build_record_pdf_context(request, report_title=f"Relatório de Liberação de Acesso: #{liberacao.id}", report_subject="Relatório de Liberação de Acesso", header_subtitle="Módulo Liberação de Acesso")
+    liberacao = get_object_or_404(
+        LiberacaoAcesso.objects.select_related("criado_por", "modificado_por").prefetch_related("pessoas", "anexos"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Liberação de Acesso: #{liberacao.id}",
+        report_subject="Relatório de Liberação de Acesso",
+        header_subtitle="Módulo Liberação de Acesso",
+    )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
+
     canvas = pdf["canvas"]
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
@@ -180,25 +232,76 @@ def liberacao_acesso_export_view_pdf(request, pk):
     block_gap = 14
     right_x = info_x + 215
     RECUO = 24
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data da liberação", fmt_dt(liberacao.data_liberacao))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", liberacao.unidade_sigla or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Empresa", liberacao.empresa or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Solicitante", liberacao.solicitante or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Chegadas registradas", str(len(liberacao.chegadas_registradas or [])))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Total de pessoas", str(liberacao.pessoas.count()))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(liberacao, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(liberacao, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(liberacao.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(liberacao.modificado_em))
-    y = draw_pdf_wrapped_section(canvas, title="Motivo da Liberação de Acesso", text=liberacao.motivo or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    y = draw_pdf_list_section(canvas, title="Pessoas Liberadas", items=[f"{pessoa.nome} - {pessoa.documento or '-'}" for pessoa in liberacao.pessoas.all()], x=info_x, y=y, min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"], empty_text="Nenhuma pessoa vinculada.")
-    draw_pdf_list_section(canvas, title="Anexos", items=[anexo.nome_arquivo for anexo in liberacao.anexos.all()], x=info_x, y=y, min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"], empty_text="Nenhum anexo.")
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"liberacao_acesso_{liberacao.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Data da liberação", fmt_dt(liberacao.data_liberacao)), ("Unidade", liberacao.unidade_sigla or "-")),
+            (("Empresa", liberacao.empresa or "-"), ("Solicitante", liberacao.solicitante or "-")),
+            (("Chegadas registradas", str(len(liberacao.chegadas_registradas or []))), ("Total de pessoas", str(liberacao.pessoas.count()))),
+            (("Anexos", str(liberacao.anexos.count())), None),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Motivo da Liberação de Acesso",
+        text=liberacao.motivo or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        liberacao,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_list_section(
+        canvas,
+        title="Pessoas Liberadas",
+        items=[f"{pessoa.nome} - {pessoa.documento or '-'}" for pessoa in liberacao.pessoas.all()],
+        x=info_x + RECUO,
+        y=info_y,
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+        empty_text="Nenhuma pessoa vinculada.",
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_list_section(
+        canvas,
+        title="Anexos",
+        items=[anexo.nome_arquivo for anexo in liberacao.anexos.all()],
+        x=info_x + RECUO,
+        y=info_y,
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+        empty_text="Nenhum anexo.",
+    )
+
+    filename = build_pdf_filename("liberacao_acesso", liberacao.id)
+    return finish_record_pdf_response(pdf, filename)

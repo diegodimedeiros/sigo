@@ -1,5 +1,3 @@
-import io
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -21,11 +19,10 @@ from sigo_core.shared.csv_export import export_generic_csv
 from sigo_core.shared.formatters import bool_ptbr, fmt_dt, status_ptbr, user_display
 from sigo_core.shared.xlsx_export import export_generic_excel
 from sigo_core.shared.pdf_export import (
-    build_numbered_canvas_class,
+    build_record_pdf_context,
+    draw_pdf_list_section,
     draw_pdf_label_value,
-    draw_pdf_page_chrome,
-    get_a4_content_area,
-    wrap_pdf_text_lines,
+    draw_pdf_wrapped_section,
 )
 
 from ..models import Ocorrencia
@@ -42,6 +39,48 @@ from .common import (
 from .query import build_ocorrencia_filtered_qs
 from .serializers import serialize_ocorrencia_detail, serialize_ocorrencia_list_item
 from .services import build_ocorrencias_dashboard, editar_ocorrencia, get_recent_ocorrencias, registrar_ocorrencia
+
+
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
 
 
 @login_required
@@ -243,180 +282,89 @@ def ocorrencias_export(request):
         },
     )
 
-
 @login_required
 def ocorrencias_export_view_pdf(request, pk):
-    ocorrencia_obj = get_object_or_404(Ocorrencia.objects.prefetch_related("anexos"), pk=pk)
-    try:
-        from reportlab.lib.pagesizes import A4
-    except ImportError:
+    ocorrencia = get_object_or_404(
+        Ocorrencia.objects.select_related("criado_por", "modificado_por").prefetch_related("anexos"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Ocorrência: #{ocorrencia.id}",
+        report_subject="Relatório de Ocorrências",
+        header_subtitle="Módulo Ocorrências",
+    )
+    if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
 
-    width, height = A4
-    buffer = io.BytesIO()
-    numbered_canvas = build_numbered_canvas_class(width)
-    canvas = numbered_canvas(buffer, pagesize=A4)
-    canvas.setTitle(f"Relatório da Ocorrência #{ocorrencia_obj.id}")
-    canvas.setAuthor(user_display(request.user))
-    canvas.setSubject("Relatório de Ocorrência")
-
-    content_area = get_a4_content_area()
-    PDF = __import__('sigo_core.shared.pdf_export', fromlist=['PDF_FONTS', 'PDF_COLORS'])
-    PDF_FONTS = PDF.PDF_FONTS
-    PDF_COLORS = PDF.PDF_COLORS
-    dark_text = PDF_COLORS["dark_text"]
-    page_content_top = content_area["top"]
-    min_y = content_area["y"]
-    info_x = content_area["x"]
-
-    def draw_page_chrome():
-        draw_pdf_page_chrome(
-            canvas=canvas,
-            page_width=width,
-            page_height=height,
-            header_subtitle="Módulo Ocorrências",
-        )
-
-    draw_page_chrome()
-    canvas.setFillColorRGB(*dark_text)
-    # Título principal
-    font_name, font_size = PDF_FONTS["header"]
-    canvas.setFont(font_name, font_size)
-    canvas.drawCentredString(width / 2, content_area["top"] - 50, f"Relatório da Ocorrência: #{ocorrencia_obj.id}")
-
-
-
-    # Layout em duas colunas para dados principais
-    info_block_w = 430
-    info_y = content_area["top"] - 90
-    line_h = 16
-    block_gap = 18
-    col_gap = 32
-    col_w = (content_area["width"] - col_gap) / 2
-    left_x = info_x
-    right_x = info_x + col_w + col_gap
+    canvas = pdf["canvas"]
+    info_x = pdf["info_x"]
+    info_y = pdf["height"] - 195
+    line_h = 14
+    block_gap = 14
+    right_x = info_x + 215
     RECUO = 24
 
-    font_name, font_size = PDF_FONTS["label"]
-    canvas.setFont(font_name, font_size)
-    # Primeira linha
-    draw_pdf_label_value(canvas, left_x + RECUO, info_y, "Data/Hora", fmt_dt(ocorrencia_obj.data_ocorrencia))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", status_ptbr(ocorrencia_obj.status))
-    info_y -= line_h
-    # Segunda linha
-    draw_pdf_label_value(canvas, left_x + RECUO, info_y, "Criado por", user_display(getattr(ocorrencia_obj, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(ocorrencia_obj, "modificado_por", None)) or "-")
-    info_y -= line_h
-    # Terceira linha
-    draw_pdf_label_value(canvas, left_x + RECUO, info_y, "Criado em", fmt_dt(ocorrencia_obj.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(ocorrencia_obj.modificado_em))
-    info_y -= (line_h + block_gap)
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("Data/Hora", fmt_dt(ocorrencia.data_ocorrencia)), ("Status", status_ptbr(ocorrencia.status))),
+            (("Tipo Pessoa", ocorrencia.tipo_pessoa_label or "-"), ("Natureza", ocorrencia.natureza_label or "-")),
+            (("Tipo", ocorrencia.tipo_label or "-"), ("Área", ocorrencia.area_label or "-")),
+            (("Local", ocorrencia.local_label or "-"), ("Unidade", ocorrencia.unidade_sigla or "-")),
+            (("CFTV", bool_ptbr(ocorrencia.cftv)), ("Bombeiro Civil", bool_ptbr(ocorrencia.bombeiro_civil))),
+            (("Anexos", str(ocorrencia.anexos.count())), None),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
 
+    info_y -= block_gap
 
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Descrição da Ocorrência",
+        text=ocorrencia.descricao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
 
-    # Bloco de dados da ocorrência (largura total)
-    font_name, font_size = PDF_FONTS["label"]
-    canvas.setFont(font_name, font_size)
-    canvas.drawString(info_x + RECUO, info_y, "Dados da Ocorrência:")
-    info_y -= 20
-    font_name, font_size = PDF_FONTS["body"]
-    canvas.setFont(font_name, font_size)
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo Pessoa", ocorrencia_obj.tipo_pessoa_label or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Natureza", ocorrencia_obj.natureza_label or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo", ocorrencia_obj.tipo_label or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área", ocorrencia_obj.area_label or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", ocorrencia_obj.local_label or "-")
-    info_y -= (line_h + block_gap)
+    info_y -= block_gap
 
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        ocorrencia,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
 
+    info_y -= block_gap
 
-    # Bloco de informações complementares (largura total)
-    font_name, font_size = PDF_FONTS["label"]
-    canvas.setFont(font_name, font_size)
-    canvas.drawString(info_x + RECUO, info_y, "Informações Complementares:")
-    info_y -= 20
-    font_name, font_size = PDF_FONTS["body"]
-    canvas.setFont(font_name, font_size)
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Imagens CFTV", bool_ptbr(ocorrencia_obj.cftv))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Bombeiro Civil", bool_ptbr(ocorrencia_obj.bombeiro_civil))
-    info_y -= (line_h + block_gap)
+    draw_pdf_list_section(
+        canvas,
+        title="Anexos",
+        items=[anexo.nome_arquivo for anexo in ocorrencia.anexos.all()],
+        x=info_x + RECUO,
+        y=info_y,
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+        empty_text="Nenhum anexo.",
+    )
 
-
-
-    # Bloco de descrição
-    desc_title_y = info_y - 8
-    if desc_title_y < min_y:
-        canvas.showPage()
-        draw_page_chrome()
-        desc_title_y = page_content_top
-    canvas.setFillColorRGB(*dark_text)
-    font_name, font_size = PDF_FONTS["label"]
-    canvas.setFont(font_name, font_size)
-    canvas.drawString(info_x + RECUO, desc_title_y, "Descrição da Ocorrência")
-    font_name, font_size = PDF_FONTS["body"]
-    desc_lines = wrap_pdf_text_lines(ocorrencia_obj.descricao or "-", width - (info_x * 2), font_name, font_size)
-    canvas.setFont(font_name, font_size)
-    y = desc_title_y - 18
-    for line in desc_lines:
-        if y < min_y:
-            canvas.showPage()
-            draw_page_chrome()
-            canvas.setFillColorRGB(*dark_text)
-            font_name, font_size = PDF_FONTS["label"]
-            canvas.setFont(font_name, font_size)
-            canvas.drawString(info_x + RECUO, page_content_top, "Descrição da Ocorrência (continuação)")
-            font_name, font_size = PDF_FONTS["body"]
-            canvas.setFont(font_name, font_size)
-            y = page_content_top - 18
-        canvas.drawString(info_x + RECUO, y, line)
-        y -= 13  
-
-    # Bloco de anexos
-    anexos_y = y - 12
-    if anexos_y < min_y:
-        canvas.showPage()
-        draw_page_chrome()
-        canvas.setFillColorRGB(*dark_text)
-        anexos_y = page_content_top
-    font_name, font_size = PDF_FONTS["label"]
-    canvas.setFont(font_name, font_size)
-    canvas.drawString(info_x + RECUO, anexos_y, "Anexos")
-    font_name, font_size = PDF_FONTS["body"]
-    canvas.setFont(font_name, font_size)
-    anexos = list(ocorrencia_obj.anexos.all())
-    y = anexos_y - 14
-    if anexos:
-        for index, anexo in enumerate(anexos, start=1):
-            if y < min_y:
-                canvas.showPage()
-                draw_page_chrome()
-                canvas.setFillColorRGB(*dark_text)
-                font_name, font_size = PDF_FONTS["label"]
-                canvas.setFont(font_name, font_size)
-                canvas.drawString(info_x + RECUO, page_content_top, "Anexos (continuação)")
-                font_name, font_size = PDF_FONTS["body"]
-                canvas.setFont(font_name, font_size)
-                y = page_content_top - 14
-            canvas.drawString(info_x + RECUO + 4, y, f"{index}. {anexo.nome_arquivo}")
-            y -= 12
-    else:
-        canvas.drawString(info_x + RECUO + 4, y, "Nenhum anexo.")
-
-    # Rodapé
-    canvas.setFont("Helvetica", 8)
-    canvas.setFillColorRGB(*dark_text)
-    canvas.drawRightString(width - info_x, min_y - 10, f"Gerado por: {user_display(request.user) or 'Sistema'} em {fmt_dt(timezone.localtime(timezone.now()))}")
-
-    canvas.showPage()
-    canvas.save()
-    buffer.seek(0)
-    filename = f"ocorrencia_{ocorrencia_obj.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(buffer, as_attachment=True, filename=filename)
+    filename = build_pdf_filename("ocorrencias", ocorrencia.id)
+    return finish_record_pdf_response(pdf, filename)
 
 
 @login_required

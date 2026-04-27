@@ -9,6 +9,57 @@ from ..view_shared import (
 )
 
 
+def draw_pdf_two_column_fields(canvas, fields, *, left_x, right_x, y, line_h=14):
+    for left, right in fields:
+        if left:
+            draw_pdf_label_value(canvas, left_x, y, left[0], left[1])
+        if right:
+            draw_pdf_label_value(canvas, right_x, y, right[0], right[1])
+        y -= line_h
+    return y
+
+
+def draw_pdf_audit_fields(canvas, obj, *, left_x, right_x, y, line_h=14):
+    return draw_pdf_two_column_fields(
+        canvas,
+        [
+            (
+                ("Criado por", user_display(getattr(obj, "criado_por", None)) or "-"),
+                ("Modificado por", user_display(getattr(obj, "modificado_por", None)) or "-"),
+            ),
+            (
+                ("Criado em", fmt_dt(getattr(obj, "criado_em", None))),
+                ("Modificado em", fmt_dt(getattr(obj, "modificado_em", None))),
+            ),
+        ],
+        left_x=left_x,
+        right_x=right_x,
+        y=y,
+        line_h=line_h,
+    )
+
+
+def build_pdf_filename(prefix, obj_id):
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M%S")
+    return f"{prefix}_{obj_id}_view_{timestamp}.pdf"
+
+
+def finish_record_pdf_response(pdf, filename):
+    pdf["canvas"].showPage()
+    pdf["canvas"].save()
+    pdf["buffer"].seek(0)
+    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+
+def build_pdf_field_pairs(fields):
+    pairs = []
+    for index in range(0, len(fields), 2):
+        left = fields[index]
+        right = fields[index + 1] if index + 1 < len(fields) else None
+        pairs.append((left, right))
+    return pairs
+
+
 @login_required
 def efetivo_index(request):
     queryset = ControleEfetivo.objects.order_by("-modificado_em", "-id")
@@ -146,46 +197,66 @@ def efetivo_export(request):
 
 @login_required
 def efetivo_export_view_pdf(request, pk):
-    efetivo = get_object_or_404(ControleEfetivo, pk=pk)
-    pdf = build_record_pdf_context(request, report_title=f"Relatório de Efetivo: #{efetivo.id}", report_subject="Relatório de Efetivo", header_subtitle="Módulo Efetivo")
+    efetivo = get_object_or_404(
+        ControleEfetivo.objects.select_related("criado_por", "modificado_por"),
+        pk=pk,
+    )
+
+    pdf = build_record_pdf_context(
+        request,
+        report_title=f"Relatório de Efetivo: #{efetivo.id}",
+        report_subject="Relatório de Efetivo",
+        header_subtitle="Módulo Efetivo",
+    )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
+
     canvas = pdf["canvas"]
     info_x = pdf["info_x"]
     info_y = pdf["height"] - 195
     line_h = 14
     block_gap = 14
-    right_x = info_x + 215
+    right_x = info_x + 250
     RECUO = 24
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável Plantão", efetivo.plantao or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(efetivo, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(efetivo, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(efetivo.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(efetivo.modificado_em))
-    info_y -= (line_h + block_gap)
-    canvas.setFont("Helvetica-Bold", 11)
-    canvas.drawString(info_x + RECUO, info_y, "Composição do Efetivo:")
-    info_y -= 18
-    pairs = [("Atendimento", efetivo.atendimento), ("Bilheteria", efetivo.bilheteria), ("Bombeiro Civil 1", efetivo.bombeiro_civil), ("Bombeiro Civil 2", efetivo.bombeiro_civil_2), ("Bombeiro Hidrulico", efetivo.bombeiro_hidraulico), ("CIOP", efetivo.ciop), ("Elétrica", efetivo.eletrica), ("Artífice Civil", efetivo.artifice_civil), ("TI", efetivo.ti), ("Facilities", efetivo.facilities), ("Manutenção", efetivo.manutencao), ("Jardinagem", efetivo.jardinagem), ("Limpeza", efetivo.limpeza), ("Segurança do Trabalho", efetivo.seguranca_trabalho), ("Segurança Patrimonial", efetivo.seguranca_patrimonial), ("Meio Ambiente", efetivo.meio_ambiente), ("Engenharia", efetivo.engenharia), ("Estapar", efetivo.estapar)]
-    for index in range(0, len(pairs), 2):
-        if info_y < pdf["min_y"]:
-            canvas.showPage()
-            pdf["draw_page"]()
-            canvas.setFillColorRGB(*pdf["dark_text"])
-            canvas.setFont("Helvetica-Bold", 11)
-            canvas.drawString(info_x + RECUO, pdf["page_content_top"], "Composição do Efetivo (continuação):")
-            info_y = pdf["page_content_top"] - 18
-        label_left, value_left = pairs[index]
-        draw_pdf_label_value(canvas, info_x + RECUO, info_y, label_left, value_left or "-")
-        if index + 1 < len(pairs):
-            label_right, value_right = pairs[index + 1]
-            draw_pdf_label_value(canvas, right_x + RECUO, info_y, label_right, value_right or "-")
-        info_y -= line_h
-    draw_pdf_wrapped_section(canvas, title="Observação", text=efetivo.observacao or "-", x=info_x, y=info_y - block_gap, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"efetivo_{efetivo.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+
+    field_values = [
+        (label, getattr(efetivo, field_name, None) or "-")
+        for field_name, label, _required in EFETIVO_FIELDS
+    ]
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        build_pdf_field_pairs(field_values),
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    info_y = draw_pdf_wrapped_section(
+        canvas,
+        title="Observação",
+        text=efetivo.observacao or "-",
+        x=info_x + RECUO,
+        y=info_y,
+        width=pdf["width"],
+        min_y=pdf["min_y"],
+        page_content_top=pdf["page_content_top"],
+        draw_page=pdf["draw_page"],
+        dark_text=pdf["dark_text"],
+    )
+
+    info_y -= block_gap
+
+    draw_pdf_audit_fields(
+        canvas,
+        efetivo,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    filename = build_pdf_filename("efetivo", efetivo.id)
+    return finish_record_pdf_response(pdf, filename)

@@ -757,34 +757,39 @@ def manejo_export_view_pdf(request, pk):
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
     canvas = pdf["canvas"]
-    width = pdf["width"]
-    height = pdf["height"]
     info_x = pdf["info_x"]
-    right_x = width / 2 + 12
-    info_y = height - 150
+    info_y = pdf["height"] - 195
+    line_h = 14
     block_gap = 14
+    right_x = info_x + 215
     RECUO = 24
 
+    # Dados principais em duas colunas
+    info_y = draw_pdf_two_column_fields(
+        canvas,
+        [
+            (("ID", f"#{manejo.id}"), ("Status", manejo.status_label)),
+            (("Data/Hora", fmt_dt(manejo.data_hora)), ("Responsável", manejo.responsavel_manejo_label)),
+            (("Classe", manejo.classe_label), ("Nome Popular", manejo.nome_popular_label)),
+            (("Nome Científico", manejo.nome_cientifico or "-"), ("Estágio", manejo.estagio_desenvolvimento or "-")),
+            (("Área Captura", manejo.area_captura_label), ("Local Captura", manejo.local_captura_label)),
+            (("Área Soltura", manejo.area_soltura_label), ("Local Soltura", manejo.local_soltura_label)),
+            (("Importância Médica", _human_bool(manejo.importancia_medica)), ("Órgão Público", manejo.orgao_publico or "-")),
+        ],
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
 
-    def draw_label_row(y, left, right):
-        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
-        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
-        return y - 18
+    info_y -= block_gap
 
-    info_y = draw_label_row(info_y, ("ID", f"#{manejo.id}"), ("Status", manejo.status_label))
-    info_y = draw_label_row(info_y, ("Data/Hora", fmt_dt(manejo.data_hora)), ("Responsável", manejo.responsavel_manejo_label))
-    info_y = draw_label_row(info_y, ("Classe", manejo.classe_label), ("Nome Popular", manejo.nome_popular_label))
-    info_y = draw_label_row(info_y, ("Nome Científico", manejo.nome_cientifico or "-"), ("Estágio", manejo.estagio_desenvolvimento or "-"))
-    info_y = draw_label_row(info_y, ("Área Captura", manejo.area_captura_label), ("Local Captura", manejo.local_captura_label))
-    info_y = draw_label_row(info_y, ("Área Soltura", manejo.area_soltura_label), ("Local Soltura", manejo.local_soltura_label))
-    info_y = draw_label_row(info_y, ("Importância Médica", _human_bool(manejo.importancia_medica)), ("Órgão Público", manejo.orgao_publico or "-"))
-    info_y -= 10  # para manter o espaçamento total de 28
-
+    # Seções textuais
     info_y = draw_pdf_wrapped_section(
         canvas,
         title="Descrição do Local",
         text=manejo.descricao_local or "-",
-        x=info_x,
+        x=info_x + RECUO,
         y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
@@ -796,8 +801,8 @@ def manejo_export_view_pdf(request, pk):
         canvas,
         title="Descrição do Local de Soltura",
         text=manejo.descricao_local_soltura or "-",
-        x=info_x,
-        y=info_y - 8,
+        x=info_x + RECUO,
+        y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
@@ -808,8 +813,8 @@ def manejo_export_view_pdf(request, pk):
         canvas,
         title="Motivo do Acionamento",
         text=manejo.motivo_acionamento or "-",
-        x=info_x,
-        y=info_y - 8,
+        x=info_x + RECUO,
+        y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
@@ -820,8 +825,8 @@ def manejo_export_view_pdf(request, pk):
         canvas,
         title="Observações",
         text=manejo.observacoes or "-",
-        x=info_x,
-        y=info_y - 8,
+        x=info_x + RECUO,
+        y=info_y,
         width=pdf["width"],
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
@@ -829,6 +834,21 @@ def manejo_export_view_pdf(request, pk):
         dark_text=pdf["dark_text"],
     )
 
+    info_y -= block_gap
+
+    # Auditoria
+    info_y = draw_pdf_audit_fields(
+        canvas,
+        manejo,
+        left_x=info_x + RECUO,
+        right_x=right_x + RECUO,
+        y=info_y,
+        line_h=line_h,
+    )
+
+    info_y -= block_gap
+
+    # Evidências
     evidence_items = [
         f"Fotos de captura: {manejo.fotos_captura.count()}",
         f"Fotos de soltura: {manejo.fotos_soltura.count()}",
@@ -839,8 +859,8 @@ def manejo_export_view_pdf(request, pk):
         canvas,
         title="Evidências",
         items=evidence_items,
-        x=info_x,
-        y=max(info_y - block_gap, 120),
+        x=info_x + RECUO,
+        y=info_y,
         min_y=pdf["min_y"],
         page_content_top=pdf["page_content_top"],
         draw_page=pdf["draw_page"],
@@ -848,11 +868,15 @@ def manejo_export_view_pdf(request, pk):
         empty_text="Nenhuma evidência registrada.",
     )
 
-    canvas.showPage()
-    canvas.save()
-    pdf["buffer"].seek(0)
-    filename = f"sesmt_manejo_{manejo.id}_view_{timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')}.pdf"
-    return FileResponse(pdf["buffer"], as_attachment=True, filename=filename)
+    draw_pdf_photo_pages(
+        pdf,
+        title="Fotos do Manejo",
+        fotos=manejo.fotos.order_by("tipo", "criado_em", "id"),
+        geolocalizacoes=manejo.geolocalizacoes.all(),
+    )
+
+    filename = build_pdf_filename("sesmt_manejo", manejo.id)
+    return finish_record_pdf_response(pdf, filename)
 
 
 @login_required
