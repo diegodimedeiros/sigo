@@ -674,29 +674,20 @@ def flora_export_view_pdf(request, pk):
     right_x = info_x + 215
     RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data/Hora Início", fmt_dt(flora.data_hora_inicio))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", flora.status_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável Registro", flora.responsavel_registro_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Área", flora.area_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", flora.local_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Condição", flora.condicao_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Ação Realizada", flora.acao_realizada_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Nativa", _human_bool(flora.nativa))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Nome Popular", flora.popular or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Espécie", flora.especie or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Diâmetro", flora.diametro_peito or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Altura", flora.altura_total or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Zona", flora.zona_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Responsável Técnico", flora.responsavel_tecnico or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(flora.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(flora.modificado_em))
+
+    def draw_label_row(y, left, right):
+        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
+        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
+        return y - line_h
+
+    info_y = draw_label_row(info_y, ("Data/Hora Início", fmt_dt(flora.data_hora_inicio)), ("Status", flora.status_label))
+    info_y = draw_label_row(info_y, ("Responsável Registro", flora.responsavel_registro_label), ("Área", flora.area_label))
+    info_y = draw_label_row(info_y, ("Local", flora.local_label), ("Condição", flora.condicao_label))
+    info_y = draw_label_row(info_y, ("Ação Realizada", flora.acao_realizada_label), ("Nativa", _human_bool(flora.nativa)))
+    info_y = draw_label_row(info_y, ("Nome Popular", flora.popular or "-"), ("Espécie", flora.especie or "-"))
+    info_y = draw_label_row(info_y, ("Diâmetro", flora.diametro_peito or "-"), ("Altura", flora.altura_total or "-"))
+    info_y = draw_label_row(info_y, ("Zona", flora.zona_label), ("Responsável Técnico", flora.responsavel_tecnico or "-"))
+    info_y = draw_label_row(info_y, ("Criado em", fmt_dt(flora.criado_em)), ("Modificado em", fmt_dt(flora.modificado_em)))
 
     y = draw_pdf_wrapped_section(
         canvas,

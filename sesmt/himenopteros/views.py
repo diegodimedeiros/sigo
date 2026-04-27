@@ -581,23 +581,17 @@ def himenopteros_export_view_pdf(request, pk):
     right_x = info_x + 215
     RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data/Hora Início", fmt_dt(registro.data_hora_inicio))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", registro.status_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável Registro", registro.responsavel_registro_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Área", registro.area_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Local", registro.local_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Tipo", registro.tipo_himenoptero_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Proximidade", registro.proximidade_pessoas_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Classificação", registro.classificacao_risco_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Condição", registro.condicao_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Ação Realizada", registro.acao_realizada_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Isolamento de Área", _human_bool(registro.isolamento_area))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Responsável Técnico", registro.responsavel_tecnico or "-")
+    def draw_label_row(y, left, right):
+        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
+        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
+        return y - line_h
+
+    info_y = draw_label_row(info_y, ("Data/Hora Início", fmt_dt(registro.data_hora_inicio)), ("Status", registro.status_label))
+    info_y = draw_label_row(info_y, ("Responsável Registro", registro.responsavel_registro_label), ("Área", registro.area_label))
+    info_y = draw_label_row(info_y, ("Local", registro.local_label), ("Tipo", registro.tipo_himenoptero_label))
+    info_y = draw_label_row(info_y, ("Proximidade", registro.proximidade_pessoas_label), ("Classificação", registro.classificacao_risco_label))
+    info_y = draw_label_row(info_y, ("Condição", registro.condicao_label), ("Ação Realizada", registro.acao_realizada_label))
+    info_y = draw_label_row(info_y, ("Isolamento de Área", _human_bool(registro.isolamento_area)), ("Responsável Técnico", registro.responsavel_tecnico or "-"))
     y = info_y - 24
     y = draw_pdf_wrapped_section(canvas, title="Descrição do Local", text=registro.descricao_local or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])
     y = draw_pdf_wrapped_section(canvas, title="Observações", text=registro.observacao or "-", x=info_x, y=y, width=pdf["width"], min_y=pdf["min_y"], page_content_top=pdf["page_content_top"], draw_page=pdf["draw_page"], dark_text=pdf["dark_text"])

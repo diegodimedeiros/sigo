@@ -981,32 +981,21 @@ def atendimento_export_view_pdf(request, pk):
     right_x = info_x + 215
     RECUO = 24
 
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Data/Hora", fmt_dt(atendimento.data_atendimento))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Status", atendimento.status_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Pessoa", atendimento.pessoa.nome if atendimento.pessoa_id else "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Documento", atendimento.pessoa_documento_display)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Tipo Pessoa", atendimento.tipo_pessoa_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Tipo Ocorrência", atendimento.tipo_ocorrencia_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Área", atendimento.area_atendimento_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Local", atendimento.local_label)
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Responsável", atendimento.responsavel_atendimento_label)
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Recusa", _human_bool(atendimento.recusa_atendimento))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Passeio", _human_bool(atendimento.seguiu_passeio))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Remoção", _human_bool(atendimento.houve_remocao))
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Primeiros Socorros", atendimento.primeiros_socorros_label or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Unidade", atendimento.unidade_sigla or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado por", user_display(getattr(atendimento, "criado_por", None)) or "-")
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado por", user_display(getattr(atendimento, "modificado_por", None)) or "-")
-    info_y -= line_h
-    draw_pdf_label_value(canvas, info_x + RECUO, info_y, "Criado em", fmt_dt(atendimento.criado_em))
-    draw_pdf_label_value(canvas, right_x + RECUO, info_y, "Modificado em", fmt_dt(atendimento.modificado_em))
+
+    def draw_label_row(y, left, right):
+        draw_pdf_label_value(canvas, info_x + RECUO, y, left[0], left[1])
+        draw_pdf_label_value(canvas, right_x + RECUO, y, right[0], right[1])
+        return y - line_h
+
+    info_y = draw_label_row(info_y, ("Data/Hora", fmt_dt(atendimento.data_atendimento)), ("Status", atendimento.status_label))
+    info_y = draw_label_row(info_y, ("Pessoa", atendimento.pessoa.nome if atendimento.pessoa_id else "-"), ("Documento", atendimento.pessoa_documento_display))
+    info_y = draw_label_row(info_y, ("Tipo Pessoa", atendimento.tipo_pessoa_label), ("Tipo Ocorrência", atendimento.tipo_ocorrencia_label))
+    info_y = draw_label_row(info_y, ("Área", atendimento.area_atendimento_label), ("Local", atendimento.local_label))
+    info_y = draw_label_row(info_y, ("Responsável", atendimento.responsavel_atendimento_label), ("Recusa", _human_bool(atendimento.recusa_atendimento)))
+    info_y = draw_label_row(info_y, ("Passeio", _human_bool(atendimento.seguiu_passeio)), ("Remoção", _human_bool(atendimento.houve_remocao)))
+    info_y = draw_label_row(info_y, ("Primeiros Socorros", atendimento.primeiros_socorros_label or "-"), ("Unidade", atendimento.unidade_sigla or "-"))
+    info_y = draw_label_row(info_y, ("Criado por", user_display(getattr(atendimento, "criado_por", None)) or "-"), ("Modificado por", user_display(getattr(atendimento, "modificado_por", None)) or "-"))
+    info_y = draw_label_row(info_y, ("Criado em", fmt_dt(atendimento.criado_em)), ("Modificado em", fmt_dt(atendimento.modificado_em)))
 
     y = draw_pdf_wrapped_section(
         canvas,
