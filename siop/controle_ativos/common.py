@@ -1,23 +1,7 @@
-"""Utilitários comuns da área SIOP.
+"""Utilitários comuns da área SIOP."""
 
-Este arquivo centraliza pequenas funções reutilizáveis da área, evitando
-lógica utilitária dispersa em views.
-"""
-
-from django.utils import timezone
-
-
-def normalize_text(value):
-    return str(value or "").strip()
-
-
-def bool_label(value):
-    return "Sim" if bool(value) else "Não"
-
-
-def fmt_dt(value):
-    return timezone.localtime(value).strftime("%d/%m/%Y %H:%M") if value else "-"
-
+from sigo_core.shared.normalizers import normalize_text
+from sigo_core.shared.formatters import bool_ptbr as bool_label, fmt_dt
 
 def parse_date_window(request):
     data_inicio = (request.POST.get("data_inicio") or request.GET.get("data_inicio") or "").strip()

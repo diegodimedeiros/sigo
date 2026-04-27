@@ -293,7 +293,7 @@ def ocorrencias_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Ocorrência: #{ocorrencia.id}",
         report_subject="Relatório de Ocorrências",
-        header_subtitle="Módulo Ocorrências",
+        header_subtitle="Módulo SIOP - Ocorrências",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

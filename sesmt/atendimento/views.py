@@ -968,7 +968,7 @@ def atendimento_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Atendimento: #{atendimento.id}",
         report_subject="Relatório de Atendimento SESMT",
-        header_subtitle="Módulo Atendimento",
+        header_subtitle="Módulo SESMT - Atendimento",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

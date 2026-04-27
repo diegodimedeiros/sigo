@@ -268,4 +268,3 @@ Rodar apenas o `SIOP`:
 ## Licença
 
 Uso interno.
-# sigo

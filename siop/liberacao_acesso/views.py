@@ -220,7 +220,7 @@ def liberacao_acesso_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Liberação de Acesso: #{liberacao.id}",
         report_subject="Relatório de Liberação de Acesso",
-        header_subtitle="Módulo Liberação de Acesso",
+        header_subtitle="Módulo SIOP - Liberação de Acesso",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

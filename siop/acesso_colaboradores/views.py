@@ -289,7 +289,7 @@ def acesso_colaboradores_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Acesso de Colaboradores: #{acesso.id}",
         report_subject="Relatório de Acesso de Colaboradores",
-        header_subtitle="Módulo Acesso de Colaboradores",
+        header_subtitle="Módulo SIOP - Acesso de Colaboradores",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

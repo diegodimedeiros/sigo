@@ -570,7 +570,7 @@ def himenopteros_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Himenóptero: #{registro.id}",
         report_subject="Relatório de Himenóptero SESMT",
-        header_subtitle="Monitor Himenóptero",
+        header_subtitle="Módulo SESMT - Monitor Himenóptero",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
@@ -579,7 +579,7 @@ def himenopteros_export_view_pdf(request, pk):
     info_y = pdf["height"] - 195
     line_h = 14
     block_gap = 14
-    right_x = info_x + 215
+    right_x = info_x + 250
     RECUO = 24
 
     # Dados principais em duas colunas

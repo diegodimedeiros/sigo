@@ -229,7 +229,7 @@ def controle_ativos_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Controle de Ativo: #{ativo.id}",
         report_subject="Relatório de Controle de Ativos",
-        header_subtitle="Módulo Controle de Ativos",
+        header_subtitle="Módulo SIOP - Controle de Ativos",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

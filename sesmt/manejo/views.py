@@ -752,7 +752,7 @@ def manejo_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Manejo: #{manejo.id}",
         report_subject="Relatório de Manejo SESMT",
-        header_subtitle="Módulo Manejo",
+        header_subtitle="Módulo SESMT - Manejo",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
@@ -761,7 +761,7 @@ def manejo_export_view_pdf(request, pk):
     info_y = pdf["height"] - 195
     line_h = 14
     block_gap = 14
-    right_x = info_x + 215
+    right_x = info_x + 250
     RECUO = 24
 
     # Dados principais em duas colunas

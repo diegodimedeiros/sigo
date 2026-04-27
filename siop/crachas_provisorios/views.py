@@ -223,7 +223,7 @@ def crachas_provisorios_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Crachá Provisório: #{cracha.id}",
         report_subject="Relatório de Crachás Provisórios",
-        header_subtitle="Módulo Crachás Provisórios",
+        header_subtitle="Módulo SIOP - Crachás Provisórios",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

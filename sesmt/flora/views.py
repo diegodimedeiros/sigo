@@ -662,7 +662,7 @@ def flora_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Flora: #{flora.id}",
         report_subject="Relatório de Flora SESMT",
-        header_subtitle="Módulo Flora",
+        header_subtitle="Módulo SESMT - Flora",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

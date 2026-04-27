@@ -510,7 +510,7 @@ def acesso_terceiros_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Acesso de Terceiros: #{acesso.id}",
         report_subject="Relatório de Acesso de Terceiros",
-        header_subtitle="Módulo Acesso de Terceiros",
+        header_subtitle="Módulo SIOP - Acesso de Terceiros",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

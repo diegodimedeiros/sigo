@@ -238,7 +238,7 @@ def controle_chaves_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório de Controle de Chave: #{chave_obj.id}",
         report_subject="Relatório de Controle de Chaves",
-        header_subtitle="Módulo Controle de Chaves",
+        header_subtitle="Módulo SIOP - Controle de Chaves",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)

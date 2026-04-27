@@ -1,11 +1,13 @@
 from datetime import timedelta
 
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+from django.core.cache import cache
 
 from sigo.models import Notificacao, get_unidade_ativa
 from sigo.notifications import notificacoes_anotadas_para_usuario_modulo
@@ -16,6 +18,7 @@ from .models import AcessoColaboradores, AcessoTerceiros, AchadosPerdidos, Contr
 
 @login_required
 def home(request):
+
     unidade_ativa = get_unidade_ativa()
     now = timezone.now()
     inicio_hoje = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -24,6 +27,13 @@ def home(request):
         selected_days = "30"
     selected_days_int = int(selected_days)
     inicio_periodo_ocorrencias = inicio_hoje - timedelta(days=selected_days_int - 1)
+
+    # Chave de cache baseada em unidade, período e usuário
+    cache_key = f"siop_dashboard:{request.user.id}:{unidade_ativa or 'all'}:{selected_days}"
+    cache_timeout = 300  # 5 minutos
+    cached_context = cache.get(cache_key)
+    if cached_context:
+        return render(request, "siop/index.html", cached_context)
 
     ocorrencias_qs = Ocorrencia.objects.all()
     acessos_qs = AcessoTerceiros.objects.all()
@@ -158,6 +168,7 @@ def home(request):
             {"value": 30, "label": "30 dias", "active": selected_days_int == 30},
         ],
     }
+    cache.set(cache_key, context, cache_timeout)
     return render(request, "siop/index.html", context)
 
 

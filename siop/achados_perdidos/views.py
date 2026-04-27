@@ -472,7 +472,7 @@ def achados_perdidos_export_view_pdf(request, pk):
         request,
         report_title=f"Relatório do Item: #{item.id}",
         report_subject="Relatório de Achados e Perdidos",
-        header_subtitle="Módulo Achados e Perdidos",
+        header_subtitle="Módulo SIOP - Achados e Perdidos",
     )
     if pdf is None:
         return HttpResponse("reportlab não está instalado.", status=500)
