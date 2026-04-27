@@ -4,11 +4,31 @@ Sistema Integrado de Gestão Operacional.
 
 O projeto reúne módulos internos com interface administrativa em Django, layout compartilhado e organização por domínio operacional.
 
+## Novidades e Boas Práticas
+
+- **Helpers centralizados:** Todas as funções utilitárias de normalização e formatação foram movidas para `sigo_core/shared/normalizers.py` e `sigo_core/shared/formatters.py`, eliminando duplicidade e facilitando manutenção.
+- **Performance:** Uso de cache em dashboards e exportações de grandes volumes de dados.
+- **Segurança:** Autenticação, CSRF, permissões e controle de acesso por grupos implementados conforme melhores práticas Django.
+- **Padronização:** Estrutura de código, UX textual e validação de formulários unificadas em todos os módulos.
+
+## Licença e Uso
+
+Este software é de uso interno, conforme detalhado no arquivo LICENSE. Não é permitida a cópia, distribuição ou modificação sem autorização prévia.
+
 ## Módulos
 
 - `SIGO`: autenticação, perfil, notificações e modelos compartilhados
 - `SIOP`: operação, portaria, controle e auditoria
 - `SESMT`: saúde, segurança do trabalho e meio ambiente
+
+## Helpers Compartilhados
+
+Funções utilitárias comuns (normalização de texto, formatação de datas, labels booleanos etc.) estão em:
+
+- `sigo_core/shared/normalizers.py`
+- `sigo_core/shared/formatters.py`
+
+Todos os módulos importam esses helpers, evitando duplicidade e facilitando manutenção.
 
 
 ## Áreas disponíveis
